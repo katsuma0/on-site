@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.221';
+var APP_VERSION='0.222';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -94,6 +94,9 @@ var FR={
   'Delete photo':'Supprimer la photo','Rate':'Noter','Versions':'Versions','Sections':'Sections',
   'Campground review':'Avis sur le terrain','Campground':'Terrain de camping',
   'North':'Nord','Central':'Centre','South':'Sud','East':'Est','West':'Ouest',
+  'Near North':'Proche-Nord','Northern':'Nord','Southeast':'Sud-Est','Southwest':'Sud-Ouest','Other':'Autre',
+  'Site review':'Avis sur l’emplacement','Trail review':'Avis sur le sentier','Park review':'Avis sur le parc',
+  'Reviewed':'Évalué en','Shared':'Partagé','review':'avis',
   /* messages */
   'Backup exported. Keep it somewhere safe.':'Sauvegarde exportée. Gardez-la en lieu sûr.',
   'Backup restored. Welcome back.':'Sauvegarde restaurée. Bon retour.',
@@ -629,7 +632,7 @@ function regionOrder(){ const found=new Set(PARKS.map(broadOf));
 function regionChipsHtml(){
   return '<div class="filters">'+regionOrder().map(function(r){
     return '<button class="fchip'+(r===regionFilter?' on':'')+'" type="button" data-region="'+r+'">'+
-      '<span class="fct">'+(r==='All'?TL('All regions'):r)+'</span></button>'; }).join('')+'</div>';
+      '<span class="fct">'+(r==='All'?TL('All regions'):TL(r))+'</span></button>'; }).join('')+'</div>';
 }
 
 /* ================= favourites =================
@@ -767,7 +770,7 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
     html+='<div class="az-sec" id="az-'+L+'"><div class="az-head">'+L+'</div><div class="ios-group">'+
       byLetter[L].map(p=>{ const st=info[p.id];
         const town=(p.region||'').split(' · ').slice(1).join(' · ');
-        const sub=broadOf(p)+(town?' · '+town:'');
+        const sub=TL(broadOf(p))+(town?' · '+town:'');
         return parkRowHtml(p,st,sub,st.rated>0?st.rated+' '+TL('rated'):''); }).join('')+
       '</div></div>';
   });
@@ -1167,7 +1170,7 @@ backdrop.addEventListener('click',closeSheet);
    Builds a self-contained item so the whole review travels inside a
    #/shared/<data> link. share.js renders the card and opens the share sheet;
    the recipient sees the same card. No server, nothing tracked. */
-function fmtMonthYear(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(undefined,{month:'long',year:'numeric'}); }
+function fmtMonthYear(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(LANG==='fr'?'fr-CA':undefined,{month:'long',year:'numeric'}); }
 function reviewShareItem(){
   var type=cur.type, k=cur.k, score=sc(type,k), note=noteOf(type,k), kind, title, sub='';
   if(type==='site'){ kind='site'; title=curPark.name; sub=TL('Site')+' '+cur.site+(cur.cg&&cur.cg!==curPark.name?(' · '+cur.cg):''); }
@@ -1175,18 +1178,18 @@ function reviewShareItem(){
   else { var isPark=(curPark.dayuse&&cur.cg===curPark.name); kind=isPark?'park':'campground'; title=curPark.name;
     sub=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):cur.cg; }
   return { t:'camp-review', kind:kind, title:title, sub:sub,
-    score:(score!=null?score:null), note:note?(note.length>200?note.slice(0,197)+'…':note):'',
+    score:(score!=null?score:null), note:note?(Array.from(note).length>200?Array.from(note).slice(0,197).join('')+'…':note):'',
     want:(type==='site'?wantOf(k):false), when:new Date().toISOString() };
 }
 function campCard(it){
-  var kicker=it.kind==='site'?'Site review':it.kind==='trail'?'Trail review':it.kind==='park'?'Park review':'Campground review';
+  var kicker=it.kind==='site'?TL('Site review'):it.kind==='trail'?TL('Trail review'):it.kind==='park'?TL('Park review'):TL('Campground review');
   var emoji=it.kind==='trail'?'🥾':'🏕️';
   var chips=[];
   if(it.score!=null){ var s=Math.max(0,Math.min(5,it.score|0)); chips.push({label:'★'.repeat(s)+'☆'.repeat(5-s)}); }
-  if(it.want) chips.push({label:'Wishlist'});
+  if(it.want) chips.push({label:TL('Wishlist')});
   var sub=(it.sub&&it.sub!==it.title)?it.sub:'';
   return { eyebrow:'on-site', kicker:kicker, emoji:emoji, title:it.title, subtitle:sub,
-    chips:chips.slice(0,4), meta:(it.when?('Reviewed '+fmtMonthYear(it.when)):'') };
+    chips:chips.slice(0,4), meta:(it.when?(TL('Reviewed')+' '+fmtMonthYear(it.when)):'') };
 }
 function shareReview(){
   if(!cur.type||!cur.k) return;
@@ -1212,7 +1215,7 @@ function showShared(item){
     body.innerHTML='<p class="empty">'+TL('This shared link could not be opened. It may be from a newer version of the app.')+'</p>';
     try{ window.scrollTo(0,0); }catch(e){} return;
   }
-  body.innerHTML='<div class="shared-card-wrap"><img id="shared-card-img" class="shared-card" alt="Shared '+esc(item.title||'review')+'"></div>'
+  body.innerHTML='<div class="shared-card-wrap"><img id="shared-card-img" class="shared-card" alt="'+esc(TL('Shared')+' '+(item.title||TL('review')))+'"></div>'
     +(item.note?'<p class="shared-note">“'+esc(item.note)+'”</p>':'')
     +'<button class="btn-share primary" id="sh-explore" type="button">'+TL('Explore Ontario parks')+'</button>';
   if(window.OnShare) OnShare.makeCard(campCard(item)).then(function(b){ if(!b) return; var img=document.getElementById('shared-card-img'); if(img) img.src=URL.createObjectURL(b); });
@@ -1696,18 +1699,20 @@ function journalEntries(){ var byPark={};
   function push(pid,en){ if(!PARK_BY_ID[pid]) return; (byPark[pid]=byPark[pid]||[]).push(en); }
   var o=state.site||{}, k, e;
   for(k in o){ e=o[k]; if(!e) continue; var rated=(typeof e.score==='number');
-    if(!rated&&!e.want) continue; var sp=k.split('#');
+    if(!rated&&!e.want&&!(e.note&&String(e.note).trim())&&!photoKeys.has(k)) continue; var sp=k.split('#');
     push(sp[0],{type:'site',k:k,title:TL('Site')+' '+sp.slice(2).join('#'),sub:sp[1],
       score:rated?e.score:null,want:!!e.want,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   o=state.campground||{};
-  for(k in o){ e=o[k]; if(!e||typeof e.score!=='number') continue; var cp=k.split('#'), pid=cp[0],
+  for(k in o){ e=o[k]; if(!e) continue; var cgRated=(typeof e.score==='number');
+    if(!cgRated&&!(e.note&&String(e.note).trim())&&!photoKeys.has(k)) continue; var cp=k.split('#'), pid=cp[0],
       name=cp.slice(1).join('#'), p=PARK_BY_ID[pid];
     push(pid,{type:'campground',k:k,title:name,sub:(p&&name===p.name)?TL('Park rating'):TL('Campground'),
-      score:e.score,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
+      score:cgRated?e.score:null,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   o=state.trail||{};
-  for(k in o){ e=o[k]; if(!e||typeof e.score!=='number') continue; var tp=k.split('#');
+  for(k in o){ e=o[k]; if(!e) continue; var trRated=(typeof e.score==='number');
+    if(!trRated&&!(e.note&&String(e.note).trim())&&!photoKeys.has(k)) continue; var tp=k.split('#');
     push(tp[0],{type:'trail',k:k,title:tp.slice(1).join('#'),sub:TL('Trail'),
-      score:e.score,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
+      score:trRated?e.score:null,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   return byPark; }
 function openJournalEntry(k,type){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_ID[pid]) return;
   showTab('guide'); openPark(pid);
@@ -1802,9 +1807,6 @@ function openSettings(){ showTab('more'); }
 function closeSettings(){}
 (function(){ var tb=document.getElementById('tabbar');
   if(tb) tb.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.tab'); if(b){ showTab(b.dataset.tab); if(typeof buzz==='function') buzz(6); } }); })();
-(function(){ var at=document.getElementById('appTitle'); if(!at) return;
-  at.addEventListener('click',function(){ showTab('more'); });
-  at.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '||ev.key==='Spacebar'){ ev.preventDefault(); showTab('more'); } }); })();
 settingsBackdrop.addEventListener('click',closeSettings);
 
 /* ---- learn and safety ---- */
