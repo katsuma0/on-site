@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.223';
+var APP_VERSION='0.224';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -1636,7 +1636,7 @@ function renderAvatar(){
   inp.addEventListener('input',function(){ setDisplayName(inp.value); renderAvatar(); });
   inp.addEventListener('keydown',function(e){ if(e.key==='Enter') inp.blur(); });
 })();
-function accountStats(){ var s=journalStats(); return {parks:s.parks,sites:s.n}; }
+function accountStats(){ var s=journalStats(); return {parks:Object.keys(journalEntries()).length,sites:s.n}; }
 function countPhotosSaved(){ return openDB().then(function(db){ return new Promise(function(res){
     var tx=db.transaction(STORE,'readonly'); var rq=tx.objectStore(STORE).getAll();
     rq.onsuccess=function(){ var n=0; (rq.result||[]).forEach(function(r){ if(r&&Array.isArray(r.list)) n+=r.list.length; }); res(n); };
@@ -1970,7 +1970,7 @@ makeSheetSwipe(sheet,closeSheet);
   window.addEventListener('hashchange',fromHash);
   fromHash();
 })();
-if(window.OnShare) OnShare.config({ app:'on-camp', base:'https://katsuma.ca/on-site/', accent:'#284162' });
+if(window.OnShare) OnShare.config({ app:'on-site', base:'https://katsuma.ca/on-site/', accent:'#284162' });
 (function(){ /* #/shared/<data> receive route */
   function fromSharedHash(){
     var m=(location.hash||'').match(/^#\/shared\/(.+)$/); if(!m) return;
