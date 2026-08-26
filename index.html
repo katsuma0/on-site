@@ -63,7 +63,7 @@
 <main id="views">
 <section id="view-parks">
   <div class="appbar">
-    <div class="titlebar"><h1 id="appTitle" style="cursor:pointer;-webkit-tap-highlight-color:transparent">on-site</h1></div>
+    <div class="titlebar"><h1 id="appTitle" role="button" tabindex="0" style="cursor:pointer;-webkit-tap-highlight-color:transparent">on-site</h1></div>
   </div>
   <div class="wrap">
     <div id="parkList"></div>
@@ -174,10 +174,10 @@
 
 <section id="view-photos" class="tabscreen" hidden>
   <div class="wrap">
-    <button class="acct-back" id="photosBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg>Account</button>
+    <button class="acct-back" id="photosBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg><span data-i18n="Account">Account</span></button>
   </div>
   <h1 class="screen-title" data-i18n="Photos">Photos</h1>
-  <p class="screen-sub">Tap a photo to open its site.</p>
+  <p class="screen-sub" data-i18n="Tap a photo to open its site.">Tap a photo to open its site.</p>
   <div class="wrap"><div class="pgrid" id="photosGrid"></div></div>
 </section>
 

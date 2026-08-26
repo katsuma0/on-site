@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.220';
+var APP_VERSION='0.221';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -106,6 +106,23 @@ var FR={
   'That file is not a Site Journal backup.':'Ce fichier n’est pas une sauvegarde de Site Journal.',
   'Link copied, card saved':'Lien copié, carte enregistrée',
   'Park data cleared.':'Données du parc effacées.',
+  'Hidden park revealed. Welcome to the Wildlands.':'Parc caché révélé. Bienvenue dans les Wildlands.',
+  'Some of the backup could not be saved. Your device storage may be full.':'Une partie de la sauvegarde n’a pas pu être enregistrée. Le stockage de votre appareil est peut-être plein.',
+  /* audit fixes: rendered strings, empty states, aria labels */
+  'Your journal starts here':'Votre journal commence ici',
+  'Tap a photo to open its site.':'Touchez une photo pour ouvrir son emplacement.',
+  "No photos yet. Add one from a site's rating sheet.":'Aucune photo pour l’instant. Ajoutez-en une depuis la fiche de notation d’un emplacement.',
+  'Fishing':'Pêche',
+  'Official park page':'Page officielle du parc',
+  'Tap again to restore':'Touchez encore pour restaurer',
+  'rating':'évaluation','ratings':'évaluations',
+  'Explore Ontario parks':'Explorer les parcs de l’Ontario',
+  'Open':'Ouvrir',
+  'This shared link could not be opened. It may be from a newer version of the app.':'Ce lien partagé n’a pas pu être ouvert. Il provient peut-être d’une version plus récente de l’application.',
+  'site photo':'photo de l’emplacement',
+  'Check your connection and reopen the app.':'Vérifiez votre connexion et rouvrez l’application.',
+  'not rated':'non noté','wishlist':'liste de souhaits','has a note':'a une note','has a photo':'a une photo',
+  'View photo':'Voir la photo',
   /* learn */
   'Bear safety and food storage':'Sécurité avec les ours et rangement des aliments',
   'Campfire safety':'Sécurité des feux de camp',
@@ -685,7 +702,7 @@ function favSiteRows(visible){
         if(!isFav('sites',k)) return;
         var score=sc('site',k);
         var val=(score!=null)?score+'/5':'';
-        rows+='<button class="ios-row ios-row--plain" type="button" data-park="'+p.id+'" data-cg="'+c.id+'">'+
+        rows+='<button class="ios-row ios-row--plain" type="button" data-park="'+p.id+'" data-cg="'+c.id+'" data-site="'+String(s).replace(/"/g,'&quot;')+'">'+
           '<span class="ios-row-body"><span class="ios-row-title">'+TL('Site')+' '+s+'</span>'+
           '<span class="ios-row-sub">'+p.name+' · '+c.id+'</span></span>'+
           (val?'<span class="ios-row-value tnum">'+val+'</span>':'')+
@@ -694,6 +711,14 @@ function favSiteRows(visible){
     });
   });
   return rows;
+}
+/* a favourited campsite row drills into that exact site, mirroring the search
+   result's site branch: open the park, expand its campground, open the sheet.
+   Falls back to the park page if the row carries no site (defensive). */
+function openFavSite(pid,cgId,site){
+  if(!PARK_BY_ID[pid]) return;
+  openPark(pid);
+  if(cgId&&site!=null&&site!==''){ expandCg(cgId); openSheet('site',keyOf(pid,cgId,site),cgId,site); }
 }
 
 /* No heart on a park row: the list is a long scroll and the target sat right
@@ -705,7 +730,7 @@ function parkRowHtml(p,st,sub,value){
     (value?'<span class="ios-row-value tnum">'+value+'</span>':'')+CHEV_RIGHT+'</button>';
 }
 function renderParks(){ const box=document.getElementById('parkList'); if(!box) return; box.innerHTML='';
-  if(!PARKS.length){ box.innerHTML=`<div class="empty" style="border:1px solid var(--separator);border-radius:var(--r);background:var(--bg-elevated);padding:26px 18px">Park data could not be loaded.<br>Check your connection and reopen the app.</div>`; renderAzRail([]); return; }
+  if(!PARKS.length){ box.innerHTML=`<div class="empty" style="border:1px solid var(--separator);border-radius:var(--r);background:var(--bg-elevated);padding:26px 18px">${TL('Park data could not be loaded.')}<br>${TL('Check your connection and reopen the app.')}</div>`; renderAzRail([]); return; }
   const visible=PARKS.filter(parkVisible);
   const info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
@@ -748,7 +773,7 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
   });
   if(!shown.length) html+='<div class="empty">No parks in this region.</div>';
   box.innerHTML=html;
-  box.querySelectorAll('[data-park]').forEach(b=>b.addEventListener('click',()=>openPark(b.dataset.park)));
+  box.querySelectorAll('[data-park]').forEach(b=>b.addEventListener('click',()=>{ if(b.hasAttribute('data-site')) openFavSite(b.dataset.park,b.dataset.cg,b.dataset.site); else openPark(b.dataset.park); }));
   box.querySelectorAll('.fchip[data-region]').forEach(b=>b.addEventListener('click',()=>{ regionFilter=b.dataset.region; buzz(6); renderParks(); }));
   renderAzRail(letters);
 }
@@ -788,9 +813,9 @@ function openPark(pid){
       <div class="about-body" id="aboutBody" hidden>
         <div class="blurb">${p.blurb}</div>
         <div class="facils">${p.facilities.map(facilChip).join('')}</div>
-        <div class="fishing"><b>Fishing:</b> ${p.fishing}</div>
+        <div class="fishing"><b>${TL('Fishing')}:</b> ${p.fishing}</div>
         ${(m=>m?`<a class="fmz" href="${FISHREG_BASE}#zone=${m[1]}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>FMZ ${m[1]} - ONfishingreg \u2197</a>`:`<div class="fmz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>${p.fmz}</div>`)((p.fmz||'').match(/FMZ\s*(\d+)/))}
-                <a class="fmz" href="${p.url}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4 10 14"/><path d="M9 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg>Official park page \u2197</a>
+                <a class="fmz" href="${p.url}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4 10 14"/><path d="M9 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg>${TL('Official park page')} \u2197</a>
       </div>
     </div>
     <div class="seclabel">${p.dayuse?TL('Rating'):TL('Park rating')}</div>
@@ -887,7 +912,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   function importTitles(){ return importRows.map(function(b){ return b.querySelector('.ios-row-title')||b; }); }
   function setImportLabel(t){ importTitles().forEach(function(el){ el.textContent=t; }); }
   function disarmImport(){ pendingPayload=null; clearTimeout(armT);
-    importRows.forEach(function(b){ b.classList.remove('armed'); }); setImportLabel('Import a backup'); }
+    importRows.forEach(function(b){ b.classList.remove('armed'); }); setImportLabel(TL('Import a backup')); }
   importRows.forEach(function(b){ b.addEventListener('click',function(){
     if(pendingPayload){ clearTimeout(armT); applyBackup(pendingPayload); pendingPayload=null; return; }
     fi.value=''; fi.click(); }); });
@@ -898,17 +923,25 @@ document.getElementById('backBtn').addEventListener('click',function(){
       var n=0; try{ var s=JSON.parse(p.data['ontario-scout-v2']);
         ['site','campground','trail'].forEach(function(t){ var m=s&&s[t]||{}; for(var k in m){ if(m[k]&&typeof m[k].score==='number') n++; } }); }catch(e){}
       pendingPayload=p; importRows.forEach(function(b){ b.classList.add('armed'); });
-      setImportLabel('Tap again to restore '+n+(n===1?' rating':' ratings'));
+      setImportLabel(TL('Tap again to restore')+' '+n+' '+(n===1?TL('rating'):TL('ratings')));
       armT=setTimeout(disarmImport,6000); })
       .catch(function(){ showThemeToast('Could not read that file.'); }); });
   function applyBackup(p){
     try{ clearTimeout(saveTimer); }catch(e){}
-    BK_KEYS.forEach(function(k){ try{ if(typeof p.data[k]==='string') localStorage.setItem(k,p.data[k]); else localStorage.removeItem(k); }catch(e){} });
+    /* track every write: a failed localStorage.setItem (quota) or an errored/
+       aborted IndexedDB transaction must not be reported as a clean restore */
+    var lsOk=true;
+    BK_KEYS.forEach(function(k){ try{ if(typeof p.data[k]==='string') localStorage.setItem(k,p.data[k]); else localStorage.removeItem(k); }catch(e){ lsOk=false; } });
     var photos=(p.photos&&typeof p.photos==='object')?p.photos:{};
-    openDB().then(function(db){ return new Promise(function(res){ var tx=db.transaction(STORE,'readwrite'); var st=tx.objectStore(STORE); st.clear();
-      Object.keys(photos).forEach(function(k){ var list=photos[k]; if(Array.isArray(list)&&list.length) st.put({siteId:k,list:list}); });
-      tx.oncomplete=function(){ res(); }; tx.onerror=function(){ res(); }; }); }).catch(function(){})
-      .then(function(){ showThemeToast(TL('Backup restored. Welcome back.')); setTimeout(function(){ location.reload(); },900); }); }
+    openDB().then(function(db){ return new Promise(function(res){ var putErr=false;
+      var tx=db.transaction(STORE,'readwrite'); var st=tx.objectStore(STORE); st.clear();
+      Object.keys(photos).forEach(function(k){ var list=photos[k]; if(Array.isArray(list)&&list.length){ try{ st.put({siteId:k,list:list}); }catch(e){ putErr=true; } } });
+      tx.oncomplete=function(){ res(!putErr); }; tx.onerror=function(){ res(false); }; tx.onabort=function(){ res(false); }; }); }).catch(function(){ return false; })
+      .then(function(dbOk){
+        if(lsOk&&dbOk){ showThemeToast(TL('Backup restored. Welcome back.')); setTimeout(function(){ location.reload(); },900); }
+        /* a write failed: keep the pre-import state (do not reload) and say so */
+        else{ showThemeToast(TL('Some of the backup could not be saved. Your device storage may be full.')); }
+      }); }
 })();
 (function(){ /* interactive drag-back: the park page follows your finger and reveals home underneath */
   var vp=document.getElementById('view-park'), vh=document.getElementById('view-parks');
@@ -952,7 +985,7 @@ function renderCgs(){ const box=document.getElementById('cgs'); box.innerHTML=''
   p.campgrounds.forEach(cg=>{ const st=cgStats(p,cg), own=sc('campground',cidOf(p.id,cg.id)), col=scoreColor(own);
     const card=document.createElement('div'); card.className='cg'; card.dataset.cg=cg.id;
     card.innerHTML=`
-      <button class="cg-row" data-toggle>
+      <button class="cg-row" data-toggle aria-expanded="false">
         <div class="cg-left"><div class="cg-name">${cg.id}</div><div class="cg-sub">${(cg.sub||'').split(' · ').slice(0,2).join(' · ')}</div></div>
         <div class="cg-right"><div class="cg-prog" ${st.rated>0?'':'hidden'}><div class="bar"><i style="width:${st.pct}%"></i></div><div class="lbl tnum">${st.rated}/${st.total}</div></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></div>
@@ -960,10 +993,10 @@ function renderCgs(){ const box=document.getElementById('cgs'); box.innerHTML=''
       <div class="cg-body"><div class="cg-body-head"><span class="cg-desc">${cgSites(cg).length} ${TL('sites')}</span>
         <button class="cg-rate ${col?'rated':''}" ${col?`style="background:${col}"`:''} data-cgrate>${col?`${TL('Campground')} · ${own}/5`:TL('Rate campground')}</button></div>
         <div class="grid"></div></div>`;
-    card.querySelector('[data-toggle]').addEventListener('click',()=>{ const opening=!card.classList.contains('open'); card.classList.toggle('open'); if(opening) fillGrid(card); });
+    card.querySelector('[data-toggle]').addEventListener('click',()=>{ const opening=!card.classList.contains('open'); card.classList.toggle('open'); if(opening) fillGrid(card); card.querySelector('[data-toggle]').setAttribute('aria-expanded',String(card.classList.contains('open'))); });
     card.querySelector('[data-cgrate]').addEventListener('click',e=>{ e.stopPropagation(); openSheet('campground',cidOf(p.id,cg.id),cg.id,null); });
     box.appendChild(card); });
-  if(p.campgrounds.length===1){ const only=box.querySelector('.cg'); if(only){ only.classList.add('open'); fillGrid(only); } } }
+  if(p.campgrounds.length===1){ const only=box.querySelector('.cg'); if(only){ only.classList.add('open'); fillGrid(only); const tg=only.querySelector('[data-toggle]'); if(tg) tg.setAttribute('aria-expanded','true'); } } }
 function fillGrid(card){ if(card.dataset.filled) return; const cg=CG_BY_ID(card.dataset.cg); const grid=card.querySelector('.grid');
   const frag=document.createDocumentFragment(); cgSites(cg).forEach(s=>frag.appendChild(makeChip(cg,s))); grid.appendChild(frag); card.dataset.filled='1'; }
 const MEDAL_SVG='<svg class="medal" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 1a11 11 0 1 0 .01 0z M12 4.4 13.88 9.41 19.23 9.65 15.04 12.99 16.47 18.15 12 15.2 7.53 18.15 8.96 12.99 4.77 9.65 10.12 9.41z"/></svg>';
@@ -971,12 +1004,21 @@ const MEDAL_SVG='<svg class="medal" viewBox="0 0 24 24" aria-hidden="true"><path
 const CHEV_RIGHT='<span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>';
 function chipInner(cg,s){ const k=keyOf(curPark.id,cg.id,s), v=sc('site',k), c=scoreColor(v), note=!!noteOf('site',k), want=wantOf(k), photo=photoKeys.has(k);
   return `${s}`; }
+/* the chip shows only its site number; its state (rating, wishlist, note, photo)
+   lives in colour and marker classes, so it is spelled out in the aria-label for
+   colour-blind and screen-reader users */
+function chipAria(k,s){ const v=sc('site',k);
+  return TL('Site')+' '+s
+    +(v!=null?', '+v+'/5':', '+TL('not rated'))
+    +(wantOf(k)?', '+TL('wishlist'):'')
+    +(noteOf('site',k)?', '+TL('has a note'):'')
+    +(photoKeys.has(k)?', '+TL('has a photo'):''); }
 function makeChip(cg,s){ const k=keyOf(curPark.id,cg.id,s), c=scoreColor(sc('site',k));
   const b=document.createElement('button'); b.className='site'+(c?' rated':'')+(wantOf(k)?' wanted':'')+((noteOf('site',k)||photoKeys.has(k))?' marked':''); b.dataset.key=k; b.dataset.site=s; if(c) b.style.background=c;
-  b.innerHTML=chipInner(cg,s); b.addEventListener('click',()=>openSheet('site',k,cg.id,s)); return b; }
+  b.innerHTML=chipInner(cg,s); b.setAttribute('aria-label',chipAria(k,s)); b.addEventListener('click',()=>openSheet('site',k,cg.id,s)); return b; }
 function refreshChip(k){ const b=document.querySelector(`.site[data-key="${CSS.escape(k)}"]`); if(!b) return;
   const parts=k.split('#'), cg=CG_BY_ID(parts[1]), s=parts.slice(2).join('#'), c=scoreColor(sc('site',k));
-  b.classList.toggle('rated',!!c); b.classList.toggle('wanted',wantOf(k)); b.classList.toggle('marked',!!(noteOf('site',k)||photoKeys.has(k))); b.style.background=c||''; b.innerHTML=chipInner(cg,s); }
+  b.classList.toggle('rated',!!c); b.classList.toggle('wanted',wantOf(k)); b.classList.toggle('marked',!!(noteOf('site',k)||photoKeys.has(k))); b.style.background=c||''; b.innerHTML=chipInner(cg,s); b.setAttribute('aria-label',chipAria(k,s)); }
 function refreshCgHeader(cgId){ const card=document.querySelector(`.cg[data-cg="${CSS.escape(cgId)}"]`); if(!card) return; const cg=CG_BY_ID(cgId);
   const st=cgStats(curPark,cg), own=sc('campground',cidOf(curPark.id,cgId)), col=scoreColor(own);
   const prog=card.querySelector('.cg-prog'); if(prog) prog.hidden=st.rated===0;
@@ -984,7 +1026,7 @@ function refreshCgHeader(cgId){ const card=document.querySelector(`.cg[data-cg="
   card.querySelector('.cg-prog .lbl').textContent=`${st.rated}/${st.total}`;
   const rb=card.querySelector('[data-cgrate]'); rb.classList.toggle('rated',!!col); rb.style.background=col||''; rb.textContent=col?`${TL('Campground')} · ${own}/5`:TL('Rate campground'); }
 function expandCg(cgId){ const card=document.querySelector(`.cg[data-cg="${CSS.escape(cgId)}"]`); if(!card) return;
-  card.classList.add('open'); fillGrid(card); card.scrollIntoView({behavior:'smooth',block:'start'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); }
+  card.classList.add('open'); fillGrid(card); var tg=card.querySelector('[data-toggle]'); if(tg) tg.setAttribute('aria-expanded','true'); card.scrollIntoView({behavior:'smooth',block:'start'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); }
 
 function refreshParkRate(){ const el=document.getElementById('prVal'); if(!el||!curPark) return;
   const own=sc('campground',cidOf(curPark.id,curPark.name)), col=scoreColor(own);
@@ -1039,6 +1081,31 @@ function refreshTrailCard(name){
 
 let cur={type:null,k:null,cg:null,site:null,trailName:null};
 const sheet=document.getElementById('sheet'), backdrop=document.getElementById('backdrop');
+/* modal a11y, shared by the rate, legal and versions sheets: on open, save the
+   triggering element, make the page behind the scrim inert + aria-hidden (the
+   content views, the header and the tab bar, never the sheet divs themselves),
+   and move focus into the sheet; on close, undo all of that and restore focus.
+   Kept out of lockScroll/unlockScroll and the open/close animation. */
+var _sheetLastFocus=null;
+function sheetBgEls(){ var els=[];
+  document.querySelectorAll('#views > section').forEach(function(el){ els.push(el); });
+  var h=document.getElementById('iosHeader'); if(h) els.push(h);
+  var t=document.getElementById('tabbar'); if(t) els.push(t);
+  return els; }
+function sheetA11yOpen(sheetEl){ if(!sheetEl) return;
+  if(!_sheetLastFocus) _sheetLastFocus=document.activeElement;
+  sheetBgEls().forEach(function(el){ try{ el.setAttribute('inert',''); el.setAttribute('aria-hidden','true'); }catch(e){} });
+  setTimeout(function(){
+    if(!sheetEl.classList.contains('on')) return;
+    if(sheetEl.contains(document.activeElement)) return;
+    var f=sheetEl.querySelector('button:not([disabled]),input:not([type=hidden]):not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])');
+    if(!f){ f=sheetEl; if(!f.hasAttribute('tabindex')) f.setAttribute('tabindex','-1'); }
+    try{ f.focus({preventScroll:true}); }catch(e){ try{ f.focus(); }catch(e2){} }
+  },60); }
+function sheetA11yClose(){
+  sheetBgEls().forEach(function(el){ try{ el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }catch(e){} });
+  if(_sheetLastFocus&&_sheetLastFocus.focus){ try{ _sheetLastFocus.focus({preventScroll:true}); }catch(e){} }
+  _sheetLastFocus=null; }
 function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
   for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
     b.setAttribute('aria-label', i+' / 5'); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
@@ -1062,9 +1129,9 @@ function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==
   document.getElementById('notesLabel').textContent=TL('Notes');
   document.getElementById('d-kind').style.display=(type==='site')?'none':'';
   const nta=document.getElementById('d-notes'); nta.value=noteOf(type,k); autoGrowNotes(nta); paintDots();
-  backdrop.classList.add('on'); sheet.classList.add('on'); sheet.scrollTop=0; lockScroll();
+  backdrop.classList.add('on'); sheet.classList.add('on'); sheet.scrollTop=0; lockScroll(); sheetA11yOpen(sheet);
 }
-function closeSheet(){ backdrop.classList.remove('on'); sheet.classList.remove('on'); sheet.style.transform=''; unlockScroll(); }
+function closeSheet(){ var was=sheet.classList.contains('on'); backdrop.classList.remove('on'); sheet.classList.remove('on'); sheet.style.transform=''; unlockScroll(); if(was) sheetA11yClose(); }
 function ensure(){ if(!state[cur.type][cur.k]) state[cur.type][cur.k]={score:null,note:''}; return state[cur.type][cur.k]; }
 function flashSaved(){}
 function afterChange(){ touchPark(cur.k.split('#')[0]); persist();
@@ -1142,12 +1209,12 @@ function showShared(item){
   if(tb) tb.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); b.removeAttribute('aria-current'); });
   var body=document.getElementById('sharedBody');
   if(!item || item.t!=='camp-review'){
-    body.innerHTML='<p class="empty">This shared link could not be opened. It may be from a newer version of the app.</p>';
+    body.innerHTML='<p class="empty">'+TL('This shared link could not be opened. It may be from a newer version of the app.')+'</p>';
     try{ window.scrollTo(0,0); }catch(e){} return;
   }
   body.innerHTML='<div class="shared-card-wrap"><img id="shared-card-img" class="shared-card" alt="Shared '+esc(item.title||'review')+'"></div>'
     +(item.note?'<p class="shared-note">“'+esc(item.note)+'”</p>':'')
-    +'<button class="btn-share primary" id="sh-explore" type="button">Explore Ontario parks</button>';
+    +'<button class="btn-share primary" id="sh-explore" type="button">'+TL('Explore Ontario parks')+'</button>';
   if(window.OnShare) OnShare.makeCard(campCard(item)).then(function(b){ if(!b) return; var img=document.getElementById('shared-card-img'); if(img) img.src=URL.createObjectURL(b); });
   var ex=document.getElementById('sh-explore'); if(ex) ex.onclick=function(){ history.replaceState(null,'',location.pathname+location.search); showTab('guide'); };
   try{ window.scrollTo(0,0); }catch(e){}
@@ -1165,12 +1232,14 @@ document.addEventListener('keydown',function(ev){
   if(ev.key!=='Enter'&&ev.key!==' '&&ev.key!=='Spacebar') return;
   var h=ev.target.closest?ev.target.closest('[data-fav]'):null; if(!h) return;
   ev.preventDefault(); toggleFav(h.getAttribute('data-fav'),h.getAttribute('data-favid'));
+  buzz(6); renderParks();
 });
 
 async function renderPhotos(k){ const box=document.getElementById('photos'); box.innerHTML=''; const list=await getPhotos(k);
   list.forEach(p=>{ const d=document.createElement('div'); d.className='photo';
-    d.innerHTML=`<img src="${p.data}" alt=""><button class="del" aria-label="${TL('Delete photo')}">×</button>`;
-    d.querySelector('img').addEventListener('click',()=>openLightbox(p.data));
+    d.innerHTML=`<img src="${p.data}" alt="" role="button" tabindex="0" aria-label="${TL('View photo')}"><button class="del" aria-label="${TL('Delete photo')}">×</button>`;
+    const im=d.querySelector('img'); im.addEventListener('click',()=>openLightbox(p.data));
+    im.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '||ev.key==='Spacebar'){ ev.preventDefault(); openLightbox(p.data); } });
     d.querySelector('.del').addEventListener('click',async(e)=>{ e.stopPropagation(); const next=(await getPhotos(k)).filter(x=>x.id!==p.id); await putPhotos(k,next); renderPhotos(k); if(cur.site) refreshChip(k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); });
     box.appendChild(d); });
 }
@@ -1184,7 +1253,7 @@ document.getElementById('photoInput').addEventListener('change',handlePhotoFiles
 document.getElementById('cameraInput').addEventListener('change',handlePhotoFiles);
 document.getElementById('cameraBtn').addEventListener('click',()=>document.getElementById('cameraInput').click());
 document.getElementById('libraryBtn').addEventListener('click',()=>document.getElementById('photoInput').click());
-function openLightbox(src){ document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').classList.add('on'); }
+function openLightbox(src){ var im=document.getElementById('lightboxImg'); im.src=src; im.alt=TL('site photo'); document.getElementById('lightbox').classList.add('on'); }
 document.getElementById('lightbox').addEventListener('click',()=>document.getElementById('lightbox').classList.remove('on'));
 
 /* ================= progress + glance ================= */
@@ -1590,11 +1659,11 @@ function openPhotoTarget(k){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_I
 async function renderPhotosScreen(){
   var box=document.getElementById('photosGrid'); if(!box) return; box.innerHTML='';
   var keys=Array.from(photoKeys).sort();
-  if(!keys.length){ box.innerHTML='<div class="empty" style="grid-column:1/-1">No photos yet. Add one from a site&#39;s rating sheet.</div>'; return; }
+  if(!keys.length){ box.innerHTML='<div class="empty" style="grid-column:1/-1">'+TL("No photos yet. Add one from a site's rating sheet.")+'</div>'; return; }
   for(const k of keys){ const list=await getPhotos(k); const label=photoLabel(k);
     list.forEach(function(p){
       var b=document.createElement('button'); b.type='button'; b.className='pcell';
-      b.setAttribute('aria-label','Open '+label);
+      b.setAttribute('aria-label',TL('Open')+' '+label);
       var img=document.createElement('img'); img.src=p.data; img.alt='';
       var cap=document.createElement('span'); cap.className='plabel'; cap.textContent=label;
       b.appendChild(img); b.appendChild(cap);
@@ -1650,8 +1719,8 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
   if(!pids.length){
     box.innerHTML='<div class="jempty">'
       +'<svg aria-hidden="true"><use href="assets/icons.svg#tent"/></svg>'
-      +'<h3>Your journal starts here</h3>'
-      +'<button class="btn-share primary" id="jBrowse" type="button">Browse the parks</button></div>';
+      +'<h2>'+TL('Your journal starts here')+'</h2>'
+      +'<button class="btn-share primary" id="jBrowse" type="button">'+TL('Browse the parks')+'</button></div>';
     var jb=document.getElementById('jBrowse'); if(jb) jb.addEventListener('click',function(){ buzz(6); showTab('guide'); });
     return; }
   var s=journalStats(), ts=state.touched||{};
@@ -1733,7 +1802,9 @@ function openSettings(){ showTab('more'); }
 function closeSettings(){}
 (function(){ var tb=document.getElementById('tabbar');
   if(tb) tb.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.tab'); if(b){ showTab(b.dataset.tab); if(typeof buzz==='function') buzz(6); } }); })();
-document.getElementById('appTitle').addEventListener('click',function(){ showTab('more'); });
+(function(){ var at=document.getElementById('appTitle'); if(!at) return;
+  at.addEventListener('click',function(){ showTab('more'); });
+  at.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '||ev.key==='Spacebar'){ ev.preventDefault(); showTab('more'); } }); })();
 settingsBackdrop.addEventListener('click',closeSettings);
 
 /* ---- learn and safety ---- */
@@ -1741,17 +1812,17 @@ function renderLearn(){
   var el=document.getElementById('learnBody'); if(!el) return;
   var CHEV='<span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-down"/></svg></span>';
   var A=[
-    {t:'Bear safety and food storage', b:`<p>Black bears live across cottage country and the north, and most trouble comes down to food. A bear that finds a meal at a campsite comes back, and a bear that keeps coming back usually ends up dead, so a clean site protects the bear as much as you.</p><p>Store all food, garbage, coolers, and anything scented in your vehicle or a bear locker, never in the tent. Cook and eat away from where you sleep, and pack out every scrap. If you meet a bear, do not run. Make yourself look big, speak firmly, back away slowly, and give it a clear exit. Report a bear hanging around a campground to park staff or Bear Wise at 1-866-514-2327.</p>`},
-    {t:'Ticks and Lyme disease', b:`<p>Blacklegged ticks carry Lyme disease and are now common across much of southern and eastern Ontario. They wait in long grass and leaf litter and latch on as you brush past.</p><p>Wear light long sleeves and pants, tuck your pants into your socks on trails, and use a repellent with DEET or icaridin. Check yourself, kids, and dogs after every walk, especially the hairline, waist, and behind the knees. If you find one, pull it straight out with fine tweezers close to the skin and do not twist. See a doctor if you cannot remove it cleanly, if a spreading rash appears, or if you feel flu-like in the weeks after.</p>`},
-    {t:'Campfire safety', b:`<p>Check for a fire ban before you light anything. Bans are common in dry spells and carry real fines.</p><p>Use the existing fire pit, keep the fire small, and never leave it unattended. Keep water and a shovel within reach. Burn only clean wood, and buy or gather it locally, since moving firewood spreads tree-killing insects like the emerald ash borer. Before you sleep or leave, drown the fire, stir the ashes, and drown it again until it is cold to the touch.</p>`},
-    {t:'Leave no trace', b:`<p>The idea is simple: leave the site the way you would want to find it. Pack out all your trash, including food scraps and dog waste. Use the outhouse, or bury human waste well away from water.</p><p>Keep to the trails and the tent pads so the ground around the site can recover. Do not feed wildlife, and do not carve or nail into trees. Keep the noise down after quiet hours, since sound carries a long way over water at night. A good campsite is one the next person cannot tell you used.</p>`},
-    {t:'Wildlife on the roads', b:`<p>Moose and deer are most active at dawn and dusk, and a collision with a moose is dangerous because the body comes through the windshield. Slow down at night in wildlife areas and watch the shoulders for eye-shine.</p><p>If an animal is crossing, brake in a straight line rather than swerving. Turtles cross roads to nest in June, and you can move one across in the direction it was already headed, well clear of traffic. Never pick a snapping turtle up by the tail, which injures its spine.</p>`},
-    {t:'Cold water and weather', b:`<p>Cold water is the real risk on Ontario lakes, even in summer. It saps your strength fast, so wear a lifejacket in any boat or canoe and keep one on children at the shore.</p><p>Watch the sky. Afternoon thunderstorms build quickly, and open water is no place to be when one arrives. If you hear thunder, get off the water and away from tall lone trees. Tell someone your route and when you will be back before a longer paddle or hike.</p>`},
-    {t:'Report a bear or a hazard', b:`<p>Seeing a bear, a road hazard, or wildlife on a road? on-wildlife has a quick report that drops it on a shared map for the area, with sensitive spots coarsened for privacy.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Open on-wildlife to report</a></p>`}
+    {t:'Bear safety and food storage', b:`<p>Black bears live across cottage country and the north, and most trouble comes down to food. A bear that finds a meal at a campsite comes back, and a bear that keeps coming back usually ends up dead, so a clean site protects the bear as much as you.</p><p>Store all food, garbage, coolers, and anything scented in your vehicle or a bear locker, never in the tent. Cook and eat away from where you sleep, and pack out every scrap. If you meet a bear, do not run. Make yourself look big, speak firmly, back away slowly, and give it a clear exit. Report a bear hanging around a campground to park staff or Bear Wise at 1-866-514-2327.</p>`, bf:`<p>L’ours noir est présent dans toute la région des chalets et dans le nord, et la plupart des problèmes tiennent à la nourriture. Un ours qui trouve un repas sur un emplacement y revient, et un ours qui revient sans cesse finit généralement par être abattu, alors un site propre protège l’ours autant que vous.</p><p>Rangez toute la nourriture, les déchets, les glacières et tout ce qui dégage une odeur dans votre véhicule ou un casier à l’épreuve des ours, jamais dans la tente. Cuisinez et mangez loin de l’endroit où vous dormez, et rapportez le moindre reste. Si vous croisez un ours, ne courez pas. Faites-vous paraître grand, parlez d’une voix ferme, reculez lentement et laissez-lui une voie de sortie dégagée. Signalez un ours qui rôde autour d’un terrain de camping au personnel du parc ou à Bear Wise au 1-866-514-2327.</p>`},
+    {t:'Ticks and Lyme disease', b:`<p>Blacklegged ticks carry Lyme disease and are now common across much of southern and eastern Ontario. They wait in long grass and leaf litter and latch on as you brush past.</p><p>Wear light long sleeves and pants, tuck your pants into your socks on trails, and use a repellent with DEET or icaridin. Check yourself, kids, and dogs after every walk, especially the hairline, waist, and behind the knees. If you find one, pull it straight out with fine tweezers close to the skin and do not twist. See a doctor if you cannot remove it cleanly, if a spreading rash appears, or if you feel flu-like in the weeks after.</p>`, bf:`<p>La tique à pattes noires transmet la maladie de Lyme et est maintenant répandue dans une grande partie du sud et de l’est de l’Ontario. Elle attend dans les herbes hautes et la litière de feuilles et s’accroche quand vous la frôlez.</p><p>Portez des manches longues et un pantalon de couleur claire, rentrez votre pantalon dans vos chaussettes sur les sentiers, et utilisez un répulsif à base de DEET ou d’icaridine. Examinez-vous, ainsi que les enfants et les chiens, après chaque sortie, surtout la naissance des cheveux, la taille et l’arrière des genoux. Si vous en trouvez une, retirez-la tout droit avec une pince fine au ras de la peau, sans la tordre. Consultez un médecin si vous n’arrivez pas à la retirer proprement, si une rougeur qui s’étend apparaît, ou si vous ressentez des symptômes grippaux dans les semaines qui suivent.</p>`},
+    {t:'Campfire safety', b:`<p>Check for a fire ban before you light anything. Bans are common in dry spells and carry real fines.</p><p>Use the existing fire pit, keep the fire small, and never leave it unattended. Keep water and a shovel within reach. Burn only clean wood, and buy or gather it locally, since moving firewood spreads tree-killing insects like the emerald ash borer. Before you sleep or leave, drown the fire, stir the ashes, and drown it again until it is cold to the touch.</p>`, bf:`<p>Vérifiez s’il y a une interdiction de feu avant d’allumer quoi que ce soit. Les interdictions sont fréquentes en période de sécheresse et entraînent de vraies amendes.</p><p>Utilisez le foyer existant, gardez le feu petit et ne le laissez jamais sans surveillance. Gardez de l’eau et une pelle à portée de main. Ne brûlez que du bois propre, et achetez-le ou ramassez-le sur place, car déplacer du bois de chauffage propage des insectes qui tuent les arbres, comme l’agrile du frêne. Avant de dormir ou de partir, noyez le feu, remuez les cendres et noyez-le de nouveau jusqu’à ce qu’il soit froid au toucher.</p>`},
+    {t:'Leave no trace', b:`<p>The idea is simple: leave the site the way you would want to find it. Pack out all your trash, including food scraps and dog waste. Use the outhouse, or bury human waste well away from water.</p><p>Keep to the trails and the tent pads so the ground around the site can recover. Do not feed wildlife, and do not carve or nail into trees. Keep the noise down after quiet hours, since sound carries a long way over water at night. A good campsite is one the next person cannot tell you used.</p>`, bf:`<p>L’idée est simple : laissez l’emplacement tel que vous voudriez le trouver. Rapportez tous vos déchets, y compris les restes de nourriture et les excréments de chien. Utilisez la latrine, ou enterrez les matières fécales humaines loin de l’eau.</p><p>Restez sur les sentiers et les plateformes de tente pour que le sol autour de l’emplacement puisse se rétablir. Ne nourrissez pas la faune, et ne gravez ni ne clouez rien dans les arbres. Baissez le ton après l’heure du silence, car le son porte loin au-dessus de l’eau la nuit. Un bon emplacement est un emplacement dont la personne suivante ne peut pas deviner que vous l’avez utilisé.</p>`},
+    {t:'Wildlife on the roads', b:`<p>Moose and deer are most active at dawn and dusk, and a collision with a moose is dangerous because the body comes through the windshield. Slow down at night in wildlife areas and watch the shoulders for eye-shine.</p><p>If an animal is crossing, brake in a straight line rather than swerving. Turtles cross roads to nest in June, and you can move one across in the direction it was already headed, well clear of traffic. Never pick a snapping turtle up by the tail, which injures its spine.</p>`, bf:`<p>L’orignal et le cerf sont les plus actifs à l’aube et au crépuscule, et une collision avec un orignal est dangereuse parce que le corps traverse le pare-brise. Ralentissez la nuit dans les zones fauniques et surveillez les accotements pour repérer le reflet des yeux.</p><p>Si un animal traverse, freinez en ligne droite plutôt que de faire une embardée. Les tortues traversent les routes pour pondre en juin, et vous pouvez en faire traverser une dans la direction où elle allait déjà, bien à l’écart de la circulation. Ne saisissez jamais une tortue serpentine par la queue, ce qui blesse sa colonne vertébrale.</p>`},
+    {t:'Cold water and weather', b:`<p>Cold water is the real risk on Ontario lakes, even in summer. It saps your strength fast, so wear a lifejacket in any boat or canoe and keep one on children at the shore.</p><p>Watch the sky. Afternoon thunderstorms build quickly, and open water is no place to be when one arrives. If you hear thunder, get off the water and away from tall lone trees. Tell someone your route and when you will be back before a longer paddle or hike.</p>`, bf:`<p>L’eau froide est le vrai danger sur les lacs de l’Ontario, même en été. Elle épuise vos forces rapidement, alors portez un gilet de sauvetage dans tout bateau ou canot et gardez-en un sur les enfants au bord de l’eau.</p><p>Surveillez le ciel. Les orages de l’après-midi se forment rapidement, et le large n’est pas un endroit où se trouver quand l’un d’eux arrive. Si vous entendez le tonnerre, sortez de l’eau et éloignez-vous des grands arbres isolés. Dites à quelqu’un votre itinéraire et l’heure de votre retour avant une longue sortie en canot ou en randonnée.</p>`},
+    {t:'Report a bear or a hazard', b:`<p>Seeing a bear, a road hazard, or wildlife on a road? on-wildlife has a quick report that drops it on a shared map for the area, with sensitive spots coarsened for privacy.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Open on-wildlife to report</a></p>`, bf:`<p>Vous voyez un ours, un danger sur la route ou de la faune sur une route ? on-wildlife propose un signalement rapide qui le place sur une carte partagée pour la région, avec les lieux sensibles rendus approximatifs pour protéger la vie privée.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Ouvrir on-wildlife pour signaler</a></p>`}
   ];
   el.innerHTML='<div class="ios-group">'+A.map(function(a){
     return '<details class="cell-details"><summary class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+TL(a.t)+'</span></span>'+CHEV+'</summary>'+
-      '<div class="cell-detail-body">'+a.b+'</div></details>'; }).join('')+'</div>';
+      '<div class="cell-detail-body">'+((LANG==='fr'&&a.bf)||a.b)+'</div></details>'; }).join('')+'</div>';
 }
 /* shared: body scroll lock while a sheet is open */
 var _lockY=0,_locks=0,_scrollLocked=false;
@@ -1800,7 +1871,15 @@ var LEGAL_PAGES={
     +'<p><b>Permissions.</b> Location is used only when you tap the locate button on the Map, and never in the background. The camera and photo library are used only when you attach a photo to a site. If you decline either, everything else still works.</p>'
     +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and deleting the app does the same. Export a backup writes your whole journal to one readable file, and Import reads it back on any device. There is no server copy, so nothing can be recovered once it is gone.</p>'
     +'<p><b>Children.</b> The app is safe for a child to use. Nothing in it collects personal information from anyone, of any age.</p>'
-    +'<p>The full policy is at katsuma.ca/privacy.html. Questions: katsuma123@gmail.com.</p>'},
+    +'<p>The full policy is at katsuma.ca/privacy.html. Questions: katsuma123@gmail.com.</p>',
+    hFr:''
+    +'<p><b>La version courte.</b> Il n’y a aucun compte, aucune publicité et aucune analyse d’audience. Rien de ce que vous écrivez, notez ou photographiez ne m’est envoyé. C’est stocké sur cet appareil et cela y reste. Je ne peux pas le lire et je ne vois jamais que cela existe.</p>'
+    +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela vit dans le stockage de ce navigateur, sur cet appareil. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
+    +'<p><b>Ce qui quitte cet appareil.</b> Les images de carte sont récupérées auprès de CARTO, qui affiche les données d’OpenStreetMap, lorsque vous ouvrez la carte. Comme toute requête web, cela transporte votre adresse IP et à peu près quelle partie de la carte vous regardez. Cela ne transporte ni vos notes, ni vos évaluations, ni vos photos, ni votre nom. La version web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires.</p>'
+    +'<p><b>Autorisations.</b> La localisation n’est utilisée que lorsque vous touchez le bouton de localisation sur la carte, et jamais en arrière-plan. L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement. Si vous refusez l’un ou l’autre, tout le reste fonctionne quand même.</p>'
+    +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et supprimer l’application fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier lisible, et Importer le relit sur n’importe quel appareil. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
+    +'<p><b>Enfants.</b> L’application peut être utilisée sans danger par un enfant. Rien en elle ne recueille de renseignements personnels de quiconque, à tout âge.</p>'
+    +'<p>La politique complète se trouve à katsuma.ca/privacy.html. Questions : katsuma123@gmail.com.</p>'},
   terms:{t:'Terms of use',h:''
     +'<p><b>Safety first.</b> This app is a reference, not safety equipment. It cannot call for help. Carry a way to reach emergency services where you are going, and tell someone your plan. Maps and locations are approximate, so do not navigate by them.</p>'
     +'<p><b>Your content is yours.</b> What you write, rate and photograph belongs to you. It is stored on your device and never sent to me, so I acquire no rights to it.</p>'
@@ -1808,35 +1887,51 @@ var LEGAL_PAGES={
     +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks\u2019 official channels.</p>'
     +'<p><b>Data loss.</b> Everything is stored on your device and nothing is backed up to a server, so your journal can be lost if you delete the app, clear site data or lose the device. Export regularly.</p>'
     +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple. Map images come from CARTO, rendering OpenStreetMap data, \u00a9 OpenStreetMap contributors.</p>'
-    +'<p>The full terms are at katsuma.ca/terms.html. These terms are governed by the laws of Ontario, Canada.</p>'},
+    +'<p>The full terms are at katsuma.ca/terms.html. These terms are governed by the laws of Ontario, Canada.</p>',
+    hFr:''
+    +'<p><b>La sécurité d’abord.</b> Cette application est une référence, pas un équipement de sécurité. Elle ne peut pas appeler à l’aide. Emportez un moyen de joindre les services d’urgence là où vous allez, et dites à quelqu’un votre plan. Les cartes et les positions sont approximatives, alors ne vous en servez pas pour naviguer.</p>'
+    +'<p><b>Votre contenu vous appartient.</b> Ce que vous écrivez, notez et photographiez vous appartient. C’est stocké sur votre appareil et jamais envoyé à moi, donc je n’acquiers aucun droit dessus.</p>'
+    +'<p><b>Utilisation acceptable.</b> N’utilisez pas l’application pour enfreindre la loi, pour harceler qui que ce soit, ou pour nuire à un parc. Ne photographiez pas les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.</p>'
+    +'<p><b>Aucune garantie.</b> L’application est fournie telle quelle, gratuitement, sans aucune garantie d’aucune sorte. Les renseignements sur les parcs peuvent être incomplets ou périmés. Réservez par les canaux officiels de Parcs Ontario.</p>'
+    +'<p><b>Perte de données.</b> Tout est stocké sur votre appareil et rien n’est sauvegardé sur un serveur, donc votre journal peut être perdu si vous supprimez l’application, effacez les données du site ou perdez l’appareil. Exportez régulièrement.</p>'
+    +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple. Les images de carte proviennent de CARTO, qui affiche les données d’OpenStreetMap, © les contributeurs d’OpenStreetMap.</p>'
+    +'<p>Les conditions complètes se trouvent à katsuma.ca/terms.html. Ces conditions sont régies par les lois de l’Ontario, au Canada.</p>'},
   support:{t:'Support',h:''
     +'<p><b>Reach me.</b> Email katsuma123@gmail.com and I will reply. Problems can also be filed at github.com/katsuma0/on-site/issues.</p>'
     +'<p><b>Moving to a new phone.</b> On the old phone: More, then Your data, then Export a backup. Send that file to yourself. On the new phone: Import a backup and pick the file. Importing the same file twice is safe.</p>'
     +'<p><b>Deleted the app?</b> The journal went with it, because nothing is stored on a server. Export before you delete and before a phone upgrade. I have no copy and cannot recover anything.</p>'
     +'<p><b>No signal?</b> Every park, site and rating works offline. Map tiles are the one exception: parts of the map you have never opened cannot be drawn without a connection, so load the map over wifi before you leave.</p>'
     +'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates on the next launch.</p>'
-    +'<p><b>Accessibility.</b> The app follows the system text size and works with VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>'},
+    +'<p><b>Accessibility.</b> The app follows the system text size and works with VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>',
+    hFr:''
+    +'<p><b>Me joindre.</b> Écrivez à katsuma123@gmail.com et je répondrai. Les problèmes peuvent aussi être signalés à github.com/katsuma0/on-site/issues.</p>'
+    +'<p><b>Passer à un nouveau téléphone.</b> Sur l’ancien téléphone : Plus, puis Vos données, puis Exporter une sauvegarde. Envoyez-vous ce fichier. Sur le nouveau téléphone : Importer une sauvegarde et choisissez le fichier. Importer deux fois le même fichier est sans risque.</p>'
+    +'<p><b>Vous avez supprimé l’application ?</b> Le journal est parti avec elle, car rien n’est stocké sur un serveur. Exportez avant de supprimer et avant de changer de téléphone. Je n’ai aucune copie et ne peux rien récupérer.</p>'
+    +'<p><b>Pas de signal ?</b> Chaque parc, emplacement et évaluation fonctionne hors ligne. Les tuiles de carte sont la seule exception : les parties de la carte que vous n’avez jamais ouvertes ne peuvent pas être affichées sans connexion, alors chargez la carte en wifi avant de partir.</p>'
+    +'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour au prochain lancement.</p>'
+    +'<p><b>Accessibilité.</b> L’application suit la taille de texte du système et fonctionne avec VoiceOver. Si quelque chose est difficile à lire, à toucher ou à entendre annoncé, dites-le-moi. C’est un bogue, pas une préférence.</p>'},
 };
 function openLegal(key){
   var pg=LEGAL_PAGES[key]; if(!pg) return;
   var t=document.getElementById('legalTitle'), b=document.getElementById('legalBody');
   if(t) t.textContent=TL(pg.t);
-  if(b) b.innerHTML=pg.h;
+  if(b) b.innerHTML=(LANG==='fr'&&pg.hFr)?pg.hFr:pg.h;
   settingsBackdrop.classList.add('on');
   var ls=document.getElementById('legalSheet');
-  ls.classList.add('on'); ls.scrollTop=0; lockScroll();
+  ls.classList.add('on'); ls.scrollTop=0; lockScroll(); sheetA11yOpen(ls);
 }
 function closeLegal(){
   var ls=document.getElementById('legalSheet');
-  settingsBackdrop.classList.remove('on'); ls.classList.remove('on'); ls.style.transform=''; unlockScroll();
+  var was=ls.classList.contains('on');
+  settingsBackdrop.classList.remove('on'); ls.classList.remove('on'); ls.style.transform=''; unlockScroll(); if(was) sheetA11yClose();
 }
 document.querySelectorAll('[data-legal]').forEach(function(b){
   b.addEventListener('click',function(){ buzz(6); openLegal(b.getAttribute('data-legal')); });
 });
 
 /* settings is a tab screen now, not a swipe-to-close sheet */
-function openVersions(){ settingsBackdrop.classList.add('on'); const vs=document.getElementById('versionsSheet'); vs.classList.add('on'); vs.scrollTop=0; lockScroll(); }
-function closeVersions(){ const vs=document.getElementById('versionsSheet'); settingsBackdrop.classList.remove('on'); vs.classList.remove('on'); vs.style.transform=''; unlockScroll(); }
+function openVersions(){ settingsBackdrop.classList.add('on'); const vs=document.getElementById('versionsSheet'); vs.classList.add('on'); vs.scrollTop=0; lockScroll(); sheetA11yOpen(vs); }
+function closeVersions(){ const vs=document.getElementById('versionsSheet'); var was=vs.classList.contains('on'); settingsBackdrop.classList.remove('on'); vs.classList.remove('on'); vs.style.transform=''; unlockScroll(); if(was) sheetA11yClose(); }
 settingsBackdrop.addEventListener('click',closeVersions);
 makeSheetSwipe(document.getElementById('versionsSheet'),closeVersions);
 /* the legal pages open in their own sheet, so leaving the app to read a
