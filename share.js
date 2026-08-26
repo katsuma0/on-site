@@ -33,8 +33,22 @@
   }
 
   // Wrap text to a max width, return the lines (at most maxLines, last gets an ellipsis).
+  // A single word longer than maxW (e.g. a run-on custom species name) is
+  // hard-broken so it can never draw off the edge of the card.
   function wrap(ctx, text, maxW, maxLines) {
-    var words = String(text).split(/\s+/), lines = [], line = '';
+    var raw = String(text).split(/\s+/), words = [];
+    for (var w = 0; w < raw.length; w++) {
+      var word = raw[w];
+      if (!word) continue;
+      if (ctx.measureText(word).width <= maxW) { words.push(word); continue; }
+      var piece = '';
+      for (var c = 0; c < word.length; c++) {
+        if (ctx.measureText(piece + word[c]).width > maxW && piece) { words.push(piece); piece = word[c]; }
+        else piece += word[c];
+      }
+      if (piece) words.push(piece);
+    }
+    var lines = [], line = '';
     for (var i = 0; i < words.length; i++) {
       var test = line ? line + ' ' + words[i] : words[i];
       if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = words[i]; }

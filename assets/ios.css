@@ -787,7 +787,7 @@ button {
   .fld{display:flex;align-items:center;gap:var(--gap-m);font-size:var(--fs-footnote);font-weight:400;color:var(--label-2);
     margin:18px 0 10px;text-transform:uppercase;letter-spacing:.4px}
   .dots{display:flex;gap:4px;margin-bottom:var(--gap-m)}
-  .dot{flex:1;min-width:var(--ctl);min-height:var(--ctl-lg);border-radius:var(--r-sm);border:0;background:var(--fill-strong);cursor:pointer;font-weight:600;
+  .dot{flex:1 1 0;min-width:0;min-height:var(--ctl-lg);border-radius:var(--r-sm);border:0;background:var(--fill-strong);cursor:pointer;font-weight:600;
     font-size:var(--fs-subhead);color:var(--label-2);display:flex;align-items:center;justify-content:center;transition:.12s}
   .dot:active{transform:scale(.88)}
   .dot.on{color:var(--on-tint);border-color:transparent}
@@ -2535,8 +2535,8 @@ h1, h2, h3, h4, .btn { font-family: var(--font-display); }
 .favpill:active { transform: scale(.96); }
 
 /* the search screen: a title line with Cancel, then the field */
-.search-head { display: flex; align-items: baseline; gap: 12px; }
-.search-head .screen-title { flex: 1; }
+.search-head { display: flex; align-items: baseline; gap: 8px; }
+.search-head .screen-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-cancel {
   flex: none;
   background: none;

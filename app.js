@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.218';
+var APP_VERSION='0.219';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -84,6 +84,11 @@ var FR={
   /* guide and park screens */
   'All parks A to Z':'Tous les parcs de A à Z','All regions':'Toutes les régions',
   'Wishlist':'Liste de souhaits','Top sites':'Meilleurs emplacements','Stats':'Statistiques',
+  'Average':'Moyenne','Rated':'Notés','Notes':'Notes','Scouted':'Explorés',
+  'Rating spread':'Répartition des notes','By campground':'Par terrain',
+  'Star a site to build your booking shortlist.':'Ajoutez un emplacement en favori pour créer votre liste de réservation.',
+  'No sites rated yet.':'Aucun emplacement noté pour l’instant.',
+  'Added to your wishlist.':'Ajouté à votre liste de souhaits.',
   'Campground review':'Avis sur le terrain','Campground':'Terrain de camping',
   'North':'Nord','Central':'Centre','South':'Sud','East':'Est','West':'Ouest',
   /* messages */
@@ -91,6 +96,13 @@ var FR={
   'Backup restored. Welcome back.':'Sauvegarde restaurée. Bon retour.',
   'Add a rating or a note first':'Ajoutez d’abord une note ou un commentaire',
   'Park data could not be loaded.':'Les données des parcs n’ont pas pu être chargées.',
+  'Could not build the backup. Try again.':'Impossible de créer la sauvegarde. Réessayez.',
+  'Could not read that file.':'Impossible de lire ce fichier.',
+  'Sharing is not available right now. Try again.':'Le partage n’est pas disponible pour le moment. Réessayez.',
+  'Sharing is not available':'Le partage n’est pas disponible',
+  'That file is not a Site Journal backup.':'Ce fichier n’est pas une sauvegarde de Site Journal.',
+  'Link copied, card saved':'Lien copié, carte enregistrée',
+  'Park data cleared.':'Données du parc effacées.',
   /* learn */
   'Bear safety and food storage':'Sécurité avec les ours et rangement des aliments',
   'Campfire safety':'Sécurité des feux de camp',
@@ -119,6 +131,9 @@ var FR={
   'Reset all data':'Réinitialiser toutes les données',
   'Tap again to erase everything':'Touchez encore pour tout effacer',
   'Export a backup to move your journal to another phone.':'Exportez une sauvegarde pour transférer votre journal vers un autre téléphone.',
+  'A park review someone sent you.':'Un avis de parc que quelqu’un vous a envoyé.',
+  'Visibility':'Visibilité','Private':'Privé',
+  'Everything stays on this phone':'Tout reste sur ce téléphone',
   /* about the app, three body paragraphs (on-site and Parcs Ontario kept as names) */
   'Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.':'Depuis mon plus jeune âge, mes parents m’emmenaient souvent camper. Ces derniers temps, je partage cette passion avec mes amis et je leur fais découvrir la beauté du plein air. Avec cela vient la responsabilité de réserver les emplacements, et choisir un emplacement que l’on n’a jamais vu est un pari.',
   'on-site is a private journal for Ontario Parks campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable Ontario Park, down to the campgrounds, the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping de Parcs Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque parc réservable de l’Ontario, jusqu’aux terrains, aux emplacements individuels et aux sentiers qui les entourent.',
@@ -246,7 +261,7 @@ function searchAll(q){ q=q.trim().toLowerCase(); if(!q) return [];
   SEARCH_CGS.forEach(c=>{ const cgN=c.cgName.toLowerCase(), hay=(c.parkName+' '+c.cgName).toLowerCase();
     if(siteTok.length){ const nameOk=!nameQ||nameTok.every(t=>hay.includes(t)); if(!nameOk) return;
       siteTok.forEach(st=>{ if(c.siteSet.has(st)){ const label=c.sitesOrig.find(s=>s.toLowerCase()===st);
-        res.push({type:'site',score:(nameQ?100:40),parkId:c.parkId,cgName:c.cgName,label,title:'Site '+label,sub:c.cgName+' · '+c.parkName}); } });
+        res.push({type:'site',score:(nameQ?100:40),parkId:c.parkId,cgName:c.cgName,label,title:TL('Site')+' '+label,sub:c.cgName+' · '+c.parkName}); } });
     } else if(nameQ && nameTok.every(t=>cgN.includes(t))){
       res.push({type:'cg',score:nameHit(c.cgName,nameQ,80),parkId:c.parkId,cgName:c.cgName,title:c.cgName,sub:c.parkName+((c.sub||'').split(' · ')[0]?' · '+(c.sub||'').split(' · ')[0]:'')}); }
   });
@@ -1023,10 +1038,10 @@ let cur={type:null,k:null,cg:null,site:null,trailName:null};
 const sheet=document.getElementById('sheet'), backdrop=document.getElementById('backdrop');
 function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
   for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
-    b.setAttribute('aria-label', i===0?TL('Clear rating'):(i+' / 5')); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
+    b.setAttribute('aria-label', i+' / 5'); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
 function paintDots(){ const s=sc(cur.type,cur.k); document.querySelectorAll('#dots .dot').forEach(dot=>{ const v=+dot.dataset.v, on=(s!=null)&&v<=s;
   dot.classList.toggle('on',on); dot.style.background=on?scoreColor(s):'';
-  dot.setAttribute('aria-checked', String((s==null?0:s)===v)); }); }
+  dot.setAttribute('aria-checked', String(s!=null&&s===v)); }); }
 function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==='trail'?cgId:null)};
   if(window.clearBtnSync) window.clearBtnSync();
   const wb=document.getElementById('wantBtn'), pw=document.getElementById('photoWrap'), whr=document.getElementById('d-where');
@@ -1055,7 +1070,7 @@ function afterChange(){ touchPark(cur.k.split('#')[0]); persist();
   else { refreshCgHeader(cur.cg); refreshParkRate(); } }
 function setScore(v){ const e=ensure(); e.score=(e.score===v?null:v); buzz(9); paintDots(); flashSaved(); afterChange(); }
 document.getElementById('wantBtn').addEventListener('click',function(){ const e=ensure(); e.want=!e.want; buzz(9);
-  this.setAttribute('aria-pressed',e.want); this.textContent=(e.want?'★ ':'☆ ')+TL('Wishlist'); if(e.want&&e.score===0) showThemeToast("Added to your wishlist."); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
+  this.setAttribute('aria-pressed',e.want); this.textContent=(e.want?'★ ':'☆ ')+TL('Wishlist'); if(e.want&&e.score==null) showThemeToast(TL('Added to your wishlist.')); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
 function autoGrowNotes(el){ el.style.height='auto'; el.style.height=Math.max(106,el.scrollHeight)+'px'; }
 document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e.target); const en=ensure(); en.note=e.target.value; flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); });
 (function(){
@@ -1085,7 +1100,7 @@ backdrop.addEventListener('click',closeSheet);
 function fmtMonthYear(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(undefined,{month:'long',year:'numeric'}); }
 function reviewShareItem(){
   var type=cur.type, k=cur.k, score=sc(type,k), note=noteOf(type,k), kind, title, sub='';
-  if(type==='site'){ kind='site'; title=curPark.name; sub='Site '+cur.site+(cur.cg&&cur.cg!==curPark.name?(' · '+cur.cg):''); }
+  if(type==='site'){ kind='site'; title=curPark.name; sub=TL('Site')+' '+cur.site+(cur.cg&&cur.cg!==curPark.name?(' · '+cur.cg):''); }
   else if(type==='trail'){ kind='trail'; title=cur.cg; sub=curPark.name; }
   else { var isPark=(curPark.dayuse&&cur.cg===curPark.name); kind=isPark?'park':'campground'; title=curPark.name;
     sub=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):cur.cg; }
@@ -1192,22 +1207,22 @@ function renderParkStats(){ const p=curPark, box=document.getElementById('statsB
   if(wrap) wrap.hidden=false;
   const avg=rated?(sum/rated):0, maxD=Math.max.apply(null,dist)||1;
   let h='<div class="stiles">'
-    +'<div class="stile"><b>'+(rated?avg.toFixed(2):'-')+'</b><span>Average</span></div>'
-    +'<div class="stile"><b>'+rated+'<i>/'+total+'</i></b><span>Rated</span></div>'
-    +'<div class="stile"><b>'+want+'</b><span>Wishlist</span></div>'
-    +'<div class="stile"><b>'+photos+'</b><span>Photos</span></div>'
-    +'<div class="stile"><b>'+notes+'</b><span>Notes</span></div>'
-    +'<div class="stile"><b>'+Math.round(rated/Math.max(1,total)*100)+'<i>%</i></b><span>Scouted</span></div>'
+    +'<div class="stile"><b>'+(rated?avg.toFixed(2):'-')+'</b><span>'+TL('Average')+'</span></div>'
+    +'<div class="stile"><b>'+rated+'<i>/'+total+'</i></b><span>'+TL('Rated')+'</span></div>'
+    +'<div class="stile"><b>'+want+'</b><span>'+TL('Wishlist')+'</span></div>'
+    +'<div class="stile"><b>'+photos+'</b><span>'+TL('Photos')+'</span></div>'
+    +'<div class="stile"><b>'+notes+'</b><span>'+TL('Notes')+'</span></div>'
+    +'<div class="stile"><b>'+Math.round(rated/Math.max(1,total)*100)+'<i>%</i></b><span>'+TL('Scouted')+'</span></div>'
   +'</div>';
   if(rated){
-    h+='<div class="glabel">Rating spread</div><div class="dbars">';
+    h+='<div class="glabel">'+TL('Rating spread')+'</div><div class="dbars">';
     for(let v=5; v>=0; v--){ const c=dist[v], w=Math.round(c/maxD*100);
       h+='<div class="dbar"><span class="dl tnum">'+v+'</span><span class="dtrack"><i style="width:'+Math.max(c?6:0,w)+'%;background:'+(scoreColor(v)||'var(--tint)')+'"></i></span><span class="dc tnum">'+c+'</span></div>'; }
     h+='</div>';
   }
   const multi=p.campgrounds.length>1;
   if(multi){
-    h+='<div class="glabel">By campground</div><div class="cgbars">';
+    h+='<div class="glabel">'+TL('By campground')+'</div><div class="cgbars">';
     p.campgrounds.forEach(cg=>{ const st=cgStats(p,cg);
       h+='<div class="cgbar"><span class="cn">'+cg.id+'</span><span class="ctrack"><i style="width:'+st.pct+'%"></i></span><span class="cc tnum">'+st.rated+'/'+st.total+'</span></div>'; });
     h+='</div>';
@@ -1223,14 +1238,14 @@ async function renderGlance(){ const p=curPark; if(!p) return;
   const wantSec=document.getElementById('wantSection'); if(wantSec) wantSec.hidden = wl.length===0;
   const topSec=document.getElementById('topSection'); if(topSec) topSec.hidden = rated.length===0;
   const wlBox=document.getElementById('wantList'); if(!wlBox) return;
-  wlBox.innerHTML=wl.length?wl.map(w=>`<div class="want-item" data-key="${w.k}"><div class="h"><span class="wstar">★</span><b>${w.cg.id}, Site ${w.s}</b>${(w.e.score!=null)?`<span class="tr-rate rated" style="background:${scoreColor(w.e.score)}">${w.e.score}/5</span>`:''}</div><p>${w.e.note&&w.e.note.trim()?w.e.note.replace(/</g,'&lt;'):''}</p><div class="want-thumbs" data-thumbs="${w.k}"></div></div>`).join('')
-    : `<div class="empty">Star a site to build your booking shortlist.</div>`;
+  wlBox.innerHTML=wl.length?wl.map(w=>`<div class="want-item" data-key="${w.k}"><div class="h"><span class="wstar">★</span><b>${w.cg.id}, ${TL('Site')} ${w.s}</b>${(w.e.score!=null)?`<span class="tr-rate rated" style="background:${scoreColor(w.e.score)}">${w.e.score}/5</span>`:''}</div><p>${w.e.note&&w.e.note.trim()?w.e.note.replace(/</g,'&lt;'):''}</p><div class="want-thumbs" data-thumbs="${w.k}"></div></div>`).join('')
+    : `<div class="empty">${TL('Star a site to build your booking shortlist.')}</div>`;
   wl.forEach(async w=>{ const t=wlBox.querySelector(`[data-thumbs="${CSS.escape(w.k)}"]`); if(!t) return; const ph=await getPhotos(w.k); t.innerHTML=ph.slice(0,6).map(x=>`<img src="${x.data}" alt="">`).join(''); });
   wlBox.querySelectorAll('.want-item').forEach(el=>el.addEventListener('click',(ev)=>{ if(ev.target.tagName!=='IMG'){ const parts=el.dataset.key.split('#'); openSheet('site',el.dataset.key,parts[1],parts.slice(2).join('#')); } }));
   const top=rated.sort((a,b)=>b.e.score-a.e.score).slice(0,5);
   const ts=document.getElementById('topSites');
-  ts.innerHTML=top.length?top.map(t=>`<li data-key="${t.k}"><div><div class="who">Site ${t.s}</div><div class="whr">${t.cg.id}</div></div><span class="tr-rate rated" style="background:${scoreColor(t.e.score)}">${t.e.score}/5</span></li>`).join('')
-    : `<li class="empty">No sites rated yet.</li>`;
+  ts.innerHTML=top.length?top.map(t=>`<li data-key="${t.k}"><div><div class="who">${TL('Site')} ${t.s}</div><div class="whr">${t.cg.id}</div></div><span class="tr-rate rated" style="background:${scoreColor(t.e.score)}">${t.e.score}/5</span></li>`).join('')
+    : `<li class="empty">${TL('No sites rated yet.')}</li>`;
   ts.querySelectorAll('li[data-key]').forEach(li=>li.addEventListener('click',()=>{ const parts=li.dataset.key.split('#'); openSheet('site',li.dataset.key,parts[1],parts.slice(2).join('#')); })); }
 
 /* ================= unlockable park themes ================= */
@@ -1494,7 +1509,7 @@ async function migrateAlgPhotos(){ var olds=Array.from(photoKeys).filter(functio
 var toastEl=null, toastTimer=null;
 function showThemeToast(msg,onTap,ms){
   if(!toastEl){ toastEl=document.createElement('button'); toastEl.className='toast'; toastEl.type='button'; document.body.appendChild(toastEl); }
-  toastEl.textContent=msg; toastEl.onclick=function(){ if(onTap) onTap(); hideThemeToast(); };
+  toastEl.textContent=TL(msg); toastEl.onclick=function(){ if(onTap) onTap(); hideThemeToast(); };
   requestAnimationFrame(function(){ toastEl.classList.add('on'); });
   clearTimeout(toastTimer); toastTimer=setTimeout(hideThemeToast, ms||3500);
 }
@@ -1532,7 +1547,7 @@ function displayName(){ try{ var p=JSON.parse(localStorage.getItem(PROFILE_KEY)|
 function setDisplayName(v){ v=String(v==null?'':v).trim();
   try{ if(v) localStorage.setItem(PROFILE_KEY,JSON.stringify({name:v})); else localStorage.removeItem(PROFILE_KEY); }catch(e){} }
 function avatarGlyph(){ var n=displayName();
-  return n?esc(n[0].toUpperCase()):'<svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg>'; }
+  return n?esc(Array.from(n)[0].toUpperCase()):'<svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg>'; }
 function renderAvatar(){
   var el=document.getElementById('avatarBtn'); if(el) el.innerHTML=avatarGlyph();
   var big=document.getElementById('acctAvatar'); if(big) big.innerHTML=avatarGlyph();
@@ -1559,7 +1574,7 @@ function renderAccount(){
     var pc=document.getElementById('acctPhotoCount'); if(pc) pc.textContent=n||''; });
 }
 function photoLabel(k){ var parts=k.split('#'), p=PARK_BY_ID[parts[0]];
-  if(parts.length>=3) return 'Site '+parts.slice(2).join('#')+', '+(p?p.name:parts[0]);
+  if(parts.length>=3) return TL('Site')+' '+parts.slice(2).join('#')+', '+(p?p.name:parts[0]);
   var name=parts.slice(1).join('#');
   return name+(p&&p.name!==name?', '+p.name:''); }
 function openPhotoTarget(k){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_ID[pid]) return;
