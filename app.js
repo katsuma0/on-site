@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.219';
+var APP_VERSION='0.220';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -89,6 +89,9 @@ var FR={
   'Star a site to build your booking shortlist.':'Ajoutez un emplacement en favori pour créer votre liste de réservation.',
   'No sites rated yet.':'Aucun emplacement noté pour l’instant.',
   'Added to your wishlist.':'Ajouté à votre liste de souhaits.',
+  /* screen-reader labels */
+  'Jump to a letter':'Aller à une lettre','Clear search':'Effacer la recherche',
+  'Delete photo':'Supprimer la photo','Rate':'Noter','Versions':'Versions','Sections':'Sections',
   'Campground review':'Avis sur le terrain','Campground':'Terrain de camping',
   'North':'Nord','Central':'Centre','South':'Sud','East':'Est','West':'Ouest',
   /* messages */
@@ -1166,7 +1169,7 @@ document.addEventListener('keydown',function(ev){
 
 async function renderPhotos(k){ const box=document.getElementById('photos'); box.innerHTML=''; const list=await getPhotos(k);
   list.forEach(p=>{ const d=document.createElement('div'); d.className='photo';
-    d.innerHTML=`<img src="${p.data}" alt=""><button class="del" aria-label="Delete photo">×</button>`;
+    d.innerHTML=`<img src="${p.data}" alt=""><button class="del" aria-label="${TL('Delete photo')}">×</button>`;
     d.querySelector('img').addEventListener('click',()=>openLightbox(p.data));
     d.querySelector('.del').addEventListener('click',async(e)=>{ e.stopPropagation(); const next=(await getPhotos(k)).filter(x=>x.id!==p.id); await putPhotos(k,next); renderPhotos(k); if(cur.site) refreshChip(k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); });
     box.appendChild(d); });

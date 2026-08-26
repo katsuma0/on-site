@@ -52,10 +52,10 @@
 
 <header class="ios-header" id="iosHeader">
   <div class="ios-header-row">
-    <button class="ios-avatar" id="avatarBtn" type="button" aria-label="Account"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></button>
+    <button class="ios-avatar" id="avatarBtn" type="button" aria-label="Account" data-i18n-aria="Account"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></button>
     <span class="ios-brand">on-site</span>
     <div class="ios-header-actions">
-      <button class="ios-glass-btn" id="searchBtn" type="button" aria-label="Search"><svg aria-hidden="true"><use href="assets/icons.svg#search"/></svg></button>
+      <button class="ios-glass-btn" id="searchBtn" type="button" aria-label="Search" data-i18n-aria="Search"><svg aria-hidden="true"><use href="assets/icons.svg#search"/></svg></button>
     </div>
   </div>
 </header>
@@ -69,7 +69,7 @@
     <div id="parkList"></div>
 
   </div>
-  <div class="azrail" id="azRail" aria-label="Jump to a letter" hidden></div>
+  <div class="azrail" id="azRail" aria-label="Jump to a letter" data-i18n-aria="Jump to a letter" hidden></div>
   <footer>
     <span data-i18n="Everything you save stays on this device.">Everything you save stays on this device.</span><br>
     <a class="footlink" href="https://katsuma.ca/" target="_blank" rel="noopener">katsuma.ca</a>
@@ -97,8 +97,8 @@
     </div>
     <div class="gsearch" id="gsearch">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="gq" inputmode="search" autocomplete="off" placeholder="Search parks and sites" data-i18n-ph="Search parks and sites" aria-label="Search parks and sites">
-      <button class="gclear" id="gclear" aria-label="Clear search">✕</button>
+      <input id="gq" inputmode="search" autocomplete="off" placeholder="Search parks and sites" data-i18n-ph="Search parks and sites" aria-label="Search parks and sites" data-i18n-aria="Search parks and sites">
+      <button class="gclear" id="gclear" aria-label="Clear search" data-i18n-aria="Clear search">✕</button>
     </div>
     <div id="gresults" class="gresults" hidden></div>
     <p class="search-hint" id="searchHint" data-i18n="Every park, campground, site and trail in the guide.">Every park, campground, site and trail in the guide.</p>
@@ -182,7 +182,7 @@
 </section>
 
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Rate">
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Rate" data-i18n-aria="Rate">
   <div class="grabber"></div>
   <div class="kind" id="d-kind">Site</div>
   <div class="d-where" id="d-where"></div>
@@ -213,12 +213,12 @@
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="site photo"></div>
 
 <div class="backdrop" id="settingsBackdrop"></div>
-<div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-label="Legal">
+<div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-label="Legal" data-i18n-aria="Legal">
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px" id="legalTitle">Legal</div>
   <div class="legalbody" id="legalBody"></div>
 </div>
-<div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions">
+<div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions">
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
   <div class="verline"><span class="vv">v0.218</span>The Journal labels and footer speak French, and photo save failures are surfaced</div>
@@ -358,7 +358,7 @@
 </section>
 </main>
 
-<nav class="ios-tabbar" id="tabbar" aria-label="Sections">
+<nav class="ios-tabbar" id="tabbar" aria-label="Sections" data-i18n-aria="Sections">
   <button class="ios-tab tab active" data-tab="guide" type="button" aria-current="page"><svg aria-hidden="true"><use href="assets/icons.svg#tent"/></svg><span data-i18n="Parks">Parks</span></button>
   <button class="ios-tab tab" data-tab="map" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#map"/></svg><span data-i18n="Map">Map</span></button>
   <button class="ios-tab tab" data-tab="journal" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#notebook"/></svg><span data-i18n="Journal">Journal</span></button>
