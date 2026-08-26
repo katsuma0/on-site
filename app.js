@@ -30,7 +30,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.215';
+var APP_VERSION='0.216';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -129,7 +129,13 @@ function parkVisible(p){ return p.id!==EGG_ID||eggFound(); }
 function revealEgg(){ if(eggFound()) return; state.eggQE2=true; persist(); buildSearchIndex(); renderParks(); buzz(12);
   showThemeToast('Hidden park revealed. Welcome to the Wildlands.'); }
 let saveTimer=null;
-function persist(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} },250); }
+function persistNow(){ clearTimeout(saveTimer); saveTimer=null; try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+function persist(){ clearTimeout(saveTimer); saveTimer=setTimeout(persistNow,250); }
+/* a rating or note made just before the tab is hidden or closed must not be
+   lost in the 250ms debounce: flush the pending write synchronously. iOS
+   freezes PWAs on background, where only pagehide/visibilitychange fire. */
+window.addEventListener('pagehide',function(){ if(saveTimer) persistNow(); });
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'&&saveTimer) persistNow(); });
 
 /* ================= photos ================= */
 const DB_NAME='scout-photos', STORE='photos'; let photoKeys=new Set();
@@ -150,7 +156,9 @@ function compress(file,maxDim=1400,q=0.72){ return new Promise((res,rej)=>{ cons
   img.onerror=()=>{ URL.revokeObjectURL(url); rej(); }; img.src=url; }); }
 
 /* ================= helpers ================= */
-const STOPS=['#B0574A','#B27C47','#95924A','#67934F','#2E8B50','#00753A'];
+/* score colours darkened so white badge/dot text clears WCAG AA (4.5:1) in
+   both themes: the old warm and olive stops sat at 3.8-4.2 with white on them */
+const STOPS=['#9C4136','#8A5B2C','#5F6A24','#3F6A30','#256E3F','#00602F'];
 function scoreColor(s){ return (typeof s==='number'&&s>=0&&s<=5)?('color-mix(in srgb, '+STOPS[s]+' 86%, var(--tint))'):null; }
 function sc(type,k){ const e=state[type][k]; return (e&&typeof e.score==='number')?e.score:null; }
 function noteOf(type,k){ const e=state[type][k]; return e&&e.note?e.note:''; }
@@ -263,7 +271,7 @@ function clearGSearch(){ const gq=document.getElementById('gq'); if(gq) gq.value
   const w=document.getElementById('gsearch'); if(w) w.classList.remove('has');
   const rb=document.getElementById('gresults'); if(rb){ rb.hidden=true; rb.innerHTML=''; }
   const hint=document.getElementById('searchHint'); if(hint) hint.hidden=false; }
-function esc(x){ return String(x).replace(/</g,'&lt;'); }
+function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function renderConsole(cmd,pairs){
   const rbox=document.getElementById('gresults');
   rbox.hidden=false;
@@ -686,6 +694,9 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
 function syncAzRail(){ const rail=document.getElementById('azRail'), pl=document.getElementById('parkList');
   if(rail) rail.hidden=!rail.childElementCount||!pl||pl.hidden; }
 function renderAzRail(letters){ const rail=document.getElementById('azRail'); if(!rail) return;
+  /* the rail is a pointer-only convenience that duplicates the A-Z section
+     headers; hide it from assistive tech rather than expose 26 dead spans */
+  rail.setAttribute('aria-hidden','true');
   rail.innerHTML=letters.map(L=>'<span data-l="'+L+'">'+L+'</span>').join('');
   syncAzRail(); }
 (function(){ const rail=document.getElementById('azRail'); if(!rail) return;
@@ -762,7 +773,9 @@ document.getElementById('backBtn').addEventListener('click',function(){
         t=setTimeout(function(){ armed=false; rb.classList.remove('armed'); rbT.textContent='Reset all data'; },4000); return; }
       clearTimeout(t);
       try{ localStorage.removeItem(KEY); }catch(e){}
-      ['site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-origin'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+      /* "erase everything" must take the favourites and the display name too,
+         or the Parks screen still shows a populated Favourites section after */
+      ['oncamp-favs','outdoors-profile','site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-group','site-journal-origin'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
       try{ indexedDB.deleteDatabase('scout-photos'); }catch(e){}
       /* land back at the very top, exactly like a fresh open */
       try{ history.scrollRestoration='manual'; }catch(e){}
@@ -779,7 +792,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
     window.parkResetSync(); }
 })();
 (function(){ /* backup: the whole journal travels as one JSON file, ratings, notes, photos, themes and all */
-  var BK_KEYS=['ontario-scout-v2','site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-group','site-journal-origin'];
+  var BK_KEYS=['ontario-scout-v2','oncamp-favs','outdoors-profile','site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-group','site-journal-origin'];
   var eb=document.getElementById('exportBtn'), ib=document.getElementById('importBtn'), fi=document.getElementById('importInput');
   if(!eb||!ib||!fi) return;
   /* the Account view carries a second pair of rows wired to the same actions */
@@ -790,7 +803,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   function buildBackup(){ return allPhotos().then(function(rows){
     var photos={}; rows.forEach(function(r){ if(r&&r.siteId&&Array.isArray(r.list)&&r.list.length) photos[r.siteId]=r.list; });
     var data={}; BK_KEYS.forEach(function(k){ try{ var v=localStorage.getItem(k); if(v!=null) data[k]=v; }catch(e){} });
-    return {app:'site-journal',format:1,appVersion:'0.205',exported:new Date().toISOString(),data:data,photos:photos}; }); }
+    return {app:'site-journal',format:1,appVersion:APP_VERSION,exported:new Date().toISOString(),data:data,photos:photos}; }); }
   function backupName(){ var d=new Date(); function p(n){ return (n<10?'0':'')+n; }
     return 'site-journal-backup-'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.json'; }
   function exportDone(){ showThemeToast(TL('Backup exported. Keep it somewhere safe.')); }
@@ -964,9 +977,12 @@ function refreshTrailCard(name){
 
 let cur={type:null,k:null,cg:null,site:null,trailName:null};
 const sheet=document.getElementById('sheet'), backdrop=document.getElementById('backdrop');
-function buildDots(){ const d=document.getElementById('dots'); d.innerHTML='';
-  for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
-function paintDots(){ const s=sc(cur.type,cur.k); document.querySelectorAll('#dots .dot').forEach(dot=>{ const v=+dot.dataset.v, on=(s!=null)&&v<=s; dot.classList.toggle('on',on); dot.style.background=on?scoreColor(s):''; }); }
+function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
+  for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
+    b.setAttribute('aria-label', i===0?TL('Clear rating'):(i+' / 5')); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
+function paintDots(){ const s=sc(cur.type,cur.k); document.querySelectorAll('#dots .dot').forEach(dot=>{ const v=+dot.dataset.v, on=(s!=null)&&v<=s;
+  dot.classList.toggle('on',on); dot.style.background=on?scoreColor(s):'';
+  dot.setAttribute('aria-checked', String((s==null?0:s)===v)); }); }
 function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==='trail'?cgId:null)};
   if(window.clearBtnSync) window.clearBtnSync();
   const wb=document.getElementById('wantBtn'), pw=document.getElementById('photoWrap'), whr=document.getElementById('d-where');
@@ -1074,7 +1090,20 @@ function showShared(item){
   var ex=document.getElementById('sh-explore'); if(ex) ex.onclick=function(){ history.replaceState(null,'',location.pathname+location.search); showTab('guide'); };
   try{ window.scrollTo(0,0); }catch(e){}
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSheet(); document.getElementById('lightbox').classList.remove('on'); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){
+  /* Escape must dismiss every overlay, not only the rate sheet, or a
+     keyboard user is trapped under an open legal or versions sheet */
+  closeSheet(); document.getElementById('lightbox').classList.remove('on');
+  if(typeof closeLegal==='function'){ var ls=document.getElementById('legalSheet'); if(ls&&ls.classList.contains('on')) closeLegal(); }
+  if(typeof closeVersions==='function'){ var vs=document.getElementById('versionsSheet'); if(vs&&vs.classList.contains('on')) closeVersions(); }
+} });
+/* the favourite heart is a role=button span, so Enter/Space do not fire a
+   click on their own: wire them to the same toggle as the pointer path */
+document.addEventListener('keydown',function(ev){
+  if(ev.key!=='Enter'&&ev.key!==' '&&ev.key!=='Spacebar') return;
+  var h=ev.target.closest?ev.target.closest('[data-fav]'):null; if(!h) return;
+  ev.preventDefault(); toggleFav(h.getAttribute('data-fav'),h.getAttribute('data-favid'));
+});
 
 async function renderPhotos(k){ const box=document.getElementById('photos'); box.innerHTML=''; const list=await getPhotos(k);
   list.forEach(p=>{ const d=document.createElement('div'); d.className='photo';
@@ -1468,7 +1497,7 @@ function renderAvatar(){
   inp.addEventListener('input',function(){ setDisplayName(inp.value); renderAvatar(); });
   inp.addEventListener('keydown',function(e){ if(e.key==='Enter') inp.blur(); });
 })();
-function accountStats(){ var s=journalStats(); return {parks:s.parks,sites:s.sites}; }
+function accountStats(){ var s=journalStats(); return {parks:s.parks,sites:s.n}; }
 function countPhotosSaved(){ return openDB().then(function(db){ return new Promise(function(res){
     var tx=db.transaction(STORE,'readonly'); var rq=tx.objectStore(STORE).getAll();
     rq.onsuccess=function(){ var n=0; (rq.result||[]).forEach(function(r){ if(r&&Array.isArray(r.list)) n+=r.list.length; }); res(n); };
@@ -1567,7 +1596,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
   var PHOTO_G='<svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg>';
   var html='<div class="acct-stats">'
     +'<div class="acct-stat"><b class="tnum">'+s.parks+'</b><span>'+TL('Parks visited')+'</span></div>'
-    +'<div class="acct-stat"><b class="tnum">'+s.sites+'</b><span>'+TL('Ratings')+'</span></div>'
+    +'<div class="acct-stat"><b class="tnum">'+s.n+'</b><span>'+TL('Ratings')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average rating')+'</span></div>'
     +'</div>';
   var ORDER={campground:0,site:1,trail:2};
@@ -1600,6 +1629,7 @@ function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el)
    and loses it back at the top; the appearance layer paints the difference. */
 (function(){
   function stampScrolled(){
+    if(_scrollLocked) return; // a sheet is open; keep the frosted bars as they are
     var on=(window.scrollY||document.documentElement.scrollTop||0)>8;
     document.querySelectorAll('.ios-header,.nav,.backbar').forEach(function(el){
       el.classList.toggle('scrolled',on); });
@@ -1661,11 +1691,17 @@ function renderLearn(){
       '<div class="cell-detail-body">'+a.b+'</div></details>'; }).join('')+'</div>';
 }
 /* shared: body scroll lock while a sheet is open */
-var _lockY=0,_locks=0;
+var _lockY=0,_locks=0,_scrollLocked=false;
 function lockScroll(){ if(++_locks>1) return; _lockY=window.scrollY||0; var b=document.body;
-  b.style.position='fixed'; b.style.top=(-_lockY)+'px'; b.style.left='0'; b.style.right='0'; b.style.width='100%'; }
+  b.style.position='fixed'; b.style.top=(-_lockY)+'px'; b.style.left='0'; b.style.right='0'; b.style.width='100%';
+  /* body position:fixed zeroes scrollY; without this the scroll handler would
+     strip the back bar's glass and its label would collide with the page text
+     scrolled behind the open sheet. Freeze the frosted state while locked. */
+  _scrollLocked=true;
+  document.querySelectorAll('.ios-header,.nav,.backbar').forEach(function(el){ el.classList.add('scrolled'); }); }
 function unlockScroll(){ if(_locks===0) return; if(--_locks>0) return; var b=document.body;
-  b.style.position=''; b.style.top=''; b.style.left=''; b.style.right=''; b.style.width=''; window.scrollTo(0,_lockY); }
+  b.style.position=''; b.style.top=''; b.style.left=''; b.style.right=''; b.style.width=''; window.scrollTo(0,_lockY);
+  _scrollLocked=false; if(window.sjStampScrolled) window.sjStampScrolled(); }
 /* shared: pull down anywhere on a sheet to close it */
 function makeSheetSwipe(el,closeFn){
   var sy=0,sx=0,dy=0,dragging=false,horiz=false;

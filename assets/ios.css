@@ -17,7 +17,7 @@
 
   /* text */
   --label: #000000;
-  --label-2: rgba(60, 60, 67, .60);
+  --label-2: rgba(60, 60, 67, .75);
   --label-3: rgba(60, 60, 67, .30);
   --sep: rgba(60, 60, 67, .29);
 
@@ -123,7 +123,7 @@
   --card: #FFFFFF;
   --card-pressed: #D1D1D6;
   --label: #000000;
-  --label-2: rgba(60, 60, 67, .60);
+  --label-2: rgba(60, 60, 67, .75);
   --label-3: rgba(60, 60, 67, .30);
   --sep: rgba(60, 60, 67, .29);
   --tint: #007AFF;
@@ -791,9 +791,11 @@ button {
     font-size:var(--fs-subhead);color:var(--label-2);display:flex;align-items:center;justify-content:center;transition:.12s}
   .dot:active{transform:scale(.88)}
   .dot.on{color:var(--on-tint);border-color:transparent}
-  .want-btn{width:100%;cursor:pointer;font-weight:600;font-size:var(--fs-body);border:0;background:var(--fill-strong);color:var(--orange);
+  /* the wishlist toggle wears the app tint, not orange-on-grey: orange text
+     on the grey fill was 1.57:1 and white-on-orange 2.18:1, both far below AA */
+  .want-btn{width:100%;cursor:pointer;font-weight:600;font-size:var(--fs-body);border:0;background:var(--tint-soft);color:var(--tint-text);
     border-radius:var(--r-sm);padding:14px;min-height:var(--ctl-lg);margin-bottom:0;transition:.15s}
-  .want-btn[aria-pressed="true"]{background:var(--orange);color:var(--on-tint)}
+  .want-btn[aria-pressed="true"]{background:var(--tint-fill);color:var(--on-tint)}
   textarea{width:100%;min-height:106px;resize:none;overflow:hidden;font-family:var(--font-sys);font-size:var(--fs-body);color:var(--label);
     background:var(--card);border:0;border-radius:var(--r-sm);padding:14px;outline:none}
   textarea:focus{box-shadow:inset 0 0 0 2px var(--tint)}
@@ -2254,6 +2256,11 @@ h1, h2, h3, h4, .btn { font-family: var(--font-display); }
   background-image: none;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, .18);
 }
+/* a closed sheet rests just below the fold; its big upward drop-shadow was
+   bleeding a grey smudge across the bottom of every desktop screen. The
+   blurred shadow belongs to the open sheet only. */
+.sheet:not(.on),
+:root:not([data-glass="off"]) .sheet:not(.on) { box-shadow: 0 -1px 0 var(--sep); }
 /* the letter rail rode a glass capsule; it sits plain on the page now */
 .azrail,
 :root:not([data-glass="off"]) .azrail {
