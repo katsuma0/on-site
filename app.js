@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.224';
+var APP_VERSION='0.225';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -1127,7 +1127,7 @@ function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==
   } else if(type==='trail'){ const t=(curPark.trails||[]).find(x=>x.name===cgId); whr.style.display='none';
     document.getElementById('d-kind').textContent=TL('Trail'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+TL(t.difficulty):''); wb.style.display='none'; pw.style.display=''; renderPhotos(k);
-  } else { whr.style.display='none'; const isPark=(curPark.dayuse&&cgId===curPark.name);
+  } else { whr.style.display='none'; const isPark=(cgId===curPark.name);
     document.getElementById('d-kind').textContent=isPark?TL('Park'):TL('Campground'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):curPark.name; wb.style.display='none'; pw.style.display=''; renderPhotos(k); }
   document.getElementById('photoNote').hidden=(type==='trail');
@@ -1177,7 +1177,7 @@ function reviewShareItem(){
   var type=cur.type, k=cur.k, score=sc(type,k), note=noteOf(type,k), kind, title, sub='';
   if(type==='site'){ kind='site'; title=curPark.name; sub=TL('Site')+' '+cur.site+(cur.cg&&cur.cg!==curPark.name?(' · '+cur.cg):''); }
   else if(type==='trail'){ kind='trail'; title=cur.cg; sub=curPark.name; }
-  else { var isPark=(curPark.dayuse&&cur.cg===curPark.name); kind=isPark?'park':'campground'; title=curPark.name;
+  else { var isPark=(cur.cg===curPark.name); kind=isPark?'park':'campground'; title=curPark.name;
     sub=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):cur.cg; }
   return { t:'camp-review', kind:kind, title:title, sub:sub,
     score:(score!=null?score:null), note:note?(Array.from(note).length>200?Array.from(note).slice(0,197).join('')+'…':note):'',
