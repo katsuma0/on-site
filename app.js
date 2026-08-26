@@ -30,7 +30,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.216';
+var APP_VERSION='0.217';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -85,7 +85,36 @@ var FR={
   'Park data could not be loaded.':'Les données des parcs n’ont pas pu être chargées.',
   /* learn */
   'Bear safety and food storage':'Sécurité avec les ours et rangement des aliments',
-  'Campfire safety':'Sécurité des feux de camp'
+  'Campfire safety':'Sécurité des feux de camp',
+  'Ticks and Lyme disease':'Tiques et maladie de Lyme',
+  'Leave no trace':'Ne laisser aucune trace',
+  'Wildlife on the roads':'La faune sur les routes',
+  'Cold water and weather':'Eau froide et météo',
+  'Report a bear or a hazard':'Signaler un ours ou un danger',
+  /* rate sheet */
+  'Rating':'Note','Clear rating':'Effacer la note',
+  'Camera':'Appareil photo','Add photos':'Ajouter des photos',
+  'Please do not photograph occupied sites.':'Veuillez ne pas photographier les emplacements occupés.',
+  'Share this review':'Partager cet avis','Clear':'Effacer',
+  'Tap again to clear':'Touchez encore pour effacer','Done':'Terminé',
+  'Trail':'Sentier','Park':'Parc',
+  /* park screen chrome */
+  'Rate this park':'Noter ce parc','Park stats':'Statistiques du parc',
+  'All Parks':'Tous les parcs','Park rating':'Note du parc',
+  'Sites rated here':'Emplacements notés ici','Rate campground':'Noter le terrain',
+  'Tap again to erase this park':'Touchez encore pour effacer ce parc',
+  'sites':'emplacements','rated':'notés',
+  /* more screen: sections, data rows */
+  'About':'À propos','Learn':'Apprendre','Your data':'Vos données',
+  'More from the Ontario outdoors':'Plus du plein air en Ontario',
+  'Export a backup':'Exporter une sauvegarde','Import a backup':'Importer une sauvegarde',
+  'Reset all data':'Réinitialiser toutes les données',
+  'Tap again to erase everything':'Touchez encore pour tout effacer',
+  'Export a backup to move your journal to another phone.':'Exportez une sauvegarde pour transférer votre journal vers un autre téléphone.',
+  /* about the app, three body paragraphs (on-site and Parcs Ontario kept as names) */
+  'Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.':'Depuis mon plus jeune âge, mes parents m’emmenaient souvent camper. Ces derniers temps, je partage cette passion avec mes amis et je leur fais découvrir la beauté du plein air. Avec cela vient la responsabilité de réserver les emplacements, et choisir un emplacement que l’on n’a jamais vu est un pari.',
+  'on-site is a private journal for Ontario Parks campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable Ontario Park, down to the campgrounds, the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping de Parcs Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque parc réservable de l’Ontario, jusqu’aux terrains, aux emplacements individuels et aux sentiers qui les entourent.',
+  'Everything you save stays on this device. There is no account, no server, and nothing is tracked. Ratings and notes live in the browser and photos in local storage, and you can export a backup to a file and load it on another phone. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Tout ce que vous enregistrez reste sur cet appareil. Il n’y a aucun compte, aucun serveur, et rien n’est suivi. Les évaluations et les notes vivent dans le navigateur et les photos dans le stockage local, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre téléphone. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.'
 };
 function TL(s){ return (LANG==='fr'&&FR[s])||s; }
 window.TL=TL;
@@ -99,6 +128,7 @@ function setLang(v){
   try{ if(typeof renderAccount==='function') renderAccount(); }catch(e){}
   try{ if(typeof renderJournal==='function') renderJournal(); }catch(e){}
   try{ if(typeof fillAboutStats==='function') fillAboutStats(); }catch(e){}
+  try{ if(learnRendered&&typeof renderLearn==='function') renderLearn(); }catch(e){}
   try{ if(window.renderCampMapChips) window.renderCampMapChips(); }catch(e){}
 }
 /* translate every tagged node in the static markup */
@@ -550,7 +580,7 @@ function regionOrder(){ const found=new Set(PARKS.map(broadOf));
 function regionChipsHtml(){
   return '<div class="filters">'+regionOrder().map(function(r){
     return '<button class="fchip'+(r===regionFilter?' on':'')+'" type="button" data-region="'+r+'">'+
-      '<span class="fct">'+(r==='All'?'All regions':r)+'</span></button>'; }).join('')+'</div>';
+      '<span class="fct">'+(r==='All'?TL('All regions'):r)+'</span></button>'; }).join('')+'</div>';
 }
 
 /* ================= favourites =================
@@ -681,7 +711,7 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
       byLetter[L].map(p=>{ const st=info[p.id];
         const town=(p.region||'').split(' · ').slice(1).join(' · ');
         const sub=broadOf(p)+(town?' · '+town:'');
-        return parkRowHtml(p,st,sub,st.rated>0?st.rated+' rated':''); }).join('')+
+        return parkRowHtml(p,st,sub,st.rated>0?st.rated+' '+TL('rated'):''); }).join('')+
       '</div></div>';
   });
   if(!shown.length) html+='<div class="empty">No parks in this region.</div>';
@@ -722,7 +752,7 @@ function openPark(pid){
   curPark=PARK_BY_ID[pid]; const p=curPark; const st=parkStats(p);
   document.getElementById('parkBody').innerHTML=`
     <div class="park-head"><div class="titlerow"><h2 id="parkTitle" style="cursor:pointer">${(p.region||'').indexOf('Algonquin')===0?p.name+', Algonquin':p.name}</h2>${parkFavHtml(p.id)}</div>
-      <button class="about-toggle" id="aboutToggle" aria-expanded="false">About ${p.name}<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="about-toggle" id="aboutToggle" aria-expanded="false">${LANG==='fr'?'En savoir plus sur ':'About '}${p.name}<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></button>
       <div class="about-body" id="aboutBody" hidden>
         <div class="blurb">${p.blurb}</div>
         <div class="facils">${p.facilities.map(facilChip).join('')}</div>
@@ -731,8 +761,8 @@ function openPark(pid){
                 <a class="fmz" href="${p.url}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4 10 14"/><path d="M9 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg>Official park page \u2197</a>
       </div>
     </div>
-    <div class="seclabel">${p.dayuse?'Rating':'Park rating'}</div>
-    <button class="trail" id="parkRate"><div class="tr-left"><div class="tr-name">Rate this park</div></div><span class="tr-rate" id="prVal" hidden></span></button>
+    <div class="seclabel">${p.dayuse?TL('Rating'):TL('Park rating')}</div>
+    <button class="trail" id="parkRate"><div class="tr-left"><div class="tr-name">${TL('Rate this park')}</div></div><span class="tr-rate" id="prVal" hidden></span></button>
     <div id="parkProg"></div>
     ${p.dayuse?'':'<div class="seclabel">'+TL('Campgrounds')+'</div>'}
     <div id="cgs"></div>
@@ -741,7 +771,7 @@ function openPark(pid){
     <div id="wantSection" hidden><div class="seclabel">${TL('Wishlist')}</div><div id="wantList"></div></div>
     <div id="topSection" hidden><div class="seclabel">${TL('Top sites')}</div><ul class="rank" id="topSites"></ul></div>
     ${p.dayuse?'':`<div id="statsWrap" hidden><div class="seclabel">${TL('Stats')}</div>
-    <details class="statscard"><summary>Park stats<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></summary><div class="statsbody" id="statsBody"></div></details></div>`}
+    <details class="statscard"><summary>${TL('Park stats')}<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></summary><div class="statsbody" id="statsBody"></div></details></div>`}
 `;
   renderCgs(); renderTrails(); wireParkControls(); updatePark(); renderGlance();
   document.getElementById('parkTitle').addEventListener('click',function(){ onParkNameTap(p); });
@@ -769,8 +799,8 @@ document.getElementById('backBtn').addEventListener('click',function(){
   const rbT=rb&&(rb.querySelector('.ios-row-title')||rb);
   if(rb){ let armed=false, t=null;
     rb.addEventListener('click',function(){
-      if(!armed){ armed=true; rb.classList.add('armed'); rbT.textContent='Tap again to erase everything';
-        t=setTimeout(function(){ armed=false; rb.classList.remove('armed'); rbT.textContent='Reset all data'; },4000); return; }
+      if(!armed){ armed=true; rb.classList.add('armed'); rbT.textContent=TL('Tap again to erase everything');
+        t=setTimeout(function(){ armed=false; rb.classList.remove('armed'); rbT.textContent=TL('Reset all data'); },4000); return; }
       clearTimeout(t);
       try{ localStorage.removeItem(KEY); }catch(e){}
       /* "erase everything" must take the favourites and the display name too,
@@ -784,9 +814,9 @@ document.getElementById('backBtn').addEventListener('click',function(){
   const pb=document.getElementById('resetBtnPark');
   if(pb){ let armed=false, t=null;
     window.parkResetSync=function(){ armed=false; clearTimeout(t); pb.classList.remove('armed');
-      pb.textContent=curPark?('Reset '+curPark.name+' data'):''; };
+      pb.textContent=curPark?(LANG==='fr'?('Réinitialiser les données pour '+curPark.name):('Reset '+curPark.name+' data')):''; };
     pb.addEventListener('click',async function(){ if(!curPark) return;
-      if(!armed){ armed=true; pb.classList.add('armed'); pb.textContent='Tap again to erase this park';
+      if(!armed){ armed=true; pb.classList.add('armed'); pb.textContent=TL('Tap again to erase this park');
         t=setTimeout(function(){ window.parkResetSync(); },4000); return; }
       clearTimeout(t); await wipeParkData(curPark.id); window.parkResetSync(); });
     window.parkResetSync(); }
@@ -895,8 +925,8 @@ function renderCgs(){ const box=document.getElementById('cgs'); box.innerHTML=''
         <div class="cg-right"><div class="cg-prog" ${st.rated>0?'':'hidden'}><div class="bar"><i style="width:${st.pct}%"></i></div><div class="lbl tnum">${st.rated}/${st.total}</div></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></div>
       </button>
-      <div class="cg-body"><div class="cg-body-head"><span class="cg-desc">${cgSites(cg).length} sites</span>
-        <button class="cg-rate ${col?'rated':''}" ${col?`style="background:${col}"`:''} data-cgrate>${col?`Campground · ${own}/5`:'Rate campground'}</button></div>
+      <div class="cg-body"><div class="cg-body-head"><span class="cg-desc">${cgSites(cg).length} ${TL('sites')}</span>
+        <button class="cg-rate ${col?'rated':''}" ${col?`style="background:${col}"`:''} data-cgrate>${col?`${TL('Campground')} · ${own}/5`:TL('Rate campground')}</button></div>
         <div class="grid"></div></div>`;
     card.querySelector('[data-toggle]').addEventListener('click',()=>{ const opening=!card.classList.contains('open'); card.classList.toggle('open'); if(opening) fillGrid(card); });
     card.querySelector('[data-cgrate]').addEventListener('click',e=>{ e.stopPropagation(); openSheet('campground',cidOf(p.id,cg.id),cg.id,null); });
@@ -920,7 +950,7 @@ function refreshCgHeader(cgId){ const card=document.querySelector(`.cg[data-cg="
   const prog=card.querySelector('.cg-prog'); if(prog) prog.hidden=st.rated===0;
   card.querySelector('.cg-prog .bar i').style.width=st.pct+'%';
   card.querySelector('.cg-prog .lbl').textContent=`${st.rated}/${st.total}`;
-  const rb=card.querySelector('[data-cgrate]'); rb.classList.toggle('rated',!!col); rb.style.background=col||''; rb.textContent=col?`Campground · ${own}/5`:'Rate campground'; }
+  const rb=card.querySelector('[data-cgrate]'); rb.classList.toggle('rated',!!col); rb.style.background=col||''; rb.textContent=col?`${TL('Campground')} · ${own}/5`:TL('Rate campground'); }
 function expandCg(cgId){ const card=document.querySelector(`.cg[data-cg="${CSS.escape(cgId)}"]`); if(!card) return;
   card.classList.add('open'); fillGrid(card); card.scrollIntoView({behavior:'smooth',block:'start'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); }
 
@@ -986,18 +1016,18 @@ function paintDots(){ const s=sc(cur.type,cur.k); document.querySelectorAll('#do
 function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==='trail'?cgId:null)};
   if(window.clearBtnSync) window.clearBtnSync();
   const wb=document.getElementById('wantBtn'), pw=document.getElementById('photoWrap'), whr=document.getElementById('d-where');
-  if(type==='site'){ document.getElementById('d-kind').textContent='Site'; document.getElementById('d-title').textContent='Site '+site;
+  if(type==='site'){ document.getElementById('d-kind').textContent=TL('Site'); document.getElementById('d-title').textContent=TL('Site')+' '+site;
     whr.textContent=(cgId===curPark.name?((curPark.region||'').split(' · ')[0]||'')+' · '+cgId:cgId+' · '+curPark.name); whr.style.display='';
     document.getElementById('d-ctx').textContent=''; wb.style.display=''; pw.style.display='';
-    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.textContent=(w?'★ ':'☆ ')+'Wishlist'; renderPhotos(k);
+    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.textContent=(w?'★ ':'☆ ')+TL('Wishlist'); renderPhotos(k);
   } else if(type==='trail'){ const t=(curPark.trails||[]).find(x=>x.name===cgId); whr.style.display='none';
-    document.getElementById('d-kind').textContent='Trail'; document.getElementById('d-title').textContent=cgId;
+    document.getElementById('d-kind').textContent=TL('Trail'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+t.difficulty:''); wb.style.display='none'; pw.style.display=''; renderPhotos(k);
   } else { whr.style.display='none'; const isPark=(curPark.dayuse&&cgId===curPark.name);
-    document.getElementById('d-kind').textContent=isPark?'Park':'Campground'; document.getElementById('d-title').textContent=cgId;
+    document.getElementById('d-kind').textContent=isPark?TL('Park'):TL('Campground'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):curPark.name; wb.style.display='none'; pw.style.display=''; renderPhotos(k); }
   document.getElementById('photoNote').hidden=(type==='trail');
-  document.getElementById('notesLabel').textContent='Notes';
+  document.getElementById('notesLabel').textContent=TL('Notes');
   document.getElementById('d-kind').style.display=(type==='site')?'none':'';
   const nta=document.getElementById('d-notes'); nta.value=noteOf(type,k); autoGrowNotes(nta); paintDots();
   backdrop.classList.add('on'); sheet.classList.add('on'); sheet.scrollTop=0; lockScroll();
@@ -1011,23 +1041,23 @@ function afterChange(){ touchPark(cur.k.split('#')[0]); persist();
   else { refreshCgHeader(cur.cg); refreshParkRate(); } }
 function setScore(v){ const e=ensure(); e.score=(e.score===v?null:v); buzz(9); paintDots(); flashSaved(); afterChange(); }
 document.getElementById('wantBtn').addEventListener('click',function(){ const e=ensure(); e.want=!e.want; buzz(9);
-  this.setAttribute('aria-pressed',e.want); this.textContent=(e.want?'★ ':'☆ ')+'Wishlist'; if(e.want&&e.score===0) showThemeToast("Added to your wishlist."); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
+  this.setAttribute('aria-pressed',e.want); this.textContent=(e.want?'★ ':'☆ ')+TL('Wishlist'); if(e.want&&e.score===0) showThemeToast("Added to your wishlist."); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
 function autoGrowNotes(el){ el.style.height='auto'; el.style.height=Math.max(106,el.scrollHeight)+'px'; }
 document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e.target); const en=ensure(); en.note=e.target.value; flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); });
 (function(){
   var cb=document.getElementById('clearBtn'); if(!cb) return;
   var armed=false, t=null;
-  function disarm(){ armed=false; clearTimeout(t); cb.classList.remove('armed'); cb.textContent='Clear'; }
+  function disarm(){ armed=false; clearTimeout(t); cb.classList.remove('armed'); cb.textContent=TL('Clear'); }
   window.clearBtnSync=disarm;   // reset when the sheet reopens on another item
   cb.addEventListener('click',()=>{
     // Nothing saved for this item, so there is nothing to clear.
     if(!state[cur.type] || !state[cur.type][cur.k]){ return; }
-    if(!armed){ armed=true; cb.classList.add('armed'); cb.textContent='Tap again to clear';
+    if(!armed){ armed=true; cb.classList.add('armed'); cb.textContent=TL('Tap again to clear');
       t=setTimeout(disarm,4000); return; }
     disarm();
     delete state[cur.type][cur.k];
     const cnta=document.getElementById('d-notes'); cnta.value=''; autoGrowNotes(cnta);
-    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.textContent='☆ Wishlist';
+    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.textContent='☆ '+TL('Wishlist');
     paintDots(); flashSaved(); afterChange();
   });
 })();
@@ -1134,8 +1164,8 @@ function renderParkProgress(){
   const p=curPark, box=document.getElementById('parkProg'); if(!p||!box) return;
   const st=parkStats(p);
   if(!st.rated||!st.total){ box.innerHTML=''; return; }
-  box.innerHTML='<div class="pprog"><div class="pprog-top"><span>Sites rated here</span>'
-    +'<span class="pprog-n tnum">'+st.rated+' of '+st.total+'</span></div>'
+  box.innerHTML='<div class="pprog"><div class="pprog-top"><span>'+TL('Sites rated here')+'</span>'
+    +'<span class="pprog-n tnum">'+st.rated+' '+TL('of')+' '+st.total+'</span></div>'
     +'<span class="pprog-bar"><span class="pprog-fill" style="width:'+Math.max(2,st.pct)+'%"></span></span></div>';
 }
 function renderParkStats(){ const p=curPark, box=document.getElementById('statsBody'), wrap=document.getElementById('statsWrap'); if(!p||!box) return;
@@ -1687,7 +1717,7 @@ function renderLearn(){
     {t:'Report a bear or a hazard', b:`<p>Seeing a bear, a road hazard, or wildlife on a road? on-wildlife has a quick report that drops it on a shared map for the area, with sensitive spots coarsened for privacy.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Open on-wildlife to report</a></p>`}
   ];
   el.innerHTML='<div class="ios-group">'+A.map(function(a){
-    return '<details class="cell-details"><summary class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+a.t+'</span></span>'+CHEV+'</summary>'+
+    return '<details class="cell-details"><summary class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+TL(a.t)+'</span></span>'+CHEV+'</summary>'+
       '<div class="cell-detail-body">'+a.b+'</div></details>'; }).join('')+'</div>';
 }
 /* shared: body scroll lock while a sheet is open */
