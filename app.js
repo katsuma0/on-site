@@ -11,16 +11,22 @@ function loadParksEmbedded(){
 }
 async function refreshParksFromNetwork(){
   if(window.Capacitor) return; /* the app ships its data embedded; a local file can only ever be stale */
-  try{
-    const res=await fetch('./parks-data.json',{cache:'no-store'});
-    if(!res.ok) return;
-    const fresh=await res.json();
-    if(!Array.isArray(fresh)||!fresh.length) return;
-    const embedded=JSON.stringify(window.PARKS_DATA||[]);
-    if(JSON.stringify(fresh)===embedded) return;              // identical, nothing changed
-    setParks(fresh); buildSearchIndex();
-    if(!document.getElementById('view-parks').hidden) renderParks();   // only redraw home; don't disturb an open park
-  }catch(e){}
+  /* the compare stringifies ~235KB twice; run it when the main thread is idle
+     so it never competes with first paint or a tap */
+  const idle=window.requestIdleCallback||function(f){ return setTimeout(function(){ f(); },1200); };
+  idle(async function(){
+    try{
+      const res=await fetch('./parks-data.json',{cache:'no-store'});
+      if(!res.ok) return;
+      const freshText=await res.text();
+      const fresh=JSON.parse(freshText);
+      if(!Array.isArray(fresh)||!fresh.length) return;
+      // compare the compact re-stringify of both sides (the file may be pretty-printed)
+      if(JSON.stringify(fresh)===JSON.stringify(window.PARKS_DATA||[])) return;   // identical, nothing changed
+      setParks(fresh); buildSearchIndex();
+      if(!document.getElementById('view-parks').hidden) renderParks();   // only redraw home; don't disturb an open park
+    }catch(e){}
+  });
 }
 const CG_BY_ID=id=>curPark.campgrounds.find(c=>c.id===id);
 function cgSites(cg){ if(cg.sites) return cg.sites.slice(); const a=[]; for(let i=cg.from;i<=cg.to;i++)a.push(String(i)); return a; }
@@ -30,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.217';
+var APP_VERSION='0.218';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -54,6 +60,8 @@ var FR={
   'Campgrounds':'Terrains de camping','Sites':'Emplacements','Trails':'Sentiers','Cancel':'Annuler',
   /* account and journal */
   'Parks visited':'Parcs visités','Ratings':'Évaluations','Average rating':'Note moyenne',
+  'Everything you save stays on this device.':'Tout ce que vous enregistrez reste sur cet appareil.',
+  'That photo could not be saved. Your device storage may be full.':'Cette photo n’a pas pu être enregistrée. Le stockage de votre appareil est peut-être plein.',
   'Favourites':'Favoris','Name':'Nom','Your name':'Votre nom',
   'Legal':'Mentions légales','Privacy policy':'Politique de confidentialité',
   'What stays on this device, and what does not':'Ce qui reste sur cet appareil, et ce qui n’y reste pas',
@@ -176,9 +184,15 @@ async function loadPhotoIndex(){ try{ const db=await openDB(); photoKeys=await n
   const rq=tx.objectStore(STORE).getAllKeys(); rq.onsuccess=()=>res(new Set(rq.result||[])); rq.onerror=()=>res(new Set()); }); }catch(e){ photoKeys=new Set(); } }
 async function getPhotos(k){ try{ const db=await openDB(); return await new Promise(res=>{ const tx=db.transaction(STORE,'readonly');
   const rq=tx.objectStore(STORE).get(k); rq.onsuccess=()=>res(rq.result?rq.result.list:[]); rq.onerror=()=>res([]); }); }catch(e){ return []; } }
-async function putPhotos(k,list){ try{ const db=await openDB(); await new Promise(res=>{ const tx=db.transaction(STORE,'readwrite');
-  const st=tx.objectStore(STORE); if(list.length) st.put({siteId:k,list}); else st.delete(k); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
-  if(list.length) photoKeys.add(k); else photoKeys.delete(k); }catch(e){} }
+async function putPhotos(k,list){ try{ const db=await openDB();
+  /* only update the in-memory index if the write actually committed: on a
+     failed/aborted transaction (e.g. QuotaExceeded) the row is rolled back,
+     so claiming the site has a photo would leave a broken thumbnail */
+  var okWrite=await new Promise(res=>{ const tx=db.transaction(STORE,'readwrite');
+    const st=tx.objectStore(STORE); if(list.length) st.put({siteId:k,list}); else st.delete(k);
+    tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); tx.onabort=()=>res(false); });
+  if(!okWrite) return false;
+  if(list.length) photoKeys.add(k); else photoKeys.delete(k); return true; }catch(e){ return false; } }
 function compress(file,maxDim=1400,q=0.72){ return new Promise((res,rej)=>{ const img=new Image(),url=URL.createObjectURL(file);
   img.onload=()=>{ URL.revokeObjectURL(url); let w=img.naturalWidth,h=img.naturalHeight; const s=Math.min(1,maxDim/Math.max(w,h));
     w=Math.round(w*s); h=Math.round(h*s); const c=document.createElement('canvas'); c.width=w; c.height=h;
@@ -1146,7 +1160,8 @@ async function handlePhotoFiles(e){ const files=Array.from(e.target.files||[]); 
   const btns=document.querySelectorAll('.pa-btn'); btns.forEach(b=>b.disabled=true);
   const list=await getPhotos(k);
   for(const f of files){ try{ const data=await compress(f); list.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,6),data}); }catch(err){} }
-  await putPhotos(k,list); e.target.value=''; buzz(9); touchPark(k.split('#')[0]); persist(); renderPhotos(k); if(cur.site) refreshChip(k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); renderGlance(); btns.forEach(b=>b.disabled=false); }
+  var saved=await putPhotos(k,list); e.target.value=''; buzz(9); touchPark(k.split('#')[0]); persist(); renderPhotos(k); if(cur.site) refreshChip(k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); renderGlance(); btns.forEach(b=>b.disabled=false);
+  if(!saved) showThemeToast(TL('That photo could not be saved. Your device storage may be full.')); }
 document.getElementById('photoInput').addEventListener('change',handlePhotoFiles);
 document.getElementById('cameraInput').addEventListener('change',handlePhotoFiles);
 document.getElementById('cameraBtn').addEventListener('click',()=>document.getElementById('cameraInput').click());
@@ -1595,16 +1610,16 @@ function journalEntries(){ var byPark={};
   var o=state.site||{}, k, e;
   for(k in o){ e=o[k]; if(!e) continue; var rated=(typeof e.score==='number');
     if(!rated&&!e.want) continue; var sp=k.split('#');
-    push(sp[0],{type:'site',k:k,title:'Site '+sp.slice(2).join('#'),sub:sp[1],
+    push(sp[0],{type:'site',k:k,title:TL('Site')+' '+sp.slice(2).join('#'),sub:sp[1],
       score:rated?e.score:null,want:!!e.want,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   o=state.campground||{};
   for(k in o){ e=o[k]; if(!e||typeof e.score!=='number') continue; var cp=k.split('#'), pid=cp[0],
       name=cp.slice(1).join('#'), p=PARK_BY_ID[pid];
-    push(pid,{type:'campground',k:k,title:name,sub:(p&&name===p.name)?'Park rating':'Campground',
+    push(pid,{type:'campground',k:k,title:name,sub:(p&&name===p.name)?TL('Park rating'):TL('Campground'),
       score:e.score,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   o=state.trail||{};
   for(k in o){ e=o[k]; if(!e||typeof e.score!=='number') continue; var tp=k.split('#');
-    push(tp[0],{type:'trail',k:k,title:tp.slice(1).join('#'),sub:'Trail',
+    push(tp[0],{type:'trail',k:k,title:tp.slice(1).join('#'),sub:TL('Trail'),
       score:e.score,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   return byPark; }
 function openJournalEntry(k,type){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_ID[pid]) return;
