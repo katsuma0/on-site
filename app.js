@@ -36,7 +36,7 @@ function cidOf(pid,cgId){ return pid+'#'+cgId; }
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.222';
+var APP_VERSION='0.223';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -97,6 +97,8 @@ var FR={
   'Near North':'Proche-Nord','Northern':'Nord','Southeast':'Sud-Est','Southwest':'Sud-Ouest','Other':'Autre',
   'Site review':'Avis sur l’emplacement','Trail review':'Avis sur le sentier','Park review':'Avis sur le parc',
   'Reviewed':'Évalué en','Shared':'Partagé','review':'avis',
+  'Easy':'Facile','Moderate':'Modéré','Difficult':'Difficile','Easy to moderate':'Facile à modéré','Moderate to difficult':'Modéré à difficile',
+  'Tap to discover':'Touchez pour découvrir',
   /* messages */
   'Backup exported. Keep it somewhere safe.':'Sauvegarde exportée. Gardez-la en lieu sûr.',
   'Backup restored. Welcome back.':'Sauvegarde restaurée. Bon retour.',
@@ -289,7 +291,7 @@ function searchAll(q){ q=q.trim().toLowerCase(); if(!q) return [];
       res.push({type:'cg',score:nameHit(c.cgName,nameQ,80),parkId:c.parkId,cgName:c.cgName,title:c.cgName,sub:c.parkName+((c.sub||'').split(' · ')[0]?' · '+(c.sub||'').split(' · ')[0]:'')}); }
   });
   if(nameQ && !siteTok.length) SEARCH_TRAILS.forEach(t=>{ if(nameTok.every(x=>t.name.toLowerCase().includes(x)))
-    res.push({type:'trail',score:nameHit(t.name,nameQ,75),parkId:t.parkId,trailName:t.name,title:t.name,sub:t.parkName+' · '+t.difficulty+' · '+fmtLen(t.length)}); });
+    res.push({type:'trail',score:nameHit(t.name,nameQ,75),parkId:t.parkId,trailName:t.name,title:t.name,sub:t.parkName+' · '+TL(t.difficulty)+' · '+fmtLen(t.length)}); });
   /* Universal search: typing a fish surfaces the parks that have it. */
   if(window.ECO && nameQ && !siteTok.length){
     const ECO=window.ECO, keys=Object.keys(ECO.fish);
@@ -312,7 +314,7 @@ function searchAll(q){ q=q.trim().toLowerCase(); if(!q) return [];
       const ets=nameTok.filter(t=>STOP.indexOf(t)<0);
       if(ets.length&&!siteTok.length&&ets.every(t=>pn.includes(t)))
         res.push({type:'park',score:200,parkId:eg.id,title:eg.name,
-          sub:eggFound()?(((eg.region||'').split(' · ').slice(1).join(' · '))||eg.region):'Tap to discover'}); } }
+          sub:eggFound()?(((eg.region||'').split(' · ').slice(1).join(' · '))||eg.region):TL('Tap to discover')}); } }
   const TYPE_RANK={park:0,cg:1,site:2,trail:3};
   res.sort((a,b)=>(TYPE_RANK[a.type]-TYPE_RANK[b.type])||(b.score-a.score)); return res.slice(0,15);
 }
@@ -1068,7 +1070,7 @@ function renderTrails(){
     const k=trailKey(t.name), v=sc('trail',k), col=scoreColor(v), note=!!noteOf('trail',k), photo=photoKeys.has(k);
     const card=document.createElement('button'); card.className='trail'; card.dataset.trail=t.name;
     card.innerHTML=`<div class="tr-left"><div class="tr-name">${t.name}</div>
-      <div class="tr-meta">${fmtLen(t.length)} · ${t.difficulty}</div></div>
+      <div class="tr-meta">${fmtLen(t.length)} · ${TL(t.difficulty)}</div></div>
       <div class="tr-rate ${col?'rated':''}" ${col?`style="background:${col}"`:''} ${col?'':'hidden'}>${col?v+'/5':''}</div>`;
     card.addEventListener('click',()=>openSheet('trail',k,t.name));
     box.appendChild(card);
@@ -1124,7 +1126,7 @@ function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==
     const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.textContent=(w?'★ ':'☆ ')+TL('Wishlist'); renderPhotos(k);
   } else if(type==='trail'){ const t=(curPark.trails||[]).find(x=>x.name===cgId); whr.style.display='none';
     document.getElementById('d-kind').textContent=TL('Trail'); document.getElementById('d-title').textContent=cgId;
-    document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+t.difficulty:''); wb.style.display='none'; pw.style.display=''; renderPhotos(k);
+    document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+TL(t.difficulty):''); wb.style.display='none'; pw.style.display=''; renderPhotos(k);
   } else { whr.style.display='none'; const isPark=(curPark.dayuse&&cgId===curPark.name);
     document.getElementById('d-kind').textContent=isPark?TL('Park'):TL('Campground'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):curPark.name; wb.style.display='none'; pw.style.display=''; renderPhotos(k); }
@@ -1198,7 +1200,7 @@ function shareReview(){
   if(!window.OnShare){ if(typeof showThemeToast==='function') showThemeToast('Sharing is not available'); return; }
   var item=reviewShareItem();
   OnShare.share({ card:campCard(item), item:item,
-    text:'My review of '+item.title+((item.sub&&item.sub!==item.title)?(' ('+item.sub+')'):'')+' on on-site.' })
+    text:(LANG==='fr'?'Mon avis sur ':'My review of ')+item.title+((item.sub&&item.sub!==item.title)?(' ('+item.sub+')'):'')+(LANG==='fr'?' sur on-site.':' on on-site.') })
     .then(function(r){ if(r==='fallback' && typeof showThemeToast==='function') showThemeToast('Link copied, card saved'); });
 }
 (function(){ var b=document.getElementById('shareReviewBtn'); if(b) b.addEventListener('click',function(){ if(typeof buzz==='function') buzz(6); shareReview(); }); })();
@@ -1583,7 +1585,9 @@ async function migrateAlgPhotos(){ var olds=Array.from(photoKeys).filter(functio
 /* ---- unlock by tapping a park's name on its page ---- */
 var toastEl=null, toastTimer=null;
 function showThemeToast(msg,onTap,ms){
-  if(!toastEl){ toastEl=document.createElement('button'); toastEl.className='toast'; toastEl.type='button'; document.body.appendChild(toastEl); }
+  if(!toastEl){ toastEl=document.createElement('button'); toastEl.className='toast'; toastEl.type='button';
+    toastEl.setAttribute('role','status'); toastEl.setAttribute('aria-live','polite'); toastEl.setAttribute('aria-atomic','true');
+    document.body.appendChild(toastEl); }
   toastEl.textContent=TL(msg); toastEl.onclick=function(){ if(onTap) onTap(); hideThemeToast(); };
   requestAnimationFrame(function(){ toastEl.classList.add('on'); });
   clearTimeout(toastTimer); toastTimer=setTimeout(hideThemeToast, ms||3500);
@@ -1732,7 +1736,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
   pids.sort(function(a,b){ return ((ts[b]||0)-(ts[a]||0))||PARK_BY_ID[a].name.localeCompare(PARK_BY_ID[b].name); });
   var PHOTO_G='<svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg>';
   var html='<div class="acct-stats">'
-    +'<div class="acct-stat"><b class="tnum">'+s.parks+'</b><span>'+TL('Parks visited')+'</span></div>'
+    +'<div class="acct-stat"><b class="tnum">'+pids.length+'</b><span>'+TL('Parks visited')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+s.n+'</b><span>'+TL('Ratings')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average rating')+'</span></div>'
     +'</div>';
