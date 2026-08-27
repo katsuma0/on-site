@@ -1,5 +1,5 @@
 /* on-camp, offline service worker */
-const CACHE = 'scout-v217';
+const CACHE = 'scout-v227';
 const CORE = [
   './',
   './index.html',
@@ -43,14 +43,20 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-/* Cache-first with background refresh; runtime-caches fonts; offline navigation fallback. */
+/* Cache-first with background refresh, same-origin only, offline nav fallback.
+   Cross-origin requests (CARTO basemap tiles) are left to the browser: caching
+   opaque responses padded each entry by megabytes and blew through the origin
+   storage quota on a normal map pan. */
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  if (new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
     caches.match(req).then((cached) => {
-      const network = fetch(req).then((res) => {
-        if (res && (res.ok || res.type === 'opaque')) {
+      // the background refresh must bypass the HTTP cache, or a changed
+      // app.js is re-put stale and never reaches the user
+      const network = fetch(req, { cache: 'no-store' }).then((res) => {
+        if (res && res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy));
         }

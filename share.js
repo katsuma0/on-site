@@ -33,8 +33,22 @@
   }
 
   // Wrap text to a max width, return the lines (at most maxLines, last gets an ellipsis).
+  // A single word longer than maxW (e.g. a run-on custom species name) is
+  // hard-broken so it can never draw off the edge of the card.
   function wrap(ctx, text, maxW, maxLines) {
-    var words = String(text).split(/\s+/), lines = [], line = '';
+    var raw = String(text).split(/\s+/), words = [];
+    for (var w = 0; w < raw.length; w++) {
+      var word = raw[w];
+      if (!word) continue;
+      if (ctx.measureText(word).width <= maxW) { words.push(word); continue; }
+      var piece = '';
+      for (var c = 0; c < word.length; c++) {
+        if (ctx.measureText(piece + word[c]).width > maxW && piece) { words.push(piece); piece = word[c]; }
+        else piece += word[c];
+      }
+      if (piece) words.push(piece);
+    }
+    var lines = [], line = '';
     for (var i = 0; i < words.length; i++) {
       var test = line ? line + ' ' + words[i] : words[i];
       if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = words[i]; }
@@ -110,7 +124,8 @@
     x.strokeStyle = 'rgba(60,60,67,0.12)'; x.lineWidth = 2;
     x.beginPath(); x.moveTo(120, S - 132); x.lineTo(S - 120, S - 132); x.stroke();
     if (o.meta) { x.fillStyle = 'rgba(60,60,67,0.6)'; x.font = '400 31px ' + SF; x.fillText(o.meta, S / 2, S - 84); }
-    x.fillStyle = A; x.font = '600 31px ' + SF; x.fillText(CFG.app + ' · katsuma0.github.io', S / 2, S - 44);
+    var host = String(CFG.base || '').replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    x.fillStyle = A; x.font = '600 31px ' + SF; x.fillText(CFG.app + (host ? ' · ' + host : ''), S / 2, S - 44);
 
     return new Promise(function (res) { c.toBlob(function (b) { res(b); }, 'image/png', 0.92); });
   }
