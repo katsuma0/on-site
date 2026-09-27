@@ -32,11 +32,26 @@ const CG_BY_ID=id=>curPark.campgrounds.find(c=>c.id===id);
 function cgSites(cg){ if(cg.sites) return cg.sites.slice(); const a=[]; for(let i=cg.from;i<=cg.to;i++)a.push(String(i)); return a; }
 function keyOf(pid,cgId,site){ return pid+'#'+cgId+'#'+site; }
 function cidOf(pid,cgId){ return pid+'#'+cgId; }
+/* The sites of a campground as the user sees them: the ones in the guide data,
+   plus any "missing" site they added and gave data to (a rating, note, wishlist
+   or photo saved under a key the data never listed). Derived from what is
+   already stored, so an added site persists once used and needs no extra store. */
+function sitesOf(pid,cg){
+  const known=cgSites(cg), kn=new Set(known.map(String)), pref=pid+'#'+cg.id+'#', extra=new Set();
+  const add=key=>{ if(key.slice(0,pref.length)===pref){ const s=key.slice(pref.length); if(s&&!kn.has(s)) extra.add(s); } };
+  try{ Object.keys(state.site).forEach(add); }catch(e){}
+  try{ if(FAVS&&FAVS.sites) Object.keys(FAVS.sites).forEach(add); }catch(e){}
+  try{ photoKeys.forEach(add); }catch(e){}
+  if(!extra.size) return known;
+  const ex=Array.from(extra).sort((a,b)=>{ const na=parseFloat(a),nb=parseFloat(b);
+    if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb; return a.localeCompare(b,undefined,{numeric:true}); });
+  return known.concat(ex);
+}
 
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.225';
+var APP_VERSION='0.226';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -147,6 +162,8 @@ var FR={
   'Rate this park':'Noter ce parc','Park stats':'Statistiques du parc',
   'All Parks':'Tous les parcs','Park rating':'Note du parc',
   'Sites rated here':'Emplacements notés ici','Rate campground':'Noter le terrain',
+  'Add a site':'Ajouter un emplacement','Enter the site number to add':'Entrez le numéro de l’emplacement à ajouter',
+  'Previous site':'Emplacement précédent','Next site':'Emplacement suivant',
   'Tap again to erase this park':'Touchez encore pour effacer ce parc',
   'sites':'emplacements','rated':'notés',
   /* more screen: sections, data rows */
@@ -995,7 +1012,7 @@ function renderCgs(){ const box=document.getElementById('cgs'); box.innerHTML=''
         <div class="cg-right"><div class="cg-prog" ${st.rated>0?'':'hidden'}><div class="bar"><i style="width:${st.pct}%"></i></div><div class="lbl tnum">${st.rated}/${st.total}</div></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></div>
       </button>
-      <div class="cg-body"><div class="cg-body-head"><span class="cg-desc">${cgSites(cg).length} ${TL('sites')}</span>
+      <div class="cg-body"><div class="cg-body-head"><span class="cg-desc">${sitesOf(p.id,cg).length} ${TL('sites')}</span>
         <button class="cg-rate ${col?'rated':''}" ${col?`style="background:${col}"`:''} data-cgrate>${col?`${TL('Campground')} · ${own}/5`:TL('Rate campground')}</button></div>
         <div class="grid"></div></div>`;
     card.querySelector('[data-toggle]').addEventListener('click',()=>{ const opening=!card.classList.contains('open'); card.classList.toggle('open'); if(opening) fillGrid(card); card.querySelector('[data-toggle]').setAttribute('aria-expanded',String(card.classList.contains('open'))); });
@@ -1003,7 +1020,20 @@ function renderCgs(){ const box=document.getElementById('cgs'); box.innerHTML=''
     box.appendChild(card); });
   if(p.campgrounds.length===1){ const only=box.querySelector('.cg'); if(only){ only.classList.add('open'); fillGrid(only); const tg=only.querySelector('[data-toggle]'); if(tg) tg.setAttribute('aria-expanded','true'); } } }
 function fillGrid(card){ if(card.dataset.filled) return; const cg=CG_BY_ID(card.dataset.cg); const grid=card.querySelector('.grid');
-  const frag=document.createDocumentFragment(); cgSites(cg).forEach(s=>frag.appendChild(makeChip(cg,s))); grid.appendChild(frag); card.dataset.filled='1'; }
+  const frag=document.createDocumentFragment(); sitesOf(curPark.id,cg).forEach(s=>frag.appendChild(makeChip(cg,s)));
+  frag.appendChild(makeAddChip(cg,grid)); grid.appendChild(frag); card.dataset.filled='1'; }
+/* the "+" tile: add a site number the guide is missing, then rate it right away */
+function makeAddChip(cg,grid){ const b=document.createElement('button'); b.type='button'; b.className='site add-site';
+  b.setAttribute('aria-label',TL('Add a site')); b.textContent='+';
+  b.addEventListener('click',function(){ addSiteFlow(cg,grid); }); return b; }
+function addSiteFlow(cg,grid){
+  let n=null; try{ n=window.prompt(TL('Enter the site number to add')); }catch(e){ n=null; }
+  if(n==null) return; n=String(n).trim().replace(/^#/,'').replace(/^site\s+/i,'').trim(); if(!n) return;
+  const k=keyOf(curPark.id,cg.id,n);
+  if(grid&&!grid.querySelector(`.site[data-key="${CSS.escape(k)}"]`)){
+    const chip=makeChip(cg,n), addBtn=grid.querySelector('.add-site'); grid.insertBefore(chip,addBtn||null); }
+  openSheet('site',k,cg.id,n);
+}
 const MEDAL_SVG='<svg class="medal" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 1a11 11 0 1 0 .01 0z M12 4.4 13.88 9.41 19.23 9.65 15.04 12.99 16.47 18.15 12 15.2 7.53 18.15 8.96 12.99 4.77 9.65 10.12 9.41z"/></svg>';
 /* the trailing disclosure chevron on a grouped-list row; same sprite glyph the More screen uses */
 const CHEV_RIGHT='<span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>';
@@ -1117,7 +1147,9 @@ function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d
 function paintDots(){ const s=sc(cur.type,cur.k); document.querySelectorAll('#dots .dot').forEach(dot=>{ const v=+dot.dataset.v, on=(s!=null)&&v<=s;
   dot.classList.toggle('on',on); dot.style.background=on?scoreColor(s):'';
   dot.setAttribute('aria-checked', String(s!=null&&s===v)); }); }
-function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==='trail'?cgId:null)};
+/* Fill the sheet for one item, without the open/close chrome. openSheet adds the
+   chrome; the swipe/chevron navigation reuses this to swap sites in place. */
+function renderSheetBody(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==='trail'?cgId:null)};
   if(window.clearBtnSync) window.clearBtnSync();
   const wb=document.getElementById('wantBtn'), pw=document.getElementById('photoWrap'), whr=document.getElementById('d-where');
   if(type==='site'){ document.getElementById('d-kind').textContent=TL('Site'); document.getElementById('d-title').textContent=TL('Site')+' '+site;
@@ -1134,8 +1166,71 @@ function openSheet(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(type==
   document.getElementById('notesLabel').textContent=TL('Notes');
   document.getElementById('d-kind').style.display=(type==='site')?'none':'';
   const nta=document.getElementById('d-notes'); nta.value=noteOf(type,k); autoGrowNotes(nta); paintDots();
+  updateSiteNav();
+}
+function openSheet(type,k,cgId,site){ renderSheetBody(type,k,cgId,site);
   backdrop.classList.add('on'); sheet.classList.add('on'); sheet.scrollTop=0; lockScroll(); sheetA11yOpen(sheet);
 }
+/* ---- swipe / step between the sites of the current campground ---- */
+function siteSeqInfo(){ const cg=CG_BY_ID(cur.cg); if(!cg) return {seq:[],idx:-1};
+  let seq=sitesOf(curPark.id,cg); const s=String(cur.site); let idx=seq.indexOf(s);
+  if(idx<0){ seq=seq.concat([s]); idx=seq.length-1; }   /* a just-added site sits at the end until it has data */
+  return {seq,idx}; }
+function canSiteNav(dir){ if(cur.type!=='site'||!curPark) return false; const {seq,idx}=siteSeqInfo(); const ni=idx+dir; return idx>=0&&ni>=0&&ni<seq.length; }
+function updateSiteNav(){ const nav=document.getElementById('siteNav'); if(!nav) return;
+  const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext');
+  /* when hidden, also disable the chevrons so the sheet's focus-management never
+     tries to land focus on an invisible button */
+  const hide=()=>{ nav.hidden=true; if(pv) pv.disabled=true; if(nx) nx.disabled=true; };
+  if(cur.type!=='site'||!curPark) return hide();
+  const {seq,idx}=siteSeqInfo();
+  if(seq.length<2||idx<0) return hide();
+  nav.hidden=false;
+  const c=document.getElementById('siteCount'); if(c) c.textContent=(idx+1)+' / '+seq.length;
+  if(pv) pv.disabled=(idx<=0); if(nx) nx.disabled=(idx>=seq.length-1); }
+function doSiteNav(dir){ const {seq,idx}=siteSeqInfo(); const ni=idx+dir; const cg=CG_BY_ID(cur.cg);
+  if(!cg||ni<0||ni>=seq.length) return false; const ns=seq[ni];
+  renderSheetBody('site',keyOf(curPark.id,cg.id,ns),cg.id,ns); return true; }
+function sheetReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+function animateSiteNav(dir,startX){ const pane=document.getElementById('sheetPane');
+  if(!pane||sheetReducedMotion()){ if(pane){ pane.style.transform=''; pane.style.opacity=''; } doSiteNav(dir); return; }
+  const a1=pane.animate([{transform:'translateX('+(startX||0)+'px)',opacity:1},{transform:'translateX('+(-dir*40)+'px)',opacity:0}],{duration:120,easing:'cubic-bezier(.4,0,1,1)'});
+  a1.onfinish=function(){ pane.style.opacity='0'; pane.style.transform=''; doSiteNav(dir);
+    const a2=pane.animate([{transform:'translateX('+(dir*40)+'px)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:180,easing:'cubic-bezier(0,0,.2,1)'});
+    a2.onfinish=function(){ pane.style.opacity=''; pane.style.transform=''; }; }; }
+function siteNav(dir){ if(!canSiteNav(dir)) return; if(typeof buzz==='function') buzz(6); animateSiteNav(dir,0); }
+(function(){
+  const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext');
+  if(pv) pv.addEventListener('click',function(){ siteNav(-1); });
+  if(nx) nx.addEventListener('click',function(){ siteNav(1); });
+  document.addEventListener('keydown',function(e){
+    if(!sheet.classList.contains('on')||cur.type!=='site') return;
+    if(e.target&&e.target.closest&&e.target.closest('textarea,input,#dots')) return;
+    if(e.key==='ArrowRight'){ e.preventDefault(); siteNav(1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); siteNav(-1); } });
+  const pane=document.getElementById('sheetPane'); if(!pane) return;
+  let sx=0,sy=0,dx=0,tracking=false,dragging=false,decided=false,horiz=false,swiped=false;
+  const THRESH=44;
+  function damp(v){ const dir=v<0?1:-1; return canSiteNav(dir)?v:v*0.28; }   /* rubber-band past the ends */
+  pane.addEventListener('touchstart',function(e){
+    tracking=false; if(cur.type!=='site'||e.touches.length!==1) return;
+    if(e.target.closest('textarea,input,a')) return;
+    if(siteSeqInfo().seq.length<2) return;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; tracking=true; dragging=false; decided=false; horiz=false;
+  },{passive:true});
+  pane.addEventListener('touchmove',function(e){
+    if(!tracking||!e.touches.length) return;
+    const tx=e.touches[0].clientX-sx, ty=e.touches[0].clientY-sy;
+    if(!decided){ if(Math.abs(tx)>8||Math.abs(ty)>8){ decided=true; horiz=Math.abs(tx)>Math.abs(ty)+4; if(horiz){ dragging=true; pane.style.transition='none'; } } }
+    if(dragging&&horiz){ e.preventDefault(); dx=tx; const d=damp(dx); pane.style.transform='translateX('+d+'px)'; pane.style.opacity=String(Math.max(.55,1-Math.abs(d)/380)); }
+  },{passive:false});
+  function end(){ if(!tracking) return; tracking=false; if(!dragging){ return; } dragging=false; pane.style.transition='';
+    if(Math.abs(dx)>=THRESH){ const dir=dx<0?1:-1; if(canSiteNav(dir)){ swiped=true; setTimeout(function(){ swiped=false; },350); if(typeof buzz==='function') buzz(6); animateSiteNav(dir,damp(dx)); dx=0; return; } }
+    pane.style.transform=''; pane.style.opacity=''; dx=0; }
+  pane.addEventListener('touchend',end); pane.addEventListener('touchcancel',end);
+  /* a committed swipe must not also fire the click it ends on (e.g. a rating dot) */
+  pane.addEventListener('click',function(e){ if(swiped){ swiped=false; e.stopPropagation(); e.preventDefault(); } },true);
+})();
 function closeSheet(){ var was=sheet.classList.contains('on'); backdrop.classList.remove('on'); sheet.classList.remove('on'); sheet.style.transform=''; unlockScroll(); if(was) sheetA11yClose(); }
 function ensure(){ if(!state[cur.type][cur.k]) state[cur.type][cur.k]={score:null,note:''}; return state[cur.type][cur.k]; }
 function flashSaved(){}
@@ -1309,7 +1404,7 @@ function renderParkStats(){ const p=curPark, box=document.getElementById('statsB
 async function renderGlance(){ const p=curPark; if(!p) return;
   if(p.dayuse){ const w=document.getElementById('wantSection'); if(w) w.hidden=true; return; }
   const st=parkStats(p); const rated=[], wants=[];
-  p.campgrounds.forEach(cg=>cgSites(cg).forEach(s=>{ const k=keyOf(p.id,cg.id,s), e=state.site[k]; if(e&&typeof e.score==='number') rated.push({s,k,e,cg}); if(e&&e.want) wants.push({s,k,e,cg}); }));
+  p.campgrounds.forEach(cg=>sitesOf(p.id,cg).forEach(s=>{ const k=keyOf(p.id,cg.id,s), e=state.site[k]; if(e&&typeof e.score==='number') rated.push({s,k,e,cg}); if(e&&e.want) wants.push({s,k,e,cg}); }));
   void st;
   const wl=wants.sort((a,b)=>((b.e.score??-1))-((a.e.score??-1))||a.s.localeCompare(b.s,undefined,{numeric:true})).slice(0,5);
   const wantSec=document.getElementById('wantSection'); if(wantSec) wantSec.hidden = wl.length===0;
