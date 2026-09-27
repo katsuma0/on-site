@@ -776,8 +776,21 @@ button {
   .backdrop.on{opacity:1;pointer-events:auto}
   .sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;transform:translateY(102%);width:min(540px,100%);
     background:var(--bg);z-index:60;border-radius:12px 12px 0 0;padding:8px 16px calc(24px + env(safe-area-inset-bottom));
-    box-shadow:0 -1px 0 var(--sep);transition:transform .34s var(--ease);max-height:92vh;overflow:auto}
+    box-shadow:0 -1px 0 var(--sep);transition:transform .34s var(--ease);max-height:92vh;overflow-y:auto;overflow-x:hidden}
   .sheet.on{transform:translateY(0)}
+  /* swipe between sites while rating: a fixed nav bar (position + chevrons) over
+     a pane that cross-slides as you swipe or tap through the campground's sites */
+  .site-nav{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-m);margin:0 0 6px}
+  .site-nav-btn{appearance:none;border:0;background:var(--fill-strong);color:var(--tint);cursor:pointer;
+    width:var(--ctl);height:var(--ctl);min-width:var(--ctl);border-radius:99px;display:flex;align-items:center;justify-content:center;
+    transition:transform .1s,opacity .15s,background .15s}
+  .site-nav-btn:active{transform:scale(.9)}
+  .site-nav-btn:disabled{opacity:.3;cursor:default}
+  .site-nav-count{font-size:var(--fs-footnote);font-weight:600;color:var(--label-2);letter-spacing:.4px}
+  .sheet-pane{will-change:transform,opacity;touch-action:pan-y}
+  /* the "add a missing site" tile at the end of a campground grid */
+  .site.add-site{background:transparent;box-shadow:inset 0 0 0 2px var(--sep);color:var(--tint);font-weight:400;font-size:var(--fs-title2);line-height:1}
+  .site.add-site:active{transform:scale(.9)}
   .grabber{width:36px;height:5px;border-radius:3px;background:var(--label-3);margin:8px auto 16px}
   .sheet a{color:var(--tint)}
   .sheet .kind,.kind{font-size:var(--fs-footnote);font-weight:400;letter-spacing:.4px;text-transform:uppercase;color:var(--label-2)}
