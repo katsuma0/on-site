@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.226';
+var APP_VERSION='0.227';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -163,6 +163,7 @@ var FR={
   'All Parks':'Tous les parcs','Park rating':'Note du parc',
   'Sites rated here':'Emplacements notés ici','Rate campground':'Noter le terrain',
   'Add a site':'Ajouter un emplacement','Enter the site number to add':'Entrez le numéro de l’emplacement à ajouter',
+  'Add a note or photo':'Ajouter une note ou une photo',
   'Previous site':'Emplacement précédent','Next site':'Emplacement suivant',
   'Tap again to erase this park':'Touchez encore pour effacer ce parc',
   'sites':'emplacements','rated':'notés',
@@ -770,7 +771,7 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
   if(favParks.length||mine.length||favSites){
     const row=(p,fallback)=>{ const st=info[p.id];
       const sub=st.rated>0
-        ?st.rated+' '+TL('of')+' '+st.total+' '+TL('sites rated')+' · '+st.avg.toFixed(1)+' '+TL('average')
+        ?st.rated+' '+TL('of')+' '+st.total+' '+TL('sites rated')
         :TL(fallback);
       return parkRowHtml(p,st,sub,''); };
     html+='<div class="seclabel">'+TL('Favourites')+'</div><div class="ios-group" id="favParks">'+
@@ -1166,6 +1167,9 @@ function renderSheetBody(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(
   document.getElementById('notesLabel').textContent=TL('Notes');
   document.getElementById('d-kind').style.display=(type==='site')?'none':'';
   const nta=document.getElementById('d-notes'); nta.value=noteOf(type,k); autoGrowNotes(nta); paintDots();
+  /* keep the card short for one-handed rating: notes + photos stay tucked away
+     unless this item already has one, so the rating row sits low in the thumb's reach */
+  setExtraOpen(!!(noteOf(type,k)&&String(noteOf(type,k)).trim()) || photoKeys.has(k));
   updateSiteNav();
 }
 function openSheet(type,k,cgId,site){ renderSheetBody(type,k,cgId,site);
@@ -1192,41 +1196,76 @@ function doSiteNav(dir){ const {seq,idx}=siteSeqInfo(); const ni=idx+dir; const 
   if(!cg||ni<0||ni>=seq.length) return false; const ns=seq[ni];
   renderSheetBody('site',keyOf(curPark.id,cg.id,ns),cg.id,ns); return true; }
 function sheetReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
-function animateSiteNav(dir,startX){ const pane=document.getElementById('sheetPane');
-  if(!pane||sheetReducedMotion()){ if(pane){ pane.style.transform=''; pane.style.opacity=''; } doSiteNav(dir); return; }
-  const a1=pane.animate([{transform:'translateX('+(startX||0)+'px)',opacity:1},{transform:'translateX('+(-dir*40)+'px)',opacity:0}],{duration:120,easing:'cubic-bezier(.4,0,1,1)'});
-  a1.onfinish=function(){ pane.style.opacity='0'; pane.style.transform=''; doSiteNav(dir);
-    const a2=pane.animate([{transform:'translateX('+(dir*40)+'px)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:180,easing:'cubic-bezier(0,0,.2,1)'});
-    a2.onfinish=function(){ pane.style.opacity=''; pane.style.transform=''; }; }; }
-function siteNav(dir){ if(!canSiteNav(dir)) return; if(typeof buzz==='function') buzz(6); animateSiteNav(dir,0); }
+/* notes + photos collapse so the rating card stays short and thumb-reachable */
+function setExtraOpen(open){ const nb=document.getElementById('noteBlock'), tg=document.getElementById('extraToggle');
+  if(nb) nb.hidden=!open; if(tg){ tg.hidden=open; tg.setAttribute('aria-expanded',String(open)); } }
+
+/* ---- Tinder-style card swipe between the sites of a campground ----
+   The card tracks the thumb with a slight tilt; a throw past the threshold
+   (by distance or a quick flick) flings it off and springs the next card up
+   from behind, while a short drag snaps back. Buttons and arrow keys fling too. */
+var _sheetBusy=false, _springAnim=null;
+function sheetCard(){ return document.getElementById('sheetPane'); }
+function cardMoving(on){ if(sheet) sheet.classList.toggle('card-moving',!!on); }
+function springInCard(){ const card=sheetCard(); if(!card){ _sheetBusy=false; cardMoving(false); return; }
+  const a=card.animate([{transform:'scale(.92) translateY(10px)',opacity:0},{transform:'none',opacity:1}],{duration:240,easing:'cubic-bezier(.2,.9,.3,1.06)'});
+  a.onfinish=a.oncancel=function(){ card.style.transform=''; card.style.opacity=''; _sheetBusy=false; cardMoving(false); }; }
+function flingAdvance(dir,startX,startRot,vel){ const card=sheetCard();
+  if(!card||sheetReducedMotion()){ if(card){ card.style.transform=''; card.style.opacity=''; } doSiteNav(dir); _sheetBusy=false; cardMoving(false); return; }
+  _sheetBusy=true; cardMoving(true);
+  const vw=window.innerWidth||400, endX=dir*(vw*1.15), endRot=dir*14;
+  const dist=Math.abs(endX-(startX||0)), speed=Math.max(Math.abs(vel||0),1.4), dur=Math.min(300,Math.max(150,dist/speed));
+  const a1=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)',opacity:(card.style.opacity||1)},
+                         {transform:'translateX('+endX+'px) rotate('+endRot+'deg)',opacity:0}],{duration:dur,easing:'cubic-bezier(.3,0,.5,1)'});
+  a1.onfinish=function(){ card.style.opacity='0'; card.style.transform=''; doSiteNav(dir); springInCard(); };
+  a1.oncancel=function(){ card.style.transform=''; card.style.opacity=''; _sheetBusy=false; cardMoving(false); }; }
+function springBack(startX,startRot){ const card=sheetCard(); if(!card) return;
+  if(sheetReducedMotion()){ card.style.transform=''; card.style.opacity=''; cardMoving(false); return; }
+  cardMoving(true);
+  _springAnim=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)',opacity:(card.style.opacity||1)},
+                        {transform:'none',opacity:1}],{duration:300,easing:'cubic-bezier(.22,1.2,.36,1)'});
+  _springAnim.onfinish=_springAnim.oncancel=function(){ card.style.transform=''; card.style.opacity=''; cardMoving(false); _springAnim=null; }; }
+function siteNav(dir){ if(_sheetBusy||!canSiteNav(dir)) return; if(typeof buzz==='function') buzz(6); flingAdvance(dir,0,0,0); }
 (function(){
-  const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext');
+  const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext'), tg=document.getElementById('extraToggle');
   if(pv) pv.addEventListener('click',function(){ siteNav(-1); });
   if(nx) nx.addEventListener('click',function(){ siteNav(1); });
+  if(tg) tg.addEventListener('click',function(){ setExtraOpen(true); const nta=document.getElementById('d-notes'); if(nta) try{ nta.focus({preventScroll:true}); }catch(e){} });
   document.addEventListener('keydown',function(e){
     if(!sheet.classList.contains('on')||cur.type!=='site') return;
     if(e.target&&e.target.closest&&e.target.closest('textarea,input,#dots')) return;
     if(e.key==='ArrowRight'){ e.preventDefault(); siteNav(1); }
     else if(e.key==='ArrowLeft'){ e.preventDefault(); siteNav(-1); } });
   const pane=document.getElementById('sheetPane'); if(!pane) return;
-  let sx=0,sy=0,dx=0,tracking=false,dragging=false,decided=false,horiz=false,swiped=false;
-  const THRESH=44;
-  function damp(v){ const dir=v<0?1:-1; return canSiteNav(dir)?v:v*0.28; }   /* rubber-band past the ends */
+  const MAXROT=9, THRESH=64, VFLICK=0.5;
+  let sx=0,sy=0,dx=0,tracking=false,dragging=false,decided=false,horiz=false,swiped=false,lastX=0,lastT=0,vel=0;
+  function resist(v){ const dir=v<0?1:-1; return canSiteNav(dir)?v:v*0.3; }  /* rubber-band past the ends */
+  function clampRot(d){ let r=d/20; if(r>MAXROT) r=MAXROT; if(r<-MAXROT) r=-MAXROT; return r; }
   pane.addEventListener('touchstart',function(e){
-    tracking=false; if(cur.type!=='site'||e.touches.length!==1) return;
+    tracking=false; if(_sheetBusy||cur.type!=='site'||e.touches.length!==1) return;
     if(e.target.closest('textarea,input,a')) return;
     if(siteSeqInfo().seq.length<2) return;
-    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; tracking=true; dragging=false; decided=false; horiz=false;
+    if(_springAnim){ _springAnim.cancel(); }   /* re-grab mid-snap-back */
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; vel=0; lastX=sx; lastT=Date.now();
+    tracking=true; dragging=false; decided=false; horiz=false;
   },{passive:true});
   pane.addEventListener('touchmove',function(e){
     if(!tracking||!e.touches.length) return;
-    const tx=e.touches[0].clientX-sx, ty=e.touches[0].clientY-sy;
-    if(!decided){ if(Math.abs(tx)>8||Math.abs(ty)>8){ decided=true; horiz=Math.abs(tx)>Math.abs(ty)+4; if(horiz){ dragging=true; pane.style.transition='none'; } } }
-    if(dragging&&horiz){ e.preventDefault(); dx=tx; const d=damp(dx); pane.style.transform='translateX('+d+'px)'; pane.style.opacity=String(Math.max(.55,1-Math.abs(d)/380)); }
+    const x=e.touches[0].clientX, y=e.touches[0].clientY, tx=x-sx, ty=y-sy;
+    if(!decided){ if(Math.abs(tx)>8||Math.abs(ty)>8){ decided=true; horiz=Math.abs(tx)>Math.abs(ty)+4; if(horiz) cardMoving(true); } }
+    if(decided&&horiz){ dragging=true; e.preventDefault();
+      const now=Date.now(); if(now>lastT){ vel=(x-lastX)/(now-lastT); lastX=x; lastT=now; }
+      dx=tx; const d=resist(dx);
+      pane.style.transform='translateX('+d+'px) rotate('+clampRot(d)+'deg)';
+      pane.style.opacity=String(Math.max(.5,1-Math.abs(d)/((window.innerWidth||400)*1.1))); }
   },{passive:false});
-  function end(){ if(!tracking) return; tracking=false; if(!dragging){ return; } dragging=false; pane.style.transition='';
-    if(Math.abs(dx)>=THRESH){ const dir=dx<0?1:-1; if(canSiteNav(dir)){ swiped=true; setTimeout(function(){ swiped=false; },350); if(typeof buzz==='function') buzz(6); animateSiteNav(dir,damp(dx)); dx=0; return; } }
-    pane.style.transform=''; pane.style.opacity=''; dx=0; }
+  function end(){ if(!tracking) return; tracking=false; if(!dragging){ return; } dragging=false;
+    const d=resist(dx), dir=dx<0?1:-1;
+    if((Math.abs(dx)>=THRESH||Math.abs(vel)>=VFLICK)&&canSiteNav(dir)){
+      swiped=true; setTimeout(function(){ swiped=false; },400);
+      if(typeof buzz==='function') buzz(6);
+      flingAdvance(dir,d,clampRot(d),vel); dx=0; return; }
+    springBack(d,clampRot(d)); dx=0; }
   pane.addEventListener('touchend',end); pane.addEventListener('touchcancel',end);
   /* a committed swipe must not also fire the click it ends on (e.g. a rating dot) */
   pane.addEventListener('click',function(e){ if(swiped){ swiped=false; e.stopPropagation(); e.preventDefault(); } },true);

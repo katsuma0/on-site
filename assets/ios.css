@@ -778,6 +778,9 @@ button {
     background:var(--bg);z-index:60;border-radius:12px 12px 0 0;padding:8px 16px calc(24px + env(safe-area-inset-bottom));
     box-shadow:0 -1px 0 var(--sep);transition:transform .34s var(--ease);max-height:92vh;overflow-y:auto;overflow-x:hidden}
   .sheet.on{transform:translateY(0)}
+  /* while a card is being dragged or flung, clip both axes so it slides off the
+     edge cleanly and the tilt never pops a scrollbar */
+  .sheet.card-moving{overflow:hidden}
   /* swipe between sites while rating: a fixed nav bar (position + chevrons) over
      a pane that cross-slides as you swipe or tap through the campground's sites */
   .site-nav{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-m);margin:0 0 6px}
@@ -799,11 +802,20 @@ button {
   .sheet .ctx{font-size:var(--fs-footnote);color:var(--label-2);margin-bottom:20px}
   .fld{display:flex;align-items:center;gap:var(--gap-m);font-size:var(--fs-footnote);font-weight:400;color:var(--label-2);
     margin:18px 0 10px;text-transform:uppercase;letter-spacing:.4px}
-  .dots{display:flex;gap:4px;margin-bottom:var(--gap-m)}
-  .dot{flex:1 1 0;min-width:0;min-height:var(--ctl-lg);border-radius:var(--r-sm);border:0;background:var(--fill-strong);cursor:pointer;font-weight:600;
-    font-size:var(--fs-subhead);color:var(--label-2);display:flex;align-items:center;justify-content:center;transition:.12s}
+  /* the rating row is the primary one-handed action: taller thumb targets, a
+     bit more breathing room between them */
+  .dots{display:flex;gap:6px;margin-bottom:var(--gap-m)}
+  .dot{flex:1 1 0;min-width:0;min-height:calc(var(--ctl-lg) + 10px);border-radius:var(--r-sm);border:0;background:var(--fill-strong);cursor:pointer;font-weight:600;
+    font-size:var(--fs-body);color:var(--label-2);display:flex;align-items:center;justify-content:center;transition:.12s}
   .dot:active{transform:scale(.88)}
   .dot.on{color:var(--on-tint);border-color:transparent}
+  /* notes + photos collapse behind this by default so the card stays short and
+     the rating row sits in the thumb zone; it opens on tap (or when the site
+     already has a note or photo) */
+  .extra-toggle{width:100%;cursor:pointer;font-weight:600;font-size:var(--fs-subhead);border:0;background:none;color:var(--tint);
+    border-radius:var(--r-sm);padding:12px;min-height:var(--ctl);margin-top:10px}
+  .extra-toggle:active{opacity:.6}
+  #noteBlock[hidden]{display:none}
   /* the wishlist toggle wears the app tint, not orange-on-grey: orange text
      on the grey fill was 1.57:1 and white-on-orange 2.18:1, both far below AA */
   .want-btn{width:100%;cursor:pointer;font-weight:600;font-size:var(--fs-body);border:0;background:var(--tint-soft);color:var(--tint-text);
