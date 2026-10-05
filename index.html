@@ -197,6 +197,8 @@
   <label class="fld" data-i18n="Rating">Rating</label>
   <div class="dots" id="dots"></div>
   <button class="want-btn" id="wantBtn" aria-pressed="false">☆ Wishlist</button>
+  <button class="extra-toggle" id="extraToggle" type="button" aria-expanded="false" aria-controls="noteBlock" hidden><span data-i18n="Add a note or photo">Add a note or photo</span></button>
+  <div id="noteBlock">
   <label class="fld" for="d-notes" id="notesLabel" data-i18n="Notes">Notes</label>
   <textarea id="d-notes" placeholder=""></textarea>
   <div id="photoWrap">
@@ -209,6 +211,7 @@
     <div class="photo-note" id="photoNote" data-i18n="Please do not photograph occupied sites.">Please do not photograph occupied sites.</div>
     <input type="file" id="photoInput" accept="image/*" multiple hidden>
     <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+  </div>
   </div>
   <button class="btn-share" id="shareReviewBtn" type="button" data-i18n="Share this review">Share this review</button>
   </div>
@@ -228,6 +231,7 @@
 <div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions">
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
+  <div class="verline"><span class="vv">v0.227</span>A smooth card swipe between sites, one-handed rating, and a cleaner park list</div>
   <div class="verline"><span class="vv">v0.226</span>Swipe between sites while rating, and add a site the guide is missing</div>
   <div class="verline"><span class="vv">v0.218</span>The Journal labels and footer speak French, and photo save failures are surfaced</div>
   <div class="verline"><span class="vv">v0.217</span>The tab bar, rate sheet, park screen and More now speak French</div>
