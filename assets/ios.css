@@ -778,9 +778,9 @@ button {
     background:var(--bg);z-index:60;border-radius:12px 12px 0 0;padding:8px 16px calc(24px + env(safe-area-inset-bottom));
     box-shadow:0 -1px 0 var(--sep);transition:transform .34s var(--ease);max-height:92vh;overflow-y:auto;overflow-x:hidden}
   .sheet.on{transform:translateY(0)}
-  /* while a card is being dragged or flung, clip both axes so it slides off the
-     edge cleanly and the tilt never pops a scrollbar */
-  .sheet.card-moving{overflow:hidden}
+  /* the card stage clips the pane as it is dragged, flung off one edge and slid
+     in from the other, so nothing overflows and no scrollbar ever pops */
+  .card-stage{overflow:hidden}
   /* swipe between sites while rating: a fixed nav bar (position + chevrons) over
      a pane that cross-slides as you swipe or tap through the campground's sites */
   .site-nav{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-m);margin:0 0 6px}
@@ -790,7 +790,7 @@ button {
   .site-nav-btn:active{transform:scale(.9)}
   .site-nav-btn:disabled{opacity:.3;cursor:default}
   .site-nav-count{font-size:var(--fs-footnote);font-weight:600;color:var(--label-2);letter-spacing:.4px}
-  .sheet-pane{will-change:transform,opacity;touch-action:pan-y}
+  .sheet-pane{will-change:transform;touch-action:pan-y}
   /* the "add a missing site" tile at the end of a campground grid */
   .site.add-site{background:transparent;box-shadow:inset 0 0 0 2px var(--sep);color:var(--tint);font-weight:400;font-size:var(--fs-title2);line-height:1}
   .site.add-site:active{transform:scale(.9)}
@@ -1041,6 +1041,18 @@ button {
   /* ---- journal tab ----------------------------------------------------- */
   #journalBody .acct-stats{margin:6px 0 4px}
   .jrow .wstar{color:var(--orange);margin-right:5px}
+  /* the journal folds each park into one row: stars for its average and the
+     counts underneath; the entries open on tap */
+  .jpark{margin-bottom:10px}
+  .jpark-head{width:100%;text-align:left;background:var(--card);border-radius:var(--r-sm)}
+  .jpark-rate{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none;padding-left:10px}
+  .jstars{color:var(--orange);font-size:var(--fs-subhead);line-height:1;letter-spacing:1px;white-space:nowrap}
+  .jstars .dim{color:var(--label-3)}
+  .jnum{color:var(--label-2);font-weight:600;font-size:var(--fs-footnote)}
+  .jpark-head .jchev svg{transition:transform .18s var(--ease)}
+  .jpark-head[aria-expanded="true"] .jchev svg{transform:rotate(90deg)}
+  .jpark-head .ios-row-sub{white-space:normal}   /* the counts wrap under the name instead of truncating beside the stars */
+  .jpark-list{margin:6px 0 0}
   .j-glyphs{flex:none;display:flex;gap:7px;margin-left:auto;color:var(--label-2)}
   .j-glyphs svg{width:15px;height:15px;display:block}
   .jrow .tr-rate{flex:none;margin-left:auto;min-width:44px;padding:6px 10px;text-align:center}

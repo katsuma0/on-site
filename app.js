@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.227';
+var APP_VERSION='0.228';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -135,7 +135,7 @@ var FR={
   'Fishing':'Pêche',
   'Official park page':'Page officielle du parc',
   'Tap again to restore':'Touchez encore pour restaurer',
-  'rating':'évaluation','ratings':'évaluations',
+  'rating':'évaluation','ratings':'évaluations','photo':'photo','photos':'photos','note':'note','notes':'notes',
   'Explore Ontario parks':'Explorer les parcs de l’Ontario',
   'Open':'Ouvrir',
   'This shared link could not be opened. It may be from a newer version of the app.':'Ce lien partagé n’a pas pu être ouvert. Il provient peut-être d’une version plus récente de l’application.',
@@ -1200,31 +1200,38 @@ function sheetReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia('(pr
 function setExtraOpen(open){ const nb=document.getElementById('noteBlock'), tg=document.getElementById('extraToggle');
   if(nb) nb.hidden=!open; if(tg){ tg.hidden=open; tg.setAttribute('aria-expanded',String(open)); } }
 
-/* ---- Tinder-style card swipe between the sites of a campground ----
-   The card tracks the thumb with a slight tilt; a throw past the threshold
-   (by distance or a quick flick) flings it off and springs the next card up
-   from behind, while a short drag snaps back. Buttons and arrow keys fling too. */
+/* ---- Card swipe between the sites of a campground (Tinder / iOS feel) ----
+   The card tracks the thumb with a slight tilt. A throw past the threshold, by
+   distance or a quick flick, flings it off the way it was thrown and the next
+   card slides in from the other side; a short drag snaps back. The sheet eases
+   to the new card's height instead of jumping. Buttons and arrow keys fling
+   too. Cards stay fully opaque the whole time. */
 var _sheetBusy=false, _springAnim=null;
 function sheetCard(){ return document.getElementById('sheetPane'); }
-function cardMoving(on){ if(sheet) sheet.classList.toggle('card-moving',!!on); }
-function springInCard(){ const card=sheetCard(); if(!card){ _sheetBusy=false; cardMoving(false); return; }
-  const a=card.animate([{transform:'scale(.92) translateY(10px)',opacity:0},{transform:'none',opacity:1}],{duration:240,easing:'cubic-bezier(.2,.9,.3,1.06)'});
-  a.onfinish=a.oncancel=function(){ card.style.transform=''; card.style.opacity=''; _sheetBusy=false; cardMoving(false); }; }
+function settleCard(){ const card=sheetCard(); if(card) card.style.transform=''; _sheetBusy=false; }
+/* ease the bottom sheet to the next card's height (it is bottom-anchored, so the
+   top edge glides) rather than letting it jump */
+function flipSheetHeight(h0){ if(!sheet||sheetReducedMotion()) return; const h1=sheet.offsetHeight; if(Math.abs(h1-h0)<2) return;
+  sheet.animate([{height:h0+'px'},{height:h1+'px'}],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)'}); }
+function slideInCard(dir){ const card=sheetCard(); if(!card){ _sheetBusy=false; return; }
+  const vw=window.innerWidth||400;
+  const a=card.animate([{transform:'translateX('+(dir*vw*1.05)+'px) rotate('+(dir*3)+'deg)'},{transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.25,1.02)'});
+  a.onfinish=a.oncancel=settleCard; }
 function flingAdvance(dir,startX,startRot,vel){ const card=sheetCard();
-  if(!card||sheetReducedMotion()){ if(card){ card.style.transform=''; card.style.opacity=''; } doSiteNav(dir); _sheetBusy=false; cardMoving(false); return; }
-  _sheetBusy=true; cardMoving(true);
-  const vw=window.innerWidth||400, endX=dir*(vw*1.15), endRot=dir*14;
-  const dist=Math.abs(endX-(startX||0)), speed=Math.max(Math.abs(vel||0),1.4), dur=Math.min(300,Math.max(150,dist/speed));
-  const a1=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)',opacity:(card.style.opacity||1)},
-                         {transform:'translateX('+endX+'px) rotate('+endRot+'deg)',opacity:0}],{duration:dur,easing:'cubic-bezier(.3,0,.5,1)'});
-  a1.onfinish=function(){ card.style.opacity='0'; card.style.transform=''; doSiteNav(dir); springInCard(); };
-  a1.oncancel=function(){ card.style.transform=''; card.style.opacity=''; _sheetBusy=false; cardMoving(false); }; }
+  if(!card||sheetReducedMotion()){ if(card) card.style.transform=''; doSiteNav(dir); _sheetBusy=false; return; }
+  _sheetBusy=true;
+  const vw=window.innerWidth||400, endX=-dir*(vw*1.1), endRot=-dir*12;   /* keep going the way it was thrown */
+  const dist=Math.abs(endX-(startX||0)), speed=Math.max(Math.abs(vel||0),1.6), dur=Math.min(260,Math.max(140,dist/speed));
+  const a1=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)'},
+                         {transform:'translateX('+endX+'px) rotate('+endRot+'deg)'}],{duration:dur,easing:'cubic-bezier(.3,0,.6,1)'});
+  a1.onfinish=function(){ const h0=sheet?sheet.offsetHeight:0;
+    card.style.transform='translateX('+(dir*vw*1.05)+'px)';   /* park the next card off the far edge before filling it */
+    doSiteNav(dir); flipSheetHeight(h0); slideInCard(dir); };
+  a1.oncancel=settleCard; }
 function springBack(startX,startRot){ const card=sheetCard(); if(!card) return;
-  if(sheetReducedMotion()){ card.style.transform=''; card.style.opacity=''; cardMoving(false); return; }
-  cardMoving(true);
-  _springAnim=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)',opacity:(card.style.opacity||1)},
-                        {transform:'none',opacity:1}],{duration:300,easing:'cubic-bezier(.22,1.2,.36,1)'});
-  _springAnim.onfinish=_springAnim.oncancel=function(){ card.style.transform=''; card.style.opacity=''; cardMoving(false); _springAnim=null; }; }
+  if(sheetReducedMotion()){ card.style.transform=''; return; }
+  _springAnim=card.animate([{transform:'translateX('+(startX||0)+'px) rotate('+(startRot||0)+'deg)'},{transform:'none'}],{duration:320,easing:'cubic-bezier(.22,1.2,.36,1)'});
+  _springAnim.onfinish=_springAnim.oncancel=function(){ card.style.transform=''; _springAnim=null; }; }
 function siteNav(dir){ if(_sheetBusy||!canSiteNav(dir)) return; if(typeof buzz==='function') buzz(6); flingAdvance(dir,0,0,0); }
 (function(){
   const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext'), tg=document.getElementById('extraToggle');
@@ -1237,10 +1244,10 @@ function siteNav(dir){ if(_sheetBusy||!canSiteNav(dir)) return; if(typeof buzz==
     if(e.key==='ArrowRight'){ e.preventDefault(); siteNav(1); }
     else if(e.key==='ArrowLeft'){ e.preventDefault(); siteNav(-1); } });
   const pane=document.getElementById('sheetPane'); if(!pane) return;
-  const MAXROT=9, THRESH=64, VFLICK=0.5;
+  const MAXROT=8, THRESH=64, VFLICK=0.5;
   let sx=0,sy=0,dx=0,tracking=false,dragging=false,decided=false,horiz=false,swiped=false,lastX=0,lastT=0,vel=0;
   function resist(v){ const dir=v<0?1:-1; return canSiteNav(dir)?v:v*0.3; }  /* rubber-band past the ends */
-  function clampRot(d){ let r=d/20; if(r>MAXROT) r=MAXROT; if(r<-MAXROT) r=-MAXROT; return r; }
+  function clampRot(d){ let r=d/22; if(r>MAXROT) r=MAXROT; if(r<-MAXROT) r=-MAXROT; return r; }
   pane.addEventListener('touchstart',function(e){
     tracking=false; if(_sheetBusy||cur.type!=='site'||e.touches.length!==1) return;
     if(e.target.closest('textarea,input,a')) return;
@@ -1252,12 +1259,11 @@ function siteNav(dir){ if(_sheetBusy||!canSiteNav(dir)) return; if(typeof buzz==
   pane.addEventListener('touchmove',function(e){
     if(!tracking||!e.touches.length) return;
     const x=e.touches[0].clientX, y=e.touches[0].clientY, tx=x-sx, ty=y-sy;
-    if(!decided){ if(Math.abs(tx)>8||Math.abs(ty)>8){ decided=true; horiz=Math.abs(tx)>Math.abs(ty)+4; if(horiz) cardMoving(true); } }
+    if(!decided){ if(Math.abs(tx)>8||Math.abs(ty)>8){ decided=true; horiz=Math.abs(tx)>Math.abs(ty)+4; } }
     if(decided&&horiz){ dragging=true; e.preventDefault();
       const now=Date.now(); if(now>lastT){ vel=(x-lastX)/(now-lastT); lastX=x; lastT=now; }
       dx=tx; const d=resist(dx);
-      pane.style.transform='translateX('+d+'px) rotate('+clampRot(d)+'deg)';
-      pane.style.opacity=String(Math.max(.5,1-Math.abs(d)/((window.innerWidth||400)*1.1))); }
+      pane.style.transform='translateX('+d+'px) rotate('+clampRot(d)+'deg)'; }
   },{passive:false});
   function end(){ if(!tracking) return; tracking=false; if(!dragging){ return; } dragging=false;
     const d=resist(dx), dir=dx<0?1:-1;
@@ -1337,7 +1343,6 @@ function shareReview(){
     text:(LANG==='fr'?'Mon avis sur ':'My review of ')+item.title+((item.sub&&item.sub!==item.title)?(' ('+item.sub+')'):'')+(LANG==='fr'?' sur on-site.':' on on-site.') })
     .then(function(r){ if(r==='fallback' && typeof showThemeToast==='function') showThemeToast('Link copied, card saved'); });
 }
-(function(){ var b=document.getElementById('shareReviewBtn'); if(b) b.addEventListener('click',function(){ if(typeof buzz==='function') buzz(6); shareReview(); }); })();
 
 /* ---- receive a shared review (#/shared/<data>) ---- */
 function showShared(item){
@@ -1857,6 +1862,7 @@ function openJournalEntry(k,type){ var parts=k.split('#'), pid=parts[0]; if(!PAR
   if(type==='site'){ expandCg(parts[1]); openSheet('site',k,parts[1],parts.slice(2).join('#')); }
   else if(type==='trail'){ openSheet('trail',k,parts.slice(1).join('#')); }
   else{ openSheet('campground',k,parts.slice(1).join('#')); } }
+var _jOpen={};  /* journal parks the user has expanded this session */
 function renderJournal(){ var box=document.getElementById('journalBody'); if(!box) return;
   var byPark=journalEntries(), pids=Object.keys(byPark);
   if(!pids.length){
@@ -1875,21 +1881,40 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
     +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average rating')+'</span></div>'
     +'</div>';
   var ORDER={campground:0,site:1,trail:2};
+  function rowHtml(en){ var col=(en.score!=null)?scoreColor(en.score):null, glyphs=(en.photo?PHOTO_G:'');
+    return '<button class="ios-row ios-row--plain jrow" type="button" data-key="'+en.k.replace(/"/g,'&quot;')+'" data-type="'+en.type+'">'
+      +'<span class="ios-row-body"><span class="ios-row-title">'+(en.want?'<span class="wstar">★</span>':'')+en.title+'</span>'
+      +(en.sub?'<span class="ios-row-sub">'+en.sub+'</span>':'')+'</span>'
+      +(glyphs?'<span class="j-glyphs">'+glyphs+'</span>':'')
+      +(col?'<span class="tr-rate rated" style="background:'+col+'">'+en.score+'/5</span>':'')
+      +'</button>'; }
+  /* each park is one collapsed row: stars for its average, the counts beneath,
+     and the entries only on tap. A long flat list was noise. */
   pids.forEach(function(pid){ var p=PARK_BY_ID[pid], list=byPark[pid];
     list.sort(function(a,b){ return (ORDER[a.type]-ORDER[b.type])
       ||String(a.sub).localeCompare(String(b.sub))
       ||String(a.title).localeCompare(String(b.title),undefined,{numeric:true}); });
-    html+='<div class="seclabel">'+p.name+'</div><div class="ios-group">'+list.map(function(en){
-      var col=(en.score!=null)?scoreColor(en.score):null;
-      var glyphs=(en.photo?PHOTO_G:'');
-      return '<button class="ios-row ios-row--plain jrow" type="button" data-key="'+en.k.replace(/"/g,'&quot;')+'" data-type="'+en.type+'">'
-        +'<span class="ios-row-body"><span class="ios-row-title">'+(en.want?'<span class="wstar">★</span>':'')+en.title+'</span>'
-        +(en.sub?'<span class="ios-row-sub">'+en.sub+'</span>':'')+'</span>'
-        +(glyphs?'<span class="j-glyphs">'+glyphs+'</span>':'')
-        +(col?'<span class="tr-rate rated" style="background:'+col+'">'+en.score+'/5</span>':'')
-        +'</button>'; }).join('')+'</div>';
+    var rated=list.filter(function(e){ return e.score!=null; }), n=rated.length;
+    var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, full=Math.round(avg);
+    var wants=list.filter(function(e){ return e.want; }).length, photos=list.filter(function(e){ return e.photo; }).length, notes=list.filter(function(e){ return e.note; }).length;
+    var NB='\u00a0';   /* a count never wraps away from its word */
+    var bits=[]; if(n) bits.push(n+NB+TL(n===1?'rating':'ratings')); if(wants) bits.push(wants+NB+TL('wishlist'));
+    if(photos) bits.push(photos+NB+TL(photos===1?'photo':'photos')); if(notes) bits.push(notes+NB+TL(notes===1?'note':'notes'));
+    var stars=n?'<span class="jpark-rate" aria-label="'+avg.toFixed(1)+' / 5"><span class="jstars" aria-hidden="true">'+'★'.repeat(full)+'<span class="dim">'+'☆'.repeat(5-full)+'</span></span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>':'';
+    var open=!!_jOpen[pid];
+    html+='<div class="jpark" data-pid="'+pid+'">'
+      +'<button class="ios-row jpark-head" type="button" aria-expanded="'+(open?'true':'false')+'">'
+        +'<span class="ios-row-body"><span class="ios-row-title">'+esc(p.name)+'</span>'
+        +(bits.length?'<span class="ios-row-sub">'+bits.join(' · ')+'</span>':'')+'</span>'
+        +stars+'<span class="ios-chevron jchev"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>'
+      +'</button>'
+      +'<div class="ios-group jpark-list"'+(open?'':' hidden')+'>'+list.map(rowHtml).join('')+'</div>'
+      +'</div>';
   });
   box.innerHTML=html;
+  box.querySelectorAll('.jpark-head').forEach(function(h){ h.addEventListener('click',function(){ buzz(6);
+    var wrap=h.closest('.jpark'), pid=wrap.dataset.pid, lst=wrap.querySelector('.jpark-list'), open=lst.hidden;
+    lst.hidden=!open; h.setAttribute('aria-expanded',String(open)); if(open) _jOpen[pid]=true; else delete _jOpen[pid]; }); });
   box.querySelectorAll('.jrow').forEach(function(b){ b.addEventListener('click',function(){ buzz(6); openJournalEntry(b.dataset.key,b.dataset.type); }); });
 }
 
