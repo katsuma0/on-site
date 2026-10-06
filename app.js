@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.231';
+var APP_VERSION='0.232';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -802,7 +802,10 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
 }
 /* the letter rail: fixed at the right edge, tap or drag to jump to a letter */
 function syncAzRail(){ const rail=document.getElementById('azRail'), pl=document.getElementById('parkList');
-  if(rail) rail.hidden=!rail.childElementCount||!pl||pl.hidden; }
+  if(rail) rail.hidden=!rail.childElementCount||!pl||pl.hidden;
+  /* the list gives up a strip on the right while the rail is up, so the rail
+     never sits on the rows' right edge */
+  const vp=document.getElementById('view-parks'); if(vp) vp.classList.toggle('rail-on',!!(rail&&!rail.hidden)); }
 function renderAzRail(letters){ const rail=document.getElementById('azRail'); if(!rail) return;
   /* the rail is a pointer-only convenience that duplicates the A-Z section
      headers; hide it from assistive tech rather than expose 26 dead spans */
@@ -1895,12 +1898,12 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
       ||String(a.sub).localeCompare(String(b.sub))
       ||String(a.title).localeCompare(String(b.title),undefined,{numeric:true}); });
     var rated=list.filter(function(e){ return e.score!=null; }), n=rated.length;
-    var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, full=Math.round(avg);
+    var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, half=Math.round(avg*2)/2;   /* stars fill to the nearest half */
     var wants=list.filter(function(e){ return e.want; }).length, photos=list.filter(function(e){ return e.photo; }).length, notes=list.filter(function(e){ return e.note; }).length;
     var NB='\u00a0';   /* a count never wraps away from its word */
     var bits=[]; if(n) bits.push(n+NB+TL(n===1?'rating':'ratings')); if(wants) bits.push(wants+NB+TL('wishlist'));
     if(photos) bits.push(photos+NB+TL(photos===1?'photo':'photos')); if(notes) bits.push(notes+NB+TL(notes===1?'note':'notes'));
-    var stars=n?'<span class="jpark-rate" aria-label="'+avg.toFixed(1)+' / 5"><span class="jstars" aria-hidden="true">'+'★'.repeat(full)+'<span class="dim">'+'☆'.repeat(5-full)+'</span></span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>':'';
+    var stars=n?'<span class="jpark-rate" aria-label="'+avg.toFixed(1)+' / 5"><span class="jstars" aria-hidden="true"><span class="jstars-fill" style="width:'+(half/5*100)+'%">★★★★★</span>★★★★★</span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>':'';
     var open=!!_jOpen[pid];
     html+='<div class="jpark" data-pid="'+pid+'">'
       +'<button class="ios-row jpark-head" type="button" aria-expanded="'+(open?'true':'false')+'">'

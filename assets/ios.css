@@ -1042,6 +1042,9 @@ button {
   .azrail span{display:block;min-height:15px;line-height:15px;padding:0 5px;font-size:var(--fs-caption2);
     letter-spacing:var(--ls-caption2);font-weight:600;color:var(--tint-text);text-align:center;cursor:pointer}
   @media (max-width:359.9px){ .azrail{display:none} }
+  /* while the rail is up the park list keeps clear of it: the rows end a
+     few points before the rail's left edge instead of running under it */
+  @media (min-width:360px){ #view-parks.rail-on .wrap{padding-right:calc(var(--gutter) + 18px)} }
 
   /* ---- journal tab ----------------------------------------------------- */
   #journalBody .acct-stats{margin:6px 0 4px}
@@ -1051,8 +1054,10 @@ button {
   .jpark{margin-bottom:10px}
   .jpark-head{width:100%;text-align:left;background:var(--card);border-radius:var(--r-sm)}
   .jpark-rate{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none;padding-left:10px}
-  .jstars{color:var(--orange);font-size:var(--fs-subhead);line-height:1;letter-spacing:1px;white-space:nowrap}
-  .jstars .dim{color:var(--label-3)}
+  /* five dim stars with an orange copy clipped over them, so the fill shows
+     the average to the nearest half star (3.5 reads as three and a half) */
+  .jstars{position:relative;display:inline-block;color:var(--label-3);font-size:var(--fs-subhead);line-height:1;letter-spacing:0;white-space:nowrap}
+  .jstars-fill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:var(--orange)}
   .jnum{color:var(--label-2);font-weight:600;font-size:var(--fs-footnote)}
   .jpark-head .jchev svg{transition:transform .18s var(--ease)}
   .jpark-head[aria-expanded="true"] .jchev svg{transform:rotate(90deg)}
