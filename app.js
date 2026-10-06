@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.230';
+var APP_VERSION='0.231';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -83,7 +83,7 @@ var FR={
   'Terms of use':'Conditions d’utilisation',
   'Including what this app is not safe for':'Y compris ce pour quoi cette appli n’est pas sûre',
   'Support':'Assistance','Help, and how to reach me':'Aide, et comment me joindre',
-  'Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official channels. Map images come from CARTO using OpenStreetMap data.':'Sans lien avec Parcs Ontario, le gouvernement de l’Ontario ou Apple. Réservez par leurs canaux officiels. Les images de carte viennent de CARTO à partir des données OpenStreetMap.',
+  'Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official channels. Map images come from Esri, using OpenStreetMap and other data.':'Sans lien avec Parcs Ontario, le gouvernement de l’Ontario ou Apple. Réservez par leurs canaux officiels. Les images de carte viennent d’Esri, à partir des données OpenStreetMap et d’autres sources.',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
   /* settings */
@@ -2032,7 +2032,7 @@ var LEGAL_PAGES={
   privacy:{t:'Privacy policy',h:''
     +'<p><b>The short version.</b> There are no accounts, no advertising and no analytics. Nothing you write, rate or photograph is sent to me. It is stored on this device and it stays here. I cannot read it and I never see that it exists.</p>'
     +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites, your display name and your settings. All of it lives in this browser\u2019s storage on this device. Your display name is used only to draw an initial in the corner of the app and is never transmitted.</p>'
-    +'<p><b>What leaves this device.</b> Map images are fetched from CARTO, which renders OpenStreetMap data, when you open the Map. Like any web request, that carries your IP address and roughly which part of the map you are looking at. It does not carry your notes, ratings, photos or name. The web version is served from GitHub Pages, which keeps ordinary server logs.</p>'
+    +'<p><b>What leaves this device.</b> Map images are fetched from Esri, which renders OpenStreetMap and other data, when you open the Map. Like any web request, that carries your IP address and roughly which part of the map you are looking at. It does not carry your notes, ratings, photos or name. The web version is served from GitHub Pages, which keeps ordinary server logs.</p>'
     +'<p><b>Permissions.</b> Location is used only when you tap the locate button on the Map, and never in the background. The camera and photo library are used only when you attach a photo to a site. If you decline either, everything else still works.</p>'
     +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and deleting the app does the same. Export a backup writes your whole journal to one readable file, and Import reads it back on any device. There is no server copy, so nothing can be recovered once it is gone.</p>'
     +'<p><b>Children.</b> The app is safe for a child to use. Nothing in it collects personal information from anyone, of any age.</p>'
@@ -2040,7 +2040,7 @@ var LEGAL_PAGES={
     hFr:''
     +'<p><b>La version courte.</b> Il n’y a aucun compte, aucune publicité et aucune analyse d’audience. Rien de ce que vous écrivez, notez ou photographiez ne m’est envoyé. C’est stocké sur cet appareil et cela y reste. Je ne peux pas le lire et je ne vois jamais que cela existe.</p>'
     +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela vit dans le stockage de ce navigateur, sur cet appareil. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
-    +'<p><b>Ce qui quitte cet appareil.</b> Les images de carte sont récupérées auprès de CARTO, qui affiche les données d’OpenStreetMap, lorsque vous ouvrez la carte. Comme toute requête web, cela transporte votre adresse IP et à peu près quelle partie de la carte vous regardez. Cela ne transporte ni vos notes, ni vos évaluations, ni vos photos, ni votre nom. La version web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires.</p>'
+    +'<p><b>Ce qui quitte cet appareil.</b> Les images de carte sont récupérées auprès d’Esri, qui affiche les données d’OpenStreetMap et d’autres sources, lorsque vous ouvrez la carte. Comme toute requête web, cela transporte votre adresse IP et à peu près quelle partie de la carte vous regardez. Cela ne transporte ni vos notes, ni vos évaluations, ni vos photos, ni votre nom. La version web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires.</p>'
     +'<p><b>Autorisations.</b> La localisation n’est utilisée que lorsque vous touchez le bouton de localisation sur la carte, et jamais en arrière-plan. L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement. Si vous refusez l’un ou l’autre, tout le reste fonctionne quand même.</p>'
     +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et supprimer l’application fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier lisible, et Importer le relit sur n’importe quel appareil. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
     +'<p><b>Enfants.</b> L’application peut être utilisée sans danger par un enfant. Rien en elle ne recueille de renseignements personnels de quiconque, à tout âge.</p>'
@@ -2051,7 +2051,7 @@ var LEGAL_PAGES={
     +'<p><b>Acceptable use.</b> Do not use the app to break the law, to harass anyone, or to harm a park. Do not photograph occupied sites, and leave a site the way you would want to find it.</p>'
     +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks\u2019 official channels.</p>'
     +'<p><b>Data loss.</b> Everything is stored on your device and nothing is backed up to a server, so your journal can be lost if you delete the app, clear site data or lose the device. Export regularly.</p>'
-    +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple. Map images come from CARTO, rendering OpenStreetMap data, \u00a9 OpenStreetMap contributors.</p>'
+    +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple. Map images come from Esri, rendering OpenStreetMap and other data, \u00a9 Esri, HERE, Garmin and OpenStreetMap contributors.</p>'
     +'<p>The full terms are at katsuma.ca/terms.html. These terms are governed by the laws of Ontario, Canada.</p>',
     hFr:''
     +'<p><b>La sécurité d’abord.</b> Cette application est une référence, pas un équipement de sécurité. Elle ne peut pas appeler à l’aide. Emportez un moyen de joindre les services d’urgence là où vous allez, et dites à quelqu’un votre plan. Les cartes et les positions sont approximatives, alors ne vous en servez pas pour naviguer.</p>'
@@ -2059,7 +2059,7 @@ var LEGAL_PAGES={
     +'<p><b>Utilisation acceptable.</b> N’utilisez pas l’application pour enfreindre la loi, pour harceler qui que ce soit, ou pour nuire à un parc. Ne photographiez pas les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.</p>'
     +'<p><b>Aucune garantie.</b> L’application est fournie telle quelle, gratuitement, sans aucune garantie d’aucune sorte. Les renseignements sur les parcs peuvent être incomplets ou périmés. Réservez par les canaux officiels de Parcs Ontario.</p>'
     +'<p><b>Perte de données.</b> Tout est stocké sur votre appareil et rien n’est sauvegardé sur un serveur, donc votre journal peut être perdu si vous supprimez l’application, effacez les données du site ou perdez l’appareil. Exportez régulièrement.</p>'
-    +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple. Les images de carte proviennent de CARTO, qui affiche les données d’OpenStreetMap, © les contributeurs d’OpenStreetMap.</p>'
+    +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple. Les images de carte proviennent d’Esri, qui affiche les données d’OpenStreetMap et d’autres sources, © Esri, HERE, Garmin et les contributeurs d’OpenStreetMap.</p>'
     +'<p>Les conditions complètes se trouvent à katsuma.ca/terms.html. Ces conditions sont régies par les lois de l’Ontario, au Canada.</p>'},
   support:{t:'Support',h:''
     +'<p><b>Reach me.</b> Email katsuma123@gmail.com and I will reply. Problems can also be filed at github.com/katsuma0/on-site/issues.</p>'

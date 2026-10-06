@@ -1,5 +1,5 @@
 /* on-camp, offline service worker */
-const CACHE = 'scout-v232';
+const CACHE = 'scout-v233';
 const CORE = [
   './',
   './index.html',
@@ -44,7 +44,7 @@ self.addEventListener('activate', (e) => {
 });
 
 /* Cache-first with background refresh, same-origin only, offline nav fallback.
-   Cross-origin requests (CARTO basemap tiles) are left to the browser: caching
+   Cross-origin requests (Esri basemap tiles) are left to the browser: caching
    opaque responses padded each entry by megabytes and blew through the origin
    storage quota on a normal map pan. */
 self.addEventListener('fetch', (e) => {
