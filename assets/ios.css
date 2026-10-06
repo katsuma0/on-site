@@ -958,7 +958,9 @@ button {
   .toast.on{opacity:1;transform:translate(-50%,0)}
   /* a faded toast is gone: it takes no taps and holds no focus */
   .toast:not(.on){pointer-events:none}
-  .toast{display:flex;align-items:center;gap:14px}
+  /* sized to its words: a fixed, centred box otherwise gets only half the
+     viewport to shrink-to-fit and wraps a short message into three lines */
+  .toast{display:flex;align-items:center;gap:14px;width:max-content;max-width:92vw}
   .toast-msg{flex:1 1 auto;text-align:left}
   .toast-act{flex:none;appearance:none;border:0;background:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;
     text-decoration:underline;text-underline-offset:3px;padding:10px 4px;margin:-10px -4px -10px 0;min-height:44px}
