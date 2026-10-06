@@ -22,10 +22,14 @@
   /* Light natural hues cycled so neighbouring zones contrast where they touch. */
   var TINT = ['#CDE1D0', '#E2D6C0', '#EBDCA8', '#DFE3C6', '#E9CFC0', '#E5C9A5'];
 
-  /* CARTO Voyager, the same basemap the fishing app uses. No labels on the
-     base, a labels only layer painted above the zones but under the pins and
-     only from mid zoom in, so the map stays calm far out. */
-  var CARTO = 'https://{s}.basemaps.cartocdn.com/rastertiles/';
+  /* Basemap tiles. CARTO began watermarking keyless requests with "API KEY
+     REQUIRED", so the tiles now come from Esri's Light and Dark Gray Canvas,
+     which need no key and split the same way: a quiet base with no labels,
+     and a labels only layer painted above the zones but under the pins, only
+     from mid zoom in, so the map stays calm far out. Esri tiles address as
+     z/y/x and stop at zoom 16, which is also this map's ceiling. */
+  var ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+  var ESRI_ATTR = 'Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
 
   /* module level state, so a second call reuses the one map */
   var map = null;
@@ -284,21 +288,20 @@
     var dark = prefersDark();
     if (dark === isDark) return;
     isDark = dark;
-    var baseSet = dark ? 'dark_nolabels' : 'voyager_nolabels';
-    var labelSet = dark ? 'dark_only_labels' : 'voyager_only_labels';
+    var canvas = dark ? 'World_Dark_Gray' : 'World_Light_Gray';
     if (baseLayer) { try { map.removeLayer(baseLayer); } catch (e) {} }
     if (labelLayer) { try { map.removeLayer(labelLayer); } catch (e) {} }
-    baseLayer = L.tileLayer(CARTO + baseSet + '/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap, &copy; CARTO',
-      subdomains: 'abcd',
+    baseLayer = L.tileLayer(ESRI + canvas + '_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: ESRI_ATTR,
+      maxNativeZoom: 16,
       updateWhenIdle: true,
       updateWhenZooming: false,
       keepBuffer: 2
     }).addTo(map);
-    labelLayer = L.tileLayer(CARTO + labelSet + '/{z}/{x}/{y}{r}.png', {
+    labelLayer = L.tileLayer(ESRI + canvas + '_Reference/MapServer/tile/{z}/{y}/{x}', {
       pane: 'campLabels',
-      subdomains: 'abcd',
       minZoom: 8,
+      maxNativeZoom: 16,
       updateWhenIdle: true,
       updateWhenZooming: false,
       keepBuffer: 2

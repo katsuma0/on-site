@@ -93,5 +93,28 @@ try {
   if (!/styles\.css/.test(sw)) ok('retired styles.css is not precached'); else bad('styles.css precache', 'still referenced by CORE');
 } catch (e) { bad('service worker', e.message); }
 
+// ---- 6. house style ----
+console.log('\n[6] House style');
+try {
+  var STYLED = ['app.js', 'index.html', 'assets/ios.css', 'map.js', 'share.js', 'service-worker.js'];
+  var dashed = STYLED.filter(function (f) { return fs.existsSync(rel(f)) && fs.readFileSync(rel(f), 'utf8').indexOf('\u2014') >= 0; });
+  if (dashed.length) bad('em dash present', dashed.join(', ')); else ok('no em dashes in ' + STYLED.length + ' files');
+  var appSrc = fs.readFileSync(rel('app.js'), 'utf8');
+  var frm = appSrc.match(/(?:const|var|let)\s+FR\s*=\s*\{([\s\S]*?)\n\};/);
+  if (!frm) bad('FR dictionary', 'block not found');
+  else {
+    var esc = (frm[1].match(/\\'/g) || []).length;
+    if (esc) bad('FR dictionary straight apostrophes', esc + ' escaped \\\' (use the typographic apostrophe)'); else ok('FR dictionary uses the typographic apostrophe');
+  }
+  // the service worker cache number runs two ahead of the app version's minor (0.233 <-> scout-v235)
+  var vm = appSrc.match(/var APP_VERSION='0\.(\d+)'/), cmv = fs.readFileSync(rel('service-worker.js'), 'utf8').match(/const CACHE = 'scout-v(\d+)'/);
+  if (vm && cmv && parseInt(vm[1], 10) + 2 === parseInt(cmv[1], 10)) ok('version lockstep (0.' + vm[1] + ' <-> scout-v' + cmv[1] + ')');
+  else bad('version lockstep', 'APP_VERSION 0.' + (vm && vm[1]) + ' vs CACHE scout-v' + (cmv && cmv[1]));
+  // a changelog line is written only for feature releases, so the newest one may trail the app version but never lead it
+  var idxSrc = fs.readFileSync(rel('index.html'), 'utf8'), firstVer = idxSrc.match(/class="vv">v0\.(\d+)</);
+  if (vm && firstVer && parseInt(firstVer[1], 10) <= parseInt(vm[1], 10)) ok('newest changelog line (v0.' + firstVer[1] + ') is not ahead of APP_VERSION 0.' + vm[1]);
+  else bad('changelog line', 'first verline is v0.' + (firstVer && firstVer[1]) + ', APP_VERSION is 0.' + (vm && vm[1]));
+} catch (e) { bad('house style', e.message); }
+
 console.log('\n' + (fails.length ? ('FAILED: ' + fails.length + ' check(s)\n - ' + fails.join('\n - ')) : ('ALL ' + passes + ' CHECKS PASSED')));
 process.exit(fails.length ? 1 : 0);

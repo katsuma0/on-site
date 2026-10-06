@@ -82,8 +82,9 @@ Data deletion exists anyway, under More, then Your data.
 
 ## Third-party material to declare
 
-- Map images: CARTO, rendering OpenStreetMap data, © OpenStreetMap
-  contributors. Attribution is shown on the map and in More.
+- Map images: Esri Light and Dark Gray Canvas, rendering OpenStreetMap and
+  other data, © Esri, HERE, Garmin, © OpenStreetMap contributors. Attribution
+  is shown on the map and in More.
 - Park, campground, site and trail data: Government of Ontario open data.
 - Leaflet, BSD 2-Clause, vendored in `vendor/leaflet/`.
 
