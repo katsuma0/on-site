@@ -1011,10 +1011,15 @@ button {
   .acct-avatar svg{width:40px;height:40px;color:var(--label-2)}
   .acct-name{font-size:var(--fs-title3);font-weight:700;letter-spacing:var(--ls-title3)}
   .acct-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
-  .acct-stat{background:var(--card);border-radius:var(--r-sm);padding:12px 8px;text-align:center}
+  .acct-stat{background:var(--card);border-radius:var(--r-sm);padding:12px 6px;text-align:center;display:flex;flex-direction:column;align-items:center}
   .acct-stat b{display:block;font-size:var(--fs-title2);font-variant-numeric:tabular-nums;color:var(--label)}
-  .acct-stat span{display:block;font-size:var(--fs-caption2);font-weight:600;color:var(--label-2);text-transform:uppercase;
-    letter-spacing:.05em;margin-top:3px}
+  /* the caption sits a point under caption2 with tighter tracking so each
+     label holds one line beside its neighbours (a two-line "Average rating"
+     left the row ragged). Labels are pinned to the tile's bottom edge, so if a
+     large text size ever wraps one, the numbers still line up on top and the
+     labels along the bottom; a wrap splits evenly. */
+  .acct-stat span{display:block;font-size:calc(var(--fs-caption2) - 1px);line-height:1.3;font-weight:600;color:var(--label-2);text-transform:uppercase;
+    letter-spacing:.02em;margin-top:auto;padding-top:4px;text-wrap:balance}
   .acct-input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:var(--fs-body);color:var(--label);
     text-align:right;font-family:var(--font-sys);padding:0}
   .acct-input::placeholder{color:var(--label-3)}

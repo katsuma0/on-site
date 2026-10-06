@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.228';
+var APP_VERSION='0.229';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -74,7 +74,7 @@ var FR={
   'No matches. Try a park, a campground, or Hemlock 112.':'Aucun résultat. Essayez un parc, un terrain ou Hemlock 112.',
   'Campgrounds':'Terrains de camping','Sites':'Emplacements','Trails':'Sentiers','Cancel':'Annuler',
   /* account and journal */
-  'Parks visited':'Parcs visités','Ratings':'Évaluations','Average rating':'Note moyenne',
+  'Parks visited':'Parcs visités','Ratings':'Évaluations',
   'Everything you save stays on this device.':'Tout ce que vous enregistrez reste sur cet appareil.',
   'That photo could not be saved. Your device storage may be full.':'Cette photo n’a pas pu être enregistrée. Le stockage de votre appareil est peut-être plein.',
   'Favourites':'Favoris','Name':'Nom','Your name':'Votre nom',
@@ -1878,7 +1878,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
   var html='<div class="acct-stats">'
     +'<div class="acct-stat"><b class="tnum">'+pids.length+'</b><span>'+TL('Parks visited')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+s.n+'</b><span>'+TL('Ratings')+'</span></div>'
-    +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average rating')+'</span></div>'
+    +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average')+'</span></div>'
     +'</div>';
   var ORDER={campground:0,site:1,trail:2};
   function rowHtml(en){ var col=(en.score!=null)?scoreColor(en.score):null, glyphs=(en.photo?PHOTO_G:'');
