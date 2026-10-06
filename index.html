@@ -197,7 +197,10 @@
   <div class="ctx" id="d-ctx"></div>
   <label class="fld" data-i18n="Rating">Rating</label>
   <div class="dots" id="dots"></div>
-  <button class="want-btn" id="wantBtn" aria-pressed="false">☆ Wishlist</button>
+  <div class="tog-row" id="togRow">
+    <button class="want-btn" id="wantBtn" aria-pressed="false">☆ Wishlist</button>
+    <button class="want-btn" id="trailerBtn" type="button" aria-pressed="false">Trailer site</button>
+  </div>
   <button class="extra-toggle" id="extraToggle" type="button" aria-expanded="false" aria-controls="noteBlock" hidden><span data-i18n="Add a note or photo">Add a note or photo</span></button>
   <div id="noteBlock">
   <label class="fld" for="d-notes" id="notesLabel" data-i18n="Notes">Notes</label>
@@ -217,6 +220,7 @@
   </div>
   </div>
   <div class="sheet-foot">
+    <button class="btn-all" id="trailerAllBtn" type="button" hidden></button>
     <button class="btn-clear" id="clearBtn" data-i18n="Clear">Clear</button>
     <button class="btn-done" id="doneBtn" data-i18n="Done">Done</button>
   </div>
@@ -232,6 +236,7 @@
 <div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions">
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
+  <div class="verline"><span class="vv">v0.233</span>Trailer sites: set one aside or the rest of a campground at once, with a Car/tent or RV/trailer choice in Appearance</div>
   <div class="verline"><span class="vv">v0.232</span>The A to Z rail keeps clear of the park rows, and Journal stars fill to the half</div>
   <div class="verline"><span class="vv">v0.231</span>The map draws again: basemap tiles come from Esri now, no key needed</div>
   <div class="verline"><span class="vv">v0.230</span>About moves to the bottom of More</div>

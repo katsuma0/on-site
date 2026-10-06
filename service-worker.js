@@ -1,5 +1,5 @@
 /* on-camp, offline service worker */
-const CACHE = 'scout-v234';
+const CACHE = 'scout-v235';
 const CORE = [
   './',
   './index.html',
