@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.229';
+var APP_VERSION='0.230';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
