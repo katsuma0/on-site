@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.233';
+var APP_VERSION='0.234';
 
 /* ================= language =================
    English is the default; French is a choice in More. The dictionary is
@@ -64,11 +64,9 @@ var LANG='en';
 try{ var _lg=localStorage.getItem(LANG_KEY); if(_lg==='fr'||_lg==='en') LANG=_lg; }catch(e){}
 var FR={
   /* tabs and screens */
-  'Guide':'Guide','Map':'Carte','Journal':'Journal','More':'Plus','Account':'Compte','Photos':'Photos',
+  'Guide':'Guide','Journal':'Journal','More':'Plus','Account':'Compte','Photos':'Photos',
   'Parks':'Parcs','Shared with you':'Partagé avec vous',
   /* map */
-  'Fishing zones':'Zones de pêche',
-  'Find my location':'Trouver ma position',
   /* search */
   'Search':'Recherche','Search parks and sites':'Chercher parcs et emplacements',
   'No matches. Try a park, a campground, or Hemlock 112.':'Aucun résultat. Essayez un parc, un terrain ou Hemlock 112.',
@@ -78,12 +76,17 @@ var FR={
   'Everything you save stays on this device.':'Tout ce que vous enregistrez reste sur cet appareil.',
   'That photo could not be saved. Your device storage may be full.':'Cette photo n’a pas pu être enregistrée. Le stockage de votre appareil est peut-être plein.',
   'Favourites':'Favoris','Name':'Nom','Your name':'Votre nom',
+  'Favourite parks':'Parcs favoris','Favourite sites':'Emplacements favoris','Visited parks':'Parcs visités',
+  'Your favourites live here':'Vos favoris sont ici',
+  'Tap the heart on a park or a site to keep it here. Parks you rate show up too.':'Touchez le cœur d’un parc ou d’un emplacement pour le garder ici. Les parcs que vous notez y apparaissent aussi.',
+  'Tap the heart on a park to keep it here.':'Touchez le cœur d’un parc pour le garder ici.',
+  'Parks you rate or write in show up here.':'Les parcs que vous notez ou commentez apparaissent ici.',
   'Legal':'Mentions légales','Privacy policy':'Politique de confidentialité',
   'What stays on this device, and what does not':'Ce qui reste sur cet appareil, et ce qui n’y reste pas',
   'Terms of use':'Conditions d’utilisation',
   'Including what this app is not safe for':'Y compris ce pour quoi cette appli n’est pas sûre',
   'Support':'Assistance','Help, and how to reach me':'Aide, et comment me joindre',
-  'Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official channels. Map images come from Esri, using OpenStreetMap and other data.':'Sans lien avec Parcs Ontario, le gouvernement de l’Ontario ou Apple. Réservez par leurs canaux officiels. Les images de carte viennent d’Esri, à partir des données OpenStreetMap et d’autres sources.',
+  'Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official site.':'Sans lien avec Parcs Ontario, le gouvernement de l’Ontario ou Apple. Réservez par leur site officiel.',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
   /* settings */
@@ -130,6 +133,11 @@ var FR={
   'Some of the backup could not be saved. Your device storage may be full.':'Une partie de la sauvegarde n’a pas pu être enregistrée. Le stockage de votre appareil est peut-être plein.',
   /* audit fixes: rendered strings, empty states, aria labels */
   'Your journal starts here':'Votre journal commence ici',
+  /* journal filters */
+  'All':'Toutes','2 or less':'2 ou moins','Show':'Afficher','Sort':'Trier',
+  'Recent':'Récents','Best':'Meilleurs','Lowest':'Pires','A to Z':'A à Z',
+  'entry matches':'entrée correspond','entries match':'entrées correspondent',
+  'Nothing matches these filters.':'Rien ne correspond à ces filtres.','Clear filters':'Effacer les filtres',
   'Tap a photo to open its site.':'Touchez une photo pour ouvrir son emplacement.',
   "No photos yet. Add one from a site's rating sheet.":'Aucune photo pour l’instant. Ajoutez-en une depuis la fiche de notation d’un emplacement.',
   'Fishing':'Pêche',
@@ -176,12 +184,26 @@ var FR={
   'Trailer site':'Pour roulottes','Trailers':'Roulottes',
   'Trailer site, not counted in your progress':'Emplacement pour roulottes, non compté dans votre progression',
   'Trailer site, counted like any other':'Emplacement pour roulottes, compté comme les autres',
-  'trailer sites set aside':'emplacements pour roulottes mis de côté','trailer site set aside':'emplacement pour roulottes mis de côté',
+  'trailer sites set aside':'roulottes mises de côté','trailer site set aside':'roulotte mise de côté',
   'sites marked as trailer sites':'emplacements marqués pour roulottes','site marked as a trailer site':'emplacement marqué pour roulottes',
   'trailer marks removed':'marques pour roulottes retirées','trailer mark removed':'marque pour roulottes retirée',
   'Undo':'Annuler','Undone.':'Annulé.','trailer mark':'marque pour roulottes','trailer marks':'marques pour roulottes',
   /* more screen: sections, data rows */
   'About':'À propos','Learn':'Apprendre','Your data':'Vos données',
+  /* planned features, in the More tab */
+  'Planned features':'Fonctionnalités prévues',
+  'Offline campground maps':'Cartes de terrain hors ligne',
+  'Download a campground map with GPS to find your way around the park':'Téléchargez la carte d’un terrain avec GPS pour vous repérer dans le parc',
+  'Backcountry sites':'Emplacements en arrière-pays',
+  'The backcountry sites the guide is still missing':'Les emplacements en arrière-pays qui manquent encore au guide',
+  'Public accounts':'Comptes publics',
+  'An option to share your journal with others':'Une option pour partager votre journal avec d’autres',
+  'Site availability':'Disponibilité des emplacements',
+  'Check which sites are open for your dates':'Vérifiez quels emplacements sont libres à vos dates',
+  'Book from the app':'Réserver depuis l’application',
+  'Reserve a site without leaving the app':'Réservez un emplacement sans quitter l’application',
+  'Your feedback':'Vos commentaires',
+  'Ideas from people using the app, built in':'Les idées des gens qui utilisent l’application, intégrées',
   'More from the Ontario outdoors':'Plus du plein air en Ontario',
   'Export a backup':'Exporter une sauvegarde','Import a backup':'Importer une sauvegarde',
   'Reset all data':'Réinitialiser toutes les données',
@@ -193,7 +215,7 @@ var FR={
   /* about the app, three body paragraphs (on-site and Parcs Ontario kept as names) */
   'Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.':'Depuis mon plus jeune âge, mes parents m’emmenaient souvent camper. Ces derniers temps, je partage cette passion avec mes amis et je leur fais découvrir la beauté du plein air. Avec cela vient la responsabilité de réserver les emplacements, et choisir un emplacement que l’on n’a jamais vu est un pari.',
   'on-site is a private journal for Ontario Parks campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable Ontario Park, down to the campgrounds, the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping de Parcs Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque parc réservable de l’Ontario, jusqu’aux terrains, aux emplacements individuels et aux sentiers qui les entourent.',
-  'Everything you save stays on this device. There is no account, no server, and nothing is tracked. Ratings and notes live in the browser and photos in local storage, and you can export a backup to a file and load it on another phone. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Tout ce que vous enregistrez reste sur cet appareil. Il n’y a aucun compte, aucun serveur, et rien n’est suivi. Les évaluations et les notes vivent dans le navigateur et les photos dans le stockage local, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre téléphone. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.'
+  'Ratings and notes live in the browser and photos in local storage, and you can export a backup to a file and load it on another phone. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Les évaluations et les notes vivent dans le navigateur et les photos dans le stockage local, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre téléphone. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.'
 };
 function TL(s){ return (LANG==='fr'&&FR[s])||s; }
 window.TL=TL;
@@ -208,7 +230,8 @@ function setLang(v){
   try{ if(typeof renderJournal==='function') renderJournal(); }catch(e){}
   try{ if(typeof fillAboutStats==='function') fillAboutStats(); }catch(e){}
   try{ if(learnRendered&&typeof renderLearn==='function') renderLearn(); }catch(e){}
-  try{ if(window.renderCampMapChips) window.renderCampMapChips(); }catch(e){}
+  try{ var vf=document.getElementById('view-favs'); if(vf&&!vf.hidden) renderFavs(); }catch(e){}
+  try{ var bl=document.getElementById('backLabel'); if(bl) bl.textContent=TL(PARK_HOST_LABEL[parkHost]||'All Parks'); }catch(e){}
 }
 /* translate every tagged node in the static markup */
 function applyLang(){
@@ -637,7 +660,11 @@ function renderStats(){
   ]);
 }
 function gotoResult(r){ if(r.parkId===EGG_ID&&!eggFound()) revealEgg();
-  clearGSearch(); openPark(r.parkId);
+  /* the park replaces the search screen and back returns to the tab the
+     search began on (Parks when that was not a list of parks) */
+  var hostTab=(LAST_TAB_BEFORE_SEARCH==='favs'||LAST_TAB_BEFORE_SEARCH==='journal')?LAST_TAB_BEFORE_SEARCH:'guide';
+  var vs=document.getElementById('view-search'); if(vs) vs.hidden=true; setTabActive(hostTab);
+  clearGSearch(); openPark(r.parkId,TAB_SECTIONS[hostTab]);
   if(r.type==='cg') expandCg(r.cgName);
   else if(r.type==='site'){ expandCg(r.cgName); openSheet('site',keyOf(r.parkId,r.cgName,r.label),r.cgName,r.label); }
   else if(r.type==='trail'){ openSheet('trail',trailKey(r.trailName),r.trailName); } }
@@ -734,7 +761,7 @@ document.addEventListener('click',function(ev){
   ev.preventDefault(); ev.stopPropagation();
   toggleFav(h.getAttribute('data-fav'),h.getAttribute('data-favid'));
   buzz(6);
-  renderParks();
+  renderParks(); var vf=document.getElementById('view-favs'); if(vf&&!vf.hidden) renderFavs();
 },true);
 
 
@@ -764,12 +791,46 @@ function favSiteRows(visible){
 /* a favourited campsite row drills into that exact site, mirroring the search
    result's site branch: open the park, expand its campground, open the sheet.
    Falls back to the park page if the row carries no site (defensive). */
-function openFavSite(pid,cgId,site){
+function openFavSite(pid,cgId,site,host){
   if(!PARK_BY_ID[pid]) return;
-  openPark(pid);
+  openPark(pid,host);
   if(cgId&&site!=null&&site!==''){ expandCg(cgId); openSheet('site',keyOf(pid,cgId,site),cgId,site); }
 }
 
+/* ---- Favourites tab: the parks and sites you keep coming back to ----
+   Favourite parks A to Z, the campsites you hearted, and every park you have
+   rated or written in, most recent first. A park can sit in both lists: one
+   says you chose it, the other that you have been. */
+function parkSubLine(p,st){
+  if(st.rated>0) return st.rated+' '+TL('of')+' '+st.total+' '+TL('sites rated');
+  if(st.aside>0) return st.aside+' '+TL(st.aside===1?'trailer site set aside':'trailer sites set aside');
+  if(st.flagged>0) return st.flagged+' '+TL(st.flagged===1?'trailer site':'trailer sites');
+  const town=(p.region||'').split(' · ').slice(1).join(' · ');
+  return TL(broadOf(p))+(town?' · '+town:''); }
+function renderFavs(){ const box=document.getElementById('favsBody'); if(!box) return;
+  const visible=PARKS.filter(parkVisible), info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
+  const ts=state.touched||{};
+  const favParks=visible.filter(p=>isFav('parks',p.id)).sort((a,b)=>a.name.localeCompare(b.name));
+  const visited=visible.filter(p=>info[p.id].touched)
+    .sort((a,b)=>((ts[b.id]||0)-(ts[a.id]||0))||a.name.localeCompare(b.name));
+  const favSites=favSiteRows(visible);
+  if(!favParks.length&&!visited.length&&!favSites){
+    box.innerHTML='<div class="jempty">'
+      +'<svg aria-hidden="true"><use href="assets/icons.svg#heart"/></svg>'
+      +'<h2>'+TL('Your favourites live here')+'</h2>'
+      +'<p>'+TL('Tap the heart on a park or a site to keep it here. Parks you rate show up too.')+'</p>'
+      +'<button class="btn-share primary" id="fBrowse" type="button">'+TL('Browse the parks')+'</button></div>';
+    const fb=document.getElementById('fBrowse'); if(fb) fb.addEventListener('click',function(){ buzz(6); showTab('guide'); });
+    return; }
+  const rows=list=>'<div class="ios-group">'+list.map(p=>parkRowHtml(p,info[p.id],parkSubLine(p,info[p.id]),'')).join('')+'</div>';
+  let html='<div class="seclabel">'+TL('Favourite parks')+'</div>'
+    +(favParks.length?rows(favParks):'<p class="favs-hint">'+TL('Tap the heart on a park to keep it here.')+'</p>');
+  if(favSites) html+='<div class="seclabel">'+TL('Favourite sites')+'</div><div class="ios-group">'+favSites+'</div>';
+  html+='<div class="seclabel">'+TL('Visited parks')+'</div>'
+    +(visited.length?rows(visited):'<p class="favs-hint">'+TL('Parks you rate or write in show up here.')+'</p>');
+  box.innerHTML=html;
+  box.querySelectorAll('[data-park]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.hasAttribute('data-site')) openFavSite(b.dataset.park,b.dataset.cg,b.dataset.site,'view-favs'); else openPark(b.dataset.park,'view-favs'); })); }
 /* No heart on a park row: the list is a long scroll and the target sat right
    under a scrolling thumb. A park is favourited on its own page. */
 function parkRowHtml(p,st,sub,value){
@@ -784,29 +845,8 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
   const info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
   let html='';
-  /* One section, not two. Favourites and Visited held the same kind of park
-     and a park in both appeared twice. Everything the reader has a reason to
-     come back to sits under Favourites now: the ones they picked out first,
-     A to Z, then the ones they have rated or written in, most recent first,
-     then their favourite campsites. The row's own line says which it is. */
-  const favParks=visible.filter(p=>isFav('parks',p.id))
-    .sort((a,b)=>a.name.localeCompare(b.name));
-  const mine=visible.filter(p=>info[p.id].touched&&!isFav('parks',p.id))
-    .sort((a,b)=>((ts[b.id]||0)-(ts[a.id]||0))||a.name.localeCompare(b.name));
-  const favSites=favSiteRows(visible);
-  if(favParks.length||mine.length||favSites){
-    const row=(p,fallback)=>{ const st=info[p.id];
-      const sub=st.rated>0
-        ?st.rated+' '+TL('of')+' '+st.total+' '+TL('sites rated')
-        :st.aside>0?st.aside+' '+TL(st.aside===1?'trailer site set aside':'trailer sites set aside')
-        :st.flagged>0?st.flagged+' '+TL(st.flagged===1?'trailer site':'trailer sites')
-        :TL(fallback);
-      return parkRowHtml(p,st,sub,''); };
-    html+='<div class="seclabel">'+TL('Favourites')+'</div><div class="ios-group" id="favParks">'+
-      favParks.map(p=>row(p,'Saved to your favourites')).join('')+
-      mine.map(p=>row(p,'Saved to your journal')).join('')+
-      favSites+'</div>';
-  }
+  /* Favourites and the parks you have rated live in their own tab now, so
+     the Parks list is the guide itself: every park, A to Z. */
   /* all parks, one flat alphabetical list split by first letter */
   html+='<div class="seclabel">'+TL('All parks A to Z')+'</div>'+regionChipsHtml();
   const shown=((regionFilter==='All')?visible:visible.filter(p=>broadOf(p)===regionFilter))
@@ -858,8 +898,16 @@ function renderAzRail(letters){ const rail=document.getElementById('azRail'); if
 
 /* ================= single park ================= */
 let curPark=null; var homeScrollY=0;
+/* the screen a park page was opened from: the Parks list, Favourites or the
+   Journal. The tab stays where it was and back returns to it, like a push
+   inside an iOS tab. */
+var parkHost='view-parks';
+var PARK_HOST_LABEL={'view-parks':'All Parks','view-favs':'Favourites','view-journal':'Journal'};
+function renderParkHost(){ if(parkHost==='view-favs') renderFavs(); else if(parkHost==='view-journal') renderJournal(); else { clearGSearch(); renderParks(); } }
 function facilChip(name){ return `<span class="facil"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-10"/></svg>${name}</span>`; }
-function openPark(pid){
+function openPark(pid,host){
+  const vpark=document.getElementById('view-park');
+  if(host&&PARK_HOST_LABEL[host]) parkHost=host; else if(vpark.hidden) parkHost='view-parks';   /* a re-render keeps its host */
   curPark=PARK_BY_ID[pid]; const p=curPark; const st=parkStats(p);
   document.getElementById('parkBody').innerHTML=`
     <div class="park-head"><div class="titlerow"><h2 id="parkTitle" style="cursor:pointer">${(p.region||'').indexOf('Algonquin')===0?p.name+', Algonquin':p.name}</h2>${parkFavHtml(p.id)}</div>
@@ -886,9 +934,11 @@ function openPark(pid){
 `;
   renderCgs(); renderTrails(); wireParkControls(); updatePark(); renderGlance();
   document.getElementById('parkTitle').addEventListener('click',function(){ onParkNameTap(p); });
-  homeScrollY=window.scrollY||document.documentElement.scrollTop||0;
+  if(vpark.hidden) homeScrollY=window.scrollY||document.documentElement.scrollTop||0;
   setHeaderHidden(true);
-  document.getElementById('view-parks').hidden=true; const vp=document.getElementById('view-park'); vp.hidden=false;
+  const bl=document.getElementById('backLabel'); if(bl) bl.textContent=TL(PARK_HOST_LABEL[parkHost]);
+  ALL_VIEWS.forEach(function(id){ if(id!=='view-park'){ const el=document.getElementById(id); if(el) el.hidden=true; } });
+  const vp=vpark; vp.hidden=false;
   vp.classList.remove('view-anim'); void vp.offsetWidth; vp.classList.add('view-anim'); window.scrollTo(0,0);
   if(window.parkResetSync) parkResetSync();
   requestAnimationFrame(()=>{ window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0; });
@@ -897,9 +947,9 @@ function goHome(){ const vp=document.getElementById('view-park');
   vp.classList.add('view-out');
   setTimeout(function(){ vp.classList.remove('view-out'); vp.hidden=true;
     setHeaderHidden(false);
-    const vh=document.getElementById('view-parks'); vh.hidden=false;
+    const vh=document.getElementById(parkHost)||document.getElementById('view-parks'); vh.hidden=false;
     vh.classList.remove('view-anim'); void vh.offsetWidth; vh.classList.add('view-anim');
-    clearGSearch(); renderParks(); window.scrollTo(0,homeScrollY); if(window.parkResetSync) parkResetSync(); },150); }
+    renderParkHost(); window.scrollTo(0,homeScrollY); if(window.parkResetSync) parkResetSync(); },150); }
 document.getElementById('backBtn').addEventListener('click',function(){
   /* one clean slide, the same the swipe uses; never the double animation */
   if(window.sjExitPark){ window.sjExitPark(); } else { goHome(); } });
@@ -916,7 +966,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
       try{ localStorage.removeItem(KEY); }catch(e){}
       /* "erase everything" must take the favourites and the display name too,
          or the Parks screen still shows a populated Favourites section after */
-      ['oncamp-favs','outdoors-profile','site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-group','site-journal-origin'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+      ['oncamp-favs','outdoors-profile','site-journal-theme','site-journal-theme-vars','site-journal-unlocks','site-journal-sort','site-journal-group','site-journal-origin','site-journal-jfilter'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
       try{ indexedDB.deleteDatabase('scout-photos'); }catch(e){}
       /* land back at the very top, exactly like a fresh open */
       try{ history.scrollRestoration='manual'; }catch(e){}
@@ -1001,6 +1051,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   var vp=document.getElementById('view-park'), vh=document.getElementById('view-parks');
   var sx=0, sy=0, dx=0, lastX=0, lastT=0, vel=0, deciding=false, dragging=false, parkScrollY=0;
   function prep(){ parkScrollY=window.scrollY||document.documentElement.scrollTop||0;
+    vh=document.getElementById(parkHost)||document.getElementById('view-parks');   /* reveal the screen it came from */
     vp.classList.remove('view-anim'); vp.classList.add('dragback'); vp.style.top=(-parkScrollY)+'px';
     /* a pop reveal, not a tab switch: no glass-in under the finger. the
        class rides the view until the next tab switch clears it. */
@@ -1013,7 +1064,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
     vp.style.transition='transform .26s cubic-bezier(.32,.72,.35,1)'; vp.style.transform='translateX(105%)';
     setTimeout(function(){ vp.style.transition=''; vp.style.transform=''; vp.style.top=''; vp.classList.remove('dragback'); vp.hidden=true;
       setHeaderHidden(false);
-      clearGSearch(); renderParks(); window.scrollTo(0,homeScrollY); if(window.parkResetSync) parkResetSync(); },190); }
+      renderParkHost(); window.scrollTo(0,homeScrollY); if(window.parkResetSync) parkResetSync(); },190); }
   /* the back button uses this same single slide, so it never animates twice */
   window.sjExitPark=function(){ if(vp.hidden) return;
     prep();
@@ -1279,7 +1330,11 @@ function siteNav(dir){ if(_sheetBusy||!canSiteNav(dir)) return; if(typeof buzz==
   const pv=document.getElementById('sitePrev'), nx=document.getElementById('siteNext'), tg=document.getElementById('extraToggle');
   if(pv) pv.addEventListener('click',function(){ siteNav(-1); });
   if(nx) nx.addEventListener('click',function(){ siteNav(1); });
-  if(tg) tg.addEventListener('click',function(){ setExtraOpen(true); const nta=document.getElementById('d-notes'); if(nta) try{ nta.focus({preventScroll:true}); }catch(e){} });
+  /* opening the block does not summon the keyboard: that waits for a tap on
+     the note itself. Focus lands on the block (not the field) so a screen
+     reader is not left on the button that just disappeared. */
+  if(tg) tg.addEventListener('click',function(){ setExtraOpen(true); const nb=document.getElementById('noteBlock');
+    if(nb){ try{ nb.focus({preventScroll:true}); }catch(e){} revealInSheet(nb); } });
   document.addEventListener('keydown',function(e){
     if(!sheet.classList.contains('on')||cur.type!=='site') return;
     if(e.target&&e.target.closest&&e.target.closest('textarea,input,#dots')) return;
@@ -1416,6 +1471,46 @@ document.getElementById('trailerAllBtn').addEventListener('click',function(){
     showThemeToast(n+' '+TL(n===1?'trailer mark removed':'trailer marks removed'),undo,6000); }
 });
 function autoGrowNotes(el){ el.style.height='auto'; el.style.height=Math.max(106,el.scrollHeight)+'px'; }
+/* ---- the keyboard never covers what is being typed ----
+   iOS lays its keyboard over the page without resizing it, so a sheet pinned
+   to the bottom of the screen sat behind it, note and all. While a field in a
+   sheet has focus the sheet rides on the keyboard (the strip between the
+   layout and visual viewports), shrinks to the space that is left, and keeps
+   the line with the caret in view as the note grows. */
+function keyboardInset(){ const vv=window.visualViewport; if(!vv) return 0;
+  return Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop)); }
+/* where the caret's line ends, measured on a hidden copy of the field */
+function caretLineBottom(el){ const cs=getComputedStyle(el), m=document.createElement('div');
+  ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','paddingTop','paddingLeft','paddingRight',
+   'borderTopWidth','borderLeftWidth','borderRightWidth','boxSizing','textTransform','wordSpacing'].forEach(function(k){ m.style[k]=cs[k]; });
+  m.style.position='absolute'; m.style.visibility='hidden'; m.style.left='-9999px'; m.style.top='0';
+  m.style.whiteSpace='pre-wrap'; m.style.overflowWrap='break-word'; m.style.width=el.offsetWidth+'px';
+  m.textContent=el.value.slice(0,el.selectionEnd==null?el.value.length:el.selectionEnd)+'\u200b';
+  document.body.appendChild(m); const h=m.offsetHeight; m.remove(); return h; }
+/* scroll a sheet so [top,bottom] (viewport px) sits inside its visible part */
+function scrollSheetTo(sh,top,bottom){ const sr=sh.getBoundingClientRect(), pad=16;
+  const lo=sr.top+pad, hi=sr.bottom-pad;
+  if(bottom>hi) sh.scrollTop+=Math.min(bottom-hi,Math.max(0,top-lo));
+  else if(top<lo) sh.scrollTop-=lo-top; }
+function revealInSheet(el){ const sh=el.closest&&el.closest('.sheet'); if(!sh) return;
+  requestAnimationFrame(function(){ const r=el.getBoundingClientRect(); scrollSheetTo(sh,r.top,r.bottom); }); }
+function keepCaretInView(el){ const sh=el&&el.closest?el.closest('.sheet.on'):null; if(!sh) return;
+  const r=el.getBoundingClientRect(), lh=parseFloat(getComputedStyle(el).lineHeight)||22;
+  const lineBottom=r.top+caretLineBottom(el)+4;
+  scrollSheetTo(sh,lineBottom-lh-8,lineBottom); }
+function fitSheetToKeyboard(){
+  const el=document.activeElement, field=el&&/^(TEXTAREA|INPUT)$/.test(el.tagName)?el:null;
+  const sh=field&&field.closest?field.closest('.sheet.on'):null, kb=sh?keyboardInset():0, vv=window.visualViewport;
+  document.querySelectorAll('.sheet.kb').forEach(function(x){ if(x!==sh||kb<=40){ x.classList.remove('kb'); x.style.bottom=''; x.style.maxHeight=''; } });
+  if(sh&&kb>40&&vv){ sh.classList.add('kb'); sh.style.bottom=kb+'px'; sh.style.maxHeight=Math.max(160,Math.floor(vv.height)-8)+'px';
+    keepCaretInView(field); } }
+(function(){ const vv=window.visualViewport;
+  if(vv){ vv.addEventListener('resize',fitSheetToKeyboard); vv.addEventListener('scroll',fitSheetToKeyboard); }
+  document.addEventListener('focusin',function(){ fitSheetToKeyboard(); setTimeout(fitSheetToKeyboard,350); });
+  document.addEventListener('focusout',function(){ setTimeout(fitSheetToKeyboard,60); });
+  const nta=document.getElementById('d-notes');
+  if(nta){ ['input','click','keyup'].forEach(function(t){ nta.addEventListener(t,function(){ if(document.activeElement===nta) keepCaretInView(nta); }); }); }
+})();
 document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e.target); const en=ensure(); en.note=e.target.value; flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); else if(cur.type==='trail') refreshTrailCard(cur.trailName); });
 (function(){
   var cb=document.getElementById('clearBtn'); if(!cb) return;
@@ -1475,7 +1570,7 @@ function shareReview(){
 
 /* ---- receive a shared review (#/shared/<data>) ---- */
 function showShared(item){
-  ['view-parks','view-park','view-map','view-journal','view-more','view-account','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
+  ['view-parks','view-park','view-favs','view-journal','view-more','view-account','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
   var sec=document.getElementById('view-shared'); if(!sec) return;
   sec.hidden=false;
   var tb=document.getElementById('tabbar');
@@ -1505,7 +1600,7 @@ document.addEventListener('keydown',function(ev){
   if(ev.key!=='Enter'&&ev.key!==' '&&ev.key!=='Spacebar') return;
   var h=ev.target.closest?ev.target.closest('[data-fav]'):null; if(!h) return;
   ev.preventDefault(); toggleFav(h.getAttribute('data-fav'),h.getAttribute('data-favid'));
-  buzz(6); renderParks();
+  buzz(6); renderParks(); var vf=document.getElementById('view-favs'); if(vf&&!vf.hidden) renderFavs();
 });
 
 async function renderPhotos(k){ const box=document.getElementById('photos'); box.innerHTML=''; const list=await getPhotos(k);
@@ -1790,8 +1885,6 @@ function setAppearance(key,val){
      the entry animation never replays; the next tab switch clears it */
   document.querySelectorAll('#views > section:not([hidden])').forEach(function(el){ el.classList.add('no-anim'); });
   applyAppearance(); renderAppearancePanel();
-  /* the map is built once and lives in a hidden tab, so it is told directly */
-  try{ if(window.refreshCampMapTheme) window.refreshCampMapTheme(); }catch(e){}
 }
 function applyAppearance(){
   var a=getAppearance(), d=document.documentElement;
@@ -2015,11 +2108,39 @@ function journalEntries(){ var byPark={};
       score:trRated?e.score:null,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
   return byPark; }
 function openJournalEntry(k,type){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_ID[pid]) return;
-  showTab('guide'); openPark(pid);
+  openPark(pid,'view-journal');
   if(type==='site'){ expandCg(parts[1]); openSheet('site',k,parts[1],parts.slice(2).join('#')); }
   else if(type==='trail'){ openSheet('trail',k,parts.slice(1).join('#')); }
   else{ openSheet('campground',k,parts.slice(1).join('#')); } }
 var _jOpen={};  /* journal parks the user has expanded this session */
+/* Journal filters, for someone choosing what to book: a rating range, only
+   wishlisted, noted or photographed entries, and an order. Kept on this
+   device between visits (a view setting, so it is not in backups). */
+var JF_KEY='site-journal-jfilter', JF_DEF={min:'any',want:false,notes:false,photos:false,sort:'recent'};
+var JF_MIN=['any','5','4','3','low'], JF_SORT=['recent','top','low','az'];
+var _jf=(function(){ var f={}; try{ f=JSON.parse(localStorage.getItem(JF_KEY))||{}; }catch(e){ f={}; }
+  return { min:JF_MIN.indexOf(f.min)>=0?f.min:'any', want:!!f.want, notes:!!f.notes, photos:!!f.photos, sort:JF_SORT.indexOf(f.sort)>=0?f.sort:'recent' }; })();
+var _jFold={};  /* parks folded by hand while a filter is on */
+function saveJF(){ try{ localStorage.setItem(JF_KEY,JSON.stringify(_jf)); }catch(e){} }
+function jfActive(){ return _jf.min!=='any'||_jf.want||_jf.notes||_jf.photos; }
+function jfMatch(en){
+  if(_jf.min!=='any'){ if(en.score==null) return false;
+    if(_jf.min==='low'){ if(en.score>2) return false; } else if(en.score<+_jf.min) return false; }
+  if(_jf.want&&!en.want) return false; if(_jf.notes&&!en.note) return false; if(_jf.photos&&!en.photo) return false;
+  return true; }
+function jfFiltersHtml(){
+  function chip(attr,val,label,on){ return '<button class="fchip'+(on?' on':'')+'" type="button" '+attr+'="'+val+'" aria-pressed="'+(on?'true':'false')+'"><span class="fct">'+label+'</span></button>'; }
+  var mins=[['any',TL('All')],['5','5/5'],['4','4+'],['3','3+'],['low',TL('2 or less')]];
+  var sorts=[['recent',TL('Recent')],['top',TL('Best')],['low',TL('Lowest')],['az',TL('A to Z')]];
+  return '<div class="jfilters">'
+    +'<div class="jf-row"><span class="jf-label" id="jfRateL">'+TL('Rating')+'</span><div class="jf-chips" role="group" aria-labelledby="jfRateL">'
+      +mins.map(function(m){ return chip('data-jmin',m[0],m[1],_jf.min===m[0]); }).join('')+'</div></div>'
+    +'<div class="jf-row"><span class="jf-label" id="jfShowL">'+TL('Show')+'</span><div class="jf-chips" role="group" aria-labelledby="jfShowL">'
+      +chip('data-jtog','want','<span class="wstar" aria-hidden="true">★</span> '+TL('Wishlist'),_jf.want)
+      +chip('data-jtog','notes',TL('Notes'),_jf.notes)+chip('data-jtog','photos',TL('Photos'),_jf.photos)+'</div></div>'
+    +'<div class="jf-row"><span class="jf-label" id="jfSortL">'+TL('Sort')+'</span><div class="segmented jf-sort" role="group" aria-labelledby="jfSortL">'
+      +sorts.map(function(o){ var on=_jf.sort===o[0]; return '<button type="button" class="seg-opt'+(on?' on':'')+'" data-jsort="'+o[0]+'" aria-pressed="'+(on?'true':'false')+'">'+o[1]+'</button>'; }).join('')+'</div></div>'
+    +'</div>'; }
 function renderJournal(){ var box=document.getElementById('journalBody'); if(!box) return;
   var byPark=journalEntries(), pids=Object.keys(byPark);
   if(!pids.length){
@@ -2029,15 +2150,37 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
       +'<button class="btn-share primary" id="jBrowse" type="button">'+TL('Browse the parks')+'</button></div>';
     var jb=document.getElementById('jBrowse'); if(jb) jb.addEventListener('click',function(){ buzz(6); showTab('guide'); });
     return; }
-  var s=journalStats(), ts=state.touched||{};
-  pids.sort(function(a,b){ return ((ts[b]||0)-(ts[a]||0))||PARK_BY_ID[a].name.localeCompare(PARK_BY_ID[b].name); });
+  var s=journalStats(), ts=state.touched||{}, filtering=jfActive();
+  /* entries in the order the sort asks for; the park lists follow suit */
+  var ORDER={campground:0,site:1,trail:2};
+  function byDefault(a,b){ return (ORDER[a.type]-ORDER[b.type])||String(a.sub).localeCompare(String(b.sub))
+      ||String(a.title).localeCompare(String(b.title),undefined,{numeric:true}); }
+  function byScore(dir){ return function(a,b){ var as=a.score, bs=b.score;
+    if(as==null&&bs==null) return byDefault(a,b); if(as==null) return 1; if(bs==null) return -1;
+    return dir*(bs-as)||byDefault(a,b); }; }
+  var entrySort=_jf.sort==='top'?byScore(1):_jf.sort==='low'?byScore(-1):byDefault;
+  var shown={}, total=0;
+  pids.forEach(function(pid){ var l=byPark[pid].filter(filtering?jfMatch:function(){ return true; }).sort(entrySort); if(l.length){ shown[pid]=l; total+=l.length; } });
+  var spids=Object.keys(shown);
+  function scoresOf(pid){ return shown[pid].filter(function(e){ return e.score!=null; }).map(function(e){ return e.score; }); }
+  function mean(a){ return a.length?a.reduce(function(x,y){ return x+y; },0)/a.length:null; }
+  spids.sort(function(a,b){ var na=PARK_BY_ID[a].name, nb=PARK_BY_ID[b].name;
+    if(_jf.sort==='az') return na.localeCompare(nb);
+    if(_jf.sort==='top'||_jf.sort==='low'){ var sa=scoresOf(a), sb=scoresOf(b), d=_jf.sort==='top'?1:-1;
+      if(!sa.length||!sb.length) return (sa.length?-1:sb.length?1:0)||na.localeCompare(nb);
+      var ka=d>0?Math.max.apply(null,sa):Math.min.apply(null,sa), kb=d>0?Math.max.apply(null,sb):Math.min.apply(null,sb);
+      return d*(kb-ka)||d*(mean(sb)-mean(sa))||na.localeCompare(nb); }
+    return ((ts[b]||0)-(ts[a]||0))||na.localeCompare(nb); });
   var PHOTO_G='<svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg>';
   var html='<div class="acct-stats">'
     +'<div class="acct-stat"><b class="tnum">'+pids.length+'</b><span>'+TL('Parks visited')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+s.n+'</b><span>'+TL('Ratings')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average')+'</span></div>'
     +'</div>';
-  var ORDER={campground:0,site:1,trail:2};
+  html+=jfFiltersHtml();
+  if(filtering) html+='<div class="jf-summary" role="status">'
+    +(total?total+' '+TL(total===1?'entry matches':'entries match'):TL('Nothing matches these filters.'))
+    +' <button class="jf-clear" type="button" id="jfClear">'+TL('Clear filters')+'</button></div>';
   function rowHtml(en){ var col=(en.score!=null)?scoreColor(en.score):null, glyphs=(en.photo?PHOTO_G:'');
     return '<button class="ios-row ios-row--plain jrow" type="button" data-key="'+en.k.replace(/"/g,'&quot;')+'" data-type="'+en.type+'">'
       +'<span class="ios-row-body"><span class="ios-row-title">'+(en.want?'<span class="wstar">★</span>':'')+en.title+'</span>'
@@ -2047,38 +2190,54 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
       +'</button>'; }
   /* each park is one collapsed row: stars for its average, the counts beneath,
      and the entries only on tap. A long flat list was noise. */
-  pids.forEach(function(pid){ var p=PARK_BY_ID[pid], list=byPark[pid];
-    list.sort(function(a,b){ return (ORDER[a.type]-ORDER[b.type])
-      ||String(a.sub).localeCompare(String(b.sub))
-      ||String(a.title).localeCompare(String(b.title),undefined,{numeric:true}); });
+  spids.forEach(function(pid){ var p=PARK_BY_ID[pid], list=byPark[pid], items=shown[pid];
     var rated=list.filter(function(e){ return e.score!=null; }), n=rated.length;
     var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, half=Math.round(avg*2)/2;   /* stars fill to the nearest half */
     var wants=list.filter(function(e){ return e.want; }).length, photos=list.filter(function(e){ return e.photo; }).length, notes=list.filter(function(e){ return e.note; }).length;
-    var NB='\u00a0';   /* a count never wraps away from its word */
-    var bits=[]; if(n) bits.push(n+NB+TL(n===1?'rating':'ratings')); if(wants) bits.push(wants+NB+TL('wishlist'));
-    if(photos) bits.push(photos+NB+TL(photos===1?'photo':'photos')); if(notes) bits.push(notes+NB+TL(notes===1?'note':'notes'));
+    /* one line, always: the rating count in words, the rest as small icons
+       with their words kept for screen readers */
+    var NB='\u00a0', ICON=function(id){ return '<svg aria-hidden="true"><use href="assets/icons.svg#'+id+'"/></svg>'; };
+    var cnt=function(cls,id,num,word){ return '<span class="jcount '+cls+'">'+ICON(id)+num+'<span class="sr-only">'+NB+word+'</span></span>'; };
+    var bits=[]; if(n) bits.push('<span class="jcount">'+n+NB+TL(n===1?'rating':'ratings')+'</span>');
+    if(wants) bits.push(cnt('want','star',wants,TL('wishlist')));
+    if(photos) bits.push(cnt('photo','image',photos,TL(photos===1?'photo':'photos')));
+    if(notes) bits.push(cnt('note','notebook',notes,TL(notes===1?'note':'notes')));
     var stars=n?'<span class="jpark-rate" aria-label="'+avg.toFixed(1)+' / 5"><span class="jstars" aria-hidden="true"><span class="jstars-fill" style="width:'+(half/5*100)+'%">★★★★★</span>★★★★★</span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>':'';
-    var open=!!_jOpen[pid];
+    /* with a filter on, matching parks open to their entries (that is the
+       point of filtering); a park folded by hand stays folded */
+    var open=filtering?!_jFold[pid]:!!_jOpen[pid];
     html+='<div class="jpark" data-pid="'+pid+'">'
       +'<button class="ios-row jpark-head" type="button" aria-expanded="'+(open?'true':'false')+'">'
         +'<span class="ios-row-body"><span class="ios-row-title">'+esc(p.name)+'</span>'
-        +(bits.length?'<span class="ios-row-sub">'+bits.join(' · ')+'</span>':'')+'</span>'
+        +(bits.length?'<span class="ios-row-sub jcounts">'+bits.join('')+'</span>':'')+'</span>'
         +stars+'<span class="ios-chevron jchev"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>'
       +'</button>'
-      +'<div class="ios-group jpark-list"'+(open?'':' hidden')+'>'+list.map(rowHtml).join('')+'</div>'
+      +'<div class="ios-group jpark-list"'+(open?'':' hidden')+'>'+items.map(rowHtml).join('')+'</div>'
       +'</div>';
   });
   box.innerHTML=html;
   box.querySelectorAll('.jpark-head').forEach(function(h){ h.addEventListener('click',function(){ buzz(6);
     var wrap=h.closest('.jpark'), pid=wrap.dataset.pid, lst=wrap.querySelector('.jpark-list'), open=lst.hidden;
-    lst.hidden=!open; h.setAttribute('aria-expanded',String(open)); if(open) _jOpen[pid]=true; else delete _jOpen[pid]; }); });
+    lst.hidden=!open; h.setAttribute('aria-expanded',String(open));
+    if(filtering){ if(open) delete _jFold[pid]; else _jFold[pid]=true; }
+    else { if(open) _jOpen[pid]=true; else delete _jOpen[pid]; } }); });
+  /* filters re-render in place and keep focus on the control that was used */
+  function refilter(sel){ saveJF(); _jFold={}; renderJournal(); var f=sel&&box.querySelector(sel); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
+  box.querySelectorAll('[data-jmin]').forEach(function(b){ b.addEventListener('click',function(){ buzz(6);
+    _jf.min=(b.dataset.jmin===_jf.min&&b.dataset.jmin!=='any')?'any':b.dataset.jmin; refilter('[data-jmin="'+b.dataset.jmin+'"]'); }); });
+  box.querySelectorAll('[data-jtog]').forEach(function(b){ b.addEventListener('click',function(){ buzz(6);
+    var k=b.dataset.jtog; _jf[k]=!_jf[k]; refilter('[data-jtog="'+k+'"]'); }); });
+  box.querySelectorAll('[data-jsort]').forEach(function(b){ b.addEventListener('click',function(){ buzz(6);
+    _jf.sort=b.dataset.jsort; saveJF(); renderJournal(); var f=box.querySelector('[data-jsort="'+_jf.sort+'"]'); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }); });
+  var jc=document.getElementById('jfClear'); if(jc) jc.addEventListener('click',function(){ buzz(6);
+    _jf.min='any'; _jf.want=_jf.notes=_jf.photos=false; refilter('[data-jmin="any"]'); });
   box.querySelectorAll('.jrow').forEach(function(b){ b.addEventListener('click',function(){ buzz(6); openJournalEntry(b.dataset.key,b.dataset.type); }); });
 }
 
 /* ---- shared footer tab bar ---- */
 var LAST_TAB_BEFORE_SEARCH='guide';
-var TAB_SECTIONS={guide:'view-parks',map:'view-map',journal:'view-journal',more:'view-more',account:'view-account',photos:'view-photos',search:'view-search'};
-var ALL_VIEWS=['view-parks','view-park','view-map','view-journal','view-more','view-shared','view-account','view-photos','view-search'];
+var TAB_SECTIONS={guide:'view-parks',favs:'view-favs',journal:'view-journal',more:'view-more',account:'view-account',photos:'view-photos',search:'view-search'};
+var ALL_VIEWS=['view-parks','view-park','view-favs','view-journal','view-more','view-shared','view-account','view-photos','view-search'];
 var learnRendered=false;
 function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el) el.hidden=!!h; }
 /* blended headers: transparent at rest, frosted only once content actually runs
@@ -2096,6 +2255,9 @@ function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el)
   stampScrolled();
   window.sjStampScrolled=stampScrolled;
 })();
+function setTabActive(tab){ var tb=document.getElementById('tabbar');
+  if(tb) tb.querySelectorAll('.tab').forEach(function(b){ var on=b.dataset.tab===tab; b.classList.toggle('active',on);
+    if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
 function showTab(tab){
   if(!TAB_SECTIONS[tab]) tab='guide';
   if(tab!=='search') LAST_TAB_BEFORE_SEARCH=tab;
@@ -2108,21 +2270,18 @@ function showTab(tab){
     target.hidden=false;
   }
   setHeaderHidden(false);
-  var tb=document.getElementById('tabbar');
-  if(tb) tb.querySelectorAll('.tab').forEach(function(b){ var on=b.dataset.tab===tab; b.classList.toggle('active',on);
-    if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  setTabActive(tab);
   /* always land at the top; the second call catches a browser that scrolls late */
   try{ window.scrollTo(0,0); }catch(e){}
   requestAnimationFrame(function(){ try{ window.scrollTo(0,0); }catch(e){} });
   if(tab==='guide'){ renderParks(); }
-  if(tab==='map' && window.initCampMap){ setTimeout(window.initCampMap,30); }
+  if(tab==='favs'){ renderFavs(); }
   if(tab==='more'){ if(typeof renderAppearancePanel==='function') renderAppearancePanel(); if(typeof fillAboutStats==='function') fillAboutStats();
     if(!learnRendered){ renderLearn(); learnRendered=true; } }
   if(tab==='journal'){ renderJournal(); }
   if(tab==='account'){ renderAccount(); }
   if(tab==='photos'){ renderPhotosScreen(); }
 }
-window.openParkFromMap=function(id){ showTab('guide'); if(typeof openPark==='function') openPark(id); };
 function openSettings(){ showTab('more'); }
 function closeSettings(){}
 (function(){ var tb=document.getElementById('tabbar');
@@ -2189,47 +2348,47 @@ var LEGAL_PAGES={
   privacy:{t:'Privacy policy',h:''
     +'<p><b>The short version.</b> There are no accounts, no advertising and no analytics. Nothing you write, rate or photograph is sent to me. It is stored on this device and it stays here. I cannot read it and I never see that it exists.</p>'
     +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites, your display name and your settings. All of it lives in this browser\u2019s storage on this device. Your display name is used only to draw an initial in the corner of the app and is never transmitted.</p>'
-    +'<p><b>What leaves this device.</b> Map images are fetched from Esri, which renders OpenStreetMap and other data, when you open the Map. Like any web request, that carries your IP address and roughly which part of the map you are looking at. It does not carry your notes, ratings, photos or name. The web version is served from GitHub Pages, which keeps ordinary server logs.</p>'
-    +'<p><b>Permissions.</b> Location is used only when you tap the locate button on the Map, and never in the background. The camera and photo library are used only when you attach a photo to a site. If you decline either, everything else still works.</p>'
+    +'<p><b>What leaves this device.</b> Nothing you write, rate or photograph. The app downloads its park guide from GitHub Pages, which keeps ordinary server logs, and a link to an official park page opens that site.</p>'
+    +'<p><b>Permissions.</b> The camera and photo library are used only when you attach a photo to a site. The app never asks for your location. If you decline, everything else still works.</p>'
     +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and deleting the app does the same. Export a backup writes your whole journal to one readable file, and Import reads it back on any device. There is no server copy, so nothing can be recovered once it is gone.</p>'
     +'<p><b>Children.</b> The app is safe for a child to use. Nothing in it collects personal information from anyone, of any age.</p>'
     +'<p>The full policy is at katsuma.ca/privacy.html. Questions: katsuma123@gmail.com.</p>',
     hFr:''
     +'<p><b>La version courte.</b> Il n’y a aucun compte, aucune publicité et aucune analyse d’audience. Rien de ce que vous écrivez, notez ou photographiez ne m’est envoyé. C’est stocké sur cet appareil et cela y reste. Je ne peux pas le lire et je ne vois jamais que cela existe.</p>'
     +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela vit dans le stockage de ce navigateur, sur cet appareil. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
-    +'<p><b>Ce qui quitte cet appareil.</b> Les images de carte sont récupérées auprès d’Esri, qui affiche les données d’OpenStreetMap et d’autres sources, lorsque vous ouvrez la carte. Comme toute requête web, cela transporte votre adresse IP et à peu près quelle partie de la carte vous regardez. Cela ne transporte ni vos notes, ni vos évaluations, ni vos photos, ni votre nom. La version web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires.</p>'
-    +'<p><b>Autorisations.</b> La localisation n’est utilisée que lorsque vous touchez le bouton de localisation sur la carte, et jamais en arrière-plan. L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement. Si vous refusez l’un ou l’autre, tout le reste fonctionne quand même.</p>'
+    +'<p><b>Ce qui quitte cet appareil.</b> Rien de ce que vous écrivez, notez ou photographiez. L’application télécharge son guide des parcs depuis GitHub Pages, qui conserve des journaux de serveur ordinaires, et un lien vers une page officielle d’un parc ouvre ce site.</p>'
+    +'<p><b>Autorisations.</b> L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement. L’application ne demande jamais votre position. Si vous refusez, tout le reste fonctionne quand même.</p>'
     +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et supprimer l’application fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier lisible, et Importer le relit sur n’importe quel appareil. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
     +'<p><b>Enfants.</b> L’application peut être utilisée sans danger par un enfant. Rien en elle ne recueille de renseignements personnels de quiconque, à tout âge.</p>'
     +'<p>La politique complète se trouve à katsuma.ca/privacy.html. Questions : katsuma123@gmail.com.</p>'},
   terms:{t:'Terms of use',h:''
-    +'<p><b>Safety first.</b> This app is a reference, not safety equipment. It cannot call for help. Carry a way to reach emergency services where you are going, and tell someone your plan. Maps and locations are approximate, so do not navigate by them.</p>'
+    +'<p><b>Safety first.</b> This app is a reference, not safety equipment. It cannot call for help. Carry a way to reach emergency services where you are going, and tell someone your plan. Park and site details are approximate.</p>'
     +'<p><b>Your content is yours.</b> What you write, rate and photograph belongs to you. It is stored on your device and never sent to me, so I acquire no rights to it.</p>'
     +'<p><b>Acceptable use.</b> Do not use the app to break the law, to harass anyone, or to harm a park. Do not photograph occupied sites, and leave a site the way you would want to find it.</p>'
-    +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks\u2019 official channels.</p>'
+    +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks\u2019 official site.</p>'
     +'<p><b>Data loss.</b> Everything is stored on your device and nothing is backed up to a server, so your journal can be lost if you delete the app, clear site data or lose the device. Export regularly.</p>'
-    +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple. Map images come from Esri, rendering OpenStreetMap and other data, \u00a9 Esri, HERE, Garmin and OpenStreetMap contributors.</p>'
+    +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple.</p>'
     +'<p>The full terms are at katsuma.ca/terms.html. These terms are governed by the laws of Ontario, Canada.</p>',
     hFr:''
-    +'<p><b>La sécurité d’abord.</b> Cette application est une référence, pas un équipement de sécurité. Elle ne peut pas appeler à l’aide. Emportez un moyen de joindre les services d’urgence là où vous allez, et dites à quelqu’un votre plan. Les cartes et les positions sont approximatives, alors ne vous en servez pas pour naviguer.</p>'
+    +'<p><b>La sécurité d’abord.</b> Cette application est une référence, pas un équipement de sécurité. Elle ne peut pas appeler à l’aide. Emportez un moyen de joindre les services d’urgence là où vous allez, et dites à quelqu’un votre plan. Les renseignements sur les parcs et les emplacements sont approximatifs.</p>'
     +'<p><b>Votre contenu vous appartient.</b> Ce que vous écrivez, notez et photographiez vous appartient. C’est stocké sur votre appareil et jamais envoyé à moi, donc je n’acquiers aucun droit dessus.</p>'
     +'<p><b>Utilisation acceptable.</b> N’utilisez pas l’application pour enfreindre la loi, pour harceler qui que ce soit, ou pour nuire à un parc. Ne photographiez pas les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.</p>'
-    +'<p><b>Aucune garantie.</b> L’application est fournie telle quelle, gratuitement, sans aucune garantie d’aucune sorte. Les renseignements sur les parcs peuvent être incomplets ou périmés. Réservez par les canaux officiels de Parcs Ontario.</p>'
+    +'<p><b>Aucune garantie.</b> L’application est fournie telle quelle, gratuitement, sans aucune garantie d’aucune sorte. Les renseignements sur les parcs peuvent être incomplets ou périmés. Réservez par le site officiel de Parcs Ontario.</p>'
     +'<p><b>Perte de données.</b> Tout est stocké sur votre appareil et rien n’est sauvegardé sur un serveur, donc votre journal peut être perdu si vous supprimez l’application, effacez les données du site ou perdez l’appareil. Exportez régulièrement.</p>'
-    +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple. Les images de carte proviennent d’Esri, qui affiche les données d’OpenStreetMap et d’autres sources, © Esri, HERE, Garmin et les contributeurs d’OpenStreetMap.</p>'
+    +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple.</p>'
     +'<p>Les conditions complètes se trouvent à katsuma.ca/terms.html. Ces conditions sont régies par les lois de l’Ontario, au Canada.</p>'},
   support:{t:'Support',h:''
     +'<p><b>Reach me.</b> Email katsuma123@gmail.com and I will reply. Problems can also be filed at github.com/katsuma0/on-site/issues.</p>'
     +'<p><b>Moving to a new phone.</b> On the old phone: More, then Your data, then Export a backup. Send that file to yourself. On the new phone: Import a backup and pick the file. Importing the same file twice is safe.</p>'
     +'<p><b>Deleted the app?</b> The journal went with it, because nothing is stored on a server. Export before you delete and before a phone upgrade. I have no copy and cannot recover anything.</p>'
-    +'<p><b>No signal?</b> Every park, site and rating works offline. Map tiles are the one exception: parts of the map you have never opened cannot be drawn without a connection, so load the map over wifi before you leave.</p>'
+    +'<p><b>No signal?</b> Every park, site and rating works offline once the app has loaded.</p>'
     +'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates on the next launch.</p>'
     +'<p><b>Accessibility.</b> The app follows the system text size and works with VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>',
     hFr:''
     +'<p><b>Me joindre.</b> Écrivez à katsuma123@gmail.com et je répondrai. Les problèmes peuvent aussi être signalés à github.com/katsuma0/on-site/issues.</p>'
     +'<p><b>Passer à un nouveau téléphone.</b> Sur l’ancien téléphone : Plus, puis Vos données, puis Exporter une sauvegarde. Envoyez-vous ce fichier. Sur le nouveau téléphone : Importer une sauvegarde et choisissez le fichier. Importer deux fois le même fichier est sans risque.</p>'
     +'<p><b>Vous avez supprimé l’application ?</b> Le journal est parti avec elle, car rien n’est stocké sur un serveur. Exportez avant de supprimer et avant de changer de téléphone. Je n’ai aucune copie et ne peux rien récupérer.</p>'
-    +'<p><b>Pas de signal ?</b> Chaque parc, emplacement et évaluation fonctionne hors ligne. Les tuiles de carte sont la seule exception : les parties de la carte que vous n’avez jamais ouvertes ne peuvent pas être affichées sans connexion, alors chargez la carte en wifi avant de partir.</p>'
+    +'<p><b>Pas de signal ?</b> Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.</p>'
     +'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour au prochain lancement.</p>'
     +'<p><b>Accessibilité.</b> L’application suit la taille de texte du système et fonctionne avec VoiceOver. Si quelque chose est difficile à lire, à toucher ou à entendre annoncé, dites-le-moi. C’est un bogue, pas une préférence.</p>'},
 };
@@ -2275,12 +2434,11 @@ makeSheetSwipe(sheet,closeSheet);
   renderParks();                 /* photos now count toward My parks */
   refreshParksFromNetwork();     /* background: pick up any hosted data update */
 })();
-(function(){ /* #park=<id> deep links, from the map pins and the fishing app */
+(function(){ /* #park=<id> deep links, from the fishing app */
   function fromHash(){
     var m=(location.hash||'').match(/park=([a-z0-9]+)/); if(!m) return;
     var pid=m[1]; if(!PARK_BY_ID[pid]) return;
     if(pid===EGG_ID&&!eggFound()) revealEgg();
-    if(window.sjCloseMap) sjCloseMap();
     openPark(pid);
     history.replaceState(null,'',location.pathname+location.search); }
   window.addEventListener('hashchange',fromHash);

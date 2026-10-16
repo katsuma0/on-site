@@ -1,5 +1,5 @@
 /* on-camp, offline service worker */
-const CACHE = 'scout-v235';
+const CACHE = 'scout-v236';
 const CORE = [
   './',
   './index.html',
@@ -13,20 +13,12 @@ const CORE = [
   './share.js',
   './app.js',
   './data/parks.js',
-  './data/park-pins.js',
   './data/ecosystem.js',
-  './map.js',
   './manifest.json',
   './parks-data.json',
   './icon-192.png',
   './icon-512.png',
-  './apple-touch-icon.png',
-  './vendor/leaflet/leaflet.js',
-  './vendor/leaflet/images/marker-icon.png',
-  './vendor/leaflet/images/marker-icon-2x.png',
-  './vendor/leaflet/images/marker-shadow.png',
-  './vendor/leaflet/images/layers.png',
-  './vendor/leaflet/images/layers-2x.png'
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -44,9 +36,8 @@ self.addEventListener('activate', (e) => {
 });
 
 /* Cache-first with background refresh, same-origin only, offline nav fallback.
-   Cross-origin requests (Esri basemap tiles) are left to the browser: caching
-   opaque responses padded each entry by megabytes and blew through the origin
-   storage quota on a normal map pan. */
+   Cross-origin requests are left to the browser: caching opaque responses
+   pads each entry by megabytes and blows through the origin storage quota. */
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
