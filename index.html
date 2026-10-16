@@ -49,15 +49,19 @@
    pinch regardless, and a zoomed standalone app had no way back out. Its
    own gesture events are cancelled here, before anything else loads; CSS
    (touch-action) takes double-tap zoom, and 16px text fields stop the
-   zoom-on-focus. If a page is somehow left scaled (an older build, an OS
-   quirk), the meta is re-applied, which snaps it back to 1. */
+   zoom-on-focus. If a page is somehow left scaled anyway, the meta is
+   swapped for a looser one and restored a moment later: WebKit re-clamps the
+   scale only when the viewport settings really change. Best effort; a
+   Safari tab may ignore scale limits altogether. */
 (function(){
   function stop(e){ e.preventDefault(); }
   ['gesturestart','gesturechange','gestureend'].forEach(function(t){
     try{ document.addEventListener(t,stop,{passive:false}); }catch(e){} });
   var vv=window.visualViewport, m=document.querySelector('meta[name="viewport"]');
   if(vv&&m) vv.addEventListener('resize',function(){
-    if(vv.scale>1.01){ var c=m.getAttribute('content'); m.setAttribute('content',c+',x=1'); m.setAttribute('content',c); } });
+    if(vv.scale>1.01&&!m.dataset.reset){ var c=m.getAttribute('content'); m.dataset.reset='1';
+      m.setAttribute('content',c.replace('maximum-scale=1','maximum-scale=1.5'));
+      setTimeout(function(){ m.setAttribute('content',c); delete m.dataset.reset; },120); } });
 })();
 </script>
 <link rel="stylesheet" href="assets/ios.css">
@@ -85,7 +89,6 @@
   </div>
   <div class="azrail" id="azRail" aria-label="Jump to a letter" data-i18n-aria="Jump to a letter" hidden></div>
   <footer>
-    <span data-i18n="Everything you save stays on this device.">Everything you save stays on this device.</span><br>
     <a class="footlink" href="https://katsuma.ca/" target="_blank" rel="noopener">katsuma.ca</a>
   </footer>
 </section>
@@ -96,7 +99,6 @@
   </div></div>
   <div class="wrap" id="parkBody"></div>
   <footer>
-    <span data-i18n="Everything you save stays on this device.">Everything you save stays on this device.</span><br>
     <a class="footlink" href="https://katsuma.ca/" target="_blank" rel="noopener">katsuma.ca</a>
     <br><br>
     <button class="resetlink" id="resetBtnPark"></button>
@@ -127,6 +129,7 @@
 <section id="view-journal" class="tabscreen" hidden>
   <h1 class="screen-title" data-i18n="Journal">Journal</h1>
   <div class="wrap" id="journalBody"></div>
+  <p id="jfLive" class="sr-only" role="status" aria-live="polite"></p>
 </section>
 
 <section id="view-shared" class="tabscreen" hidden>
@@ -248,6 +251,7 @@
 <div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions">
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
+  <div class="verline"><span class="vv">v0.235</span>Updates arrive whole, Planned features is a plain list, the Journal sorts by average with filters that wrap, and steadier spacing</div>
   <div class="verline"><span class="vv">v0.234</span>Favourites take the map’s place, the Journal filters and sorts for booking, no more zoom, notes stay above the keyboard, and even spacing throughout</div>
   <div class="verline"><span class="vv">v0.233</span>Trailer sites: set one aside or the rest of a campground at once, with a Car/tent or RV/trailer choice in Appearance</div>
   <div class="verline"><span class="vv">v0.232</span>The A to Z rail keeps clear of the park rows, and Journal stars fill to the half</div>
@@ -364,38 +368,13 @@
   </div>
 
   <h2 class="ios-section-title" data-i18n="Planned features">Planned features</h2>
-  <div class="ios-group plan-group">
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--green"><svg aria-hidden="true"><use href="assets/icons.svg#map"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Offline campground maps">Offline campground maps</span>
-      <span class="ios-row-sub" data-i18n="Download a campground map with GPS to find your way around the park">Download a campground map with GPS to find your way around the park</span></span>
-    </div>
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--orange"><svg aria-hidden="true"><use href="assets/icons.svg#tent"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Backcountry sites">Backcountry sites</span>
-      <span class="ios-row-sub" data-i18n="The backcountry sites the guide is still missing">The backcountry sites the guide is still missing</span></span>
-    </div>
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--blue"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Public accounts">Public accounts</span>
-      <span class="ios-row-sub" data-i18n="An option to share your journal with others">An option to share your journal with others</span></span>
-    </div>
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--tint"><svg aria-hidden="true"><use href="assets/icons.svg#check"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Site availability">Site availability</span>
-      <span class="ios-row-sub" data-i18n="Check which sites are open for your dates">Check which sites are open for your dates</span></span>
-    </div>
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--purple"><svg aria-hidden="true"><use href="assets/icons.svg#bag"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Book from the app">Book from the app</span>
-      <span class="ios-row-sub" data-i18n="Reserve a site without leaving the app">Reserve a site without leaving the app</span></span>
-    </div>
-    <div class="ios-row ios-row--plain plan-row">
-      <span class="ios-tile ios-tile--graphite"><svg aria-hidden="true"><use href="assets/icons.svg#mail"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Your feedback">Your feedback</span>
-      <span class="ios-row-sub" data-i18n="Ideas from people using the app, built in">Ideas from people using the app, built in</span></span>
-    </div>
-  </div>
+  <ul class="ios-group plan-list">
+    <li data-i18n="Offline campground maps">Offline campground maps</li>
+    <li data-i18n="Missing backcountry sites">Missing backcountry sites</li>
+    <li data-i18n="Public accounts">Public accounts</li>
+    <li data-i18n="Site availability and reserving">Site availability and reserving</li>
+    <li data-i18n="Your feedback">Your feedback</li>
+  </ul>
 
   <h2 class="ios-section-title" data-i18n="About">About</h2>
   <div class="aboutbody">
@@ -423,7 +402,7 @@
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
   </div>
-  <p class="ios-group-foot" data-i18n="Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official site.">Not affiliated with Ontario Parks, the Government of Ontario or Apple. Book through their official site.</p>
+  <p class="ios-group-foot" data-i18n="Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.">Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.</p>
   </div>
 </section>
 </main>
