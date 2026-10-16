@@ -27,8 +27,6 @@ In App Store Connect, App Privacy, the honest answer for every question is
   and is never transmitted. I never receive it and cannot read it.
 - Sharing a park review builds an image on the device and hands it to the iOS
   share sheet. It goes wherever the person sends it, and never to me.
-- Map tiles are an ordinary third-party request. They carry an IP address the
-  way any web request does, and are not linked to a user or used to track.
 
 Answer **No** to App Tracking Transparency. Nothing is tracked, no IDFA is
 requested, and no `NSUserTrackingUsageDescription` is needed.
@@ -41,13 +39,12 @@ guideline 5.1.1(ii) asks that purpose strings completely describe the use.
 
 | Key | Purpose |
 | --- | --- |
-| `NSLocationWhenInUseUsageDescription` | Centre the map on you. Never in the background. |
 | `NSCameraUsageDescription` | Attach a photo to a campsite you are rating. |
 | `NSPhotoLibraryUsageDescription` | Pick a photo from the library for a campsite. |
 | `ITSAppUsesNonExemptEncryption` | `NO` |
 
-No location is requested until the person taps a control that needs one, and
-every screen works if they decline.
+The app never requests location. Camera and photo access are asked for only
+when a photo is attached, and every screen works if they are declined.
 
 ## Guideline 4.2, minimum functionality
 
@@ -57,13 +54,12 @@ Information, Notes:
 > This is not a web view onto a website. Every reservable Ontario Park, down to
 > its campgrounds, individual sites and trails, is bundled in the binary, and
 > the app works with the device in airplane mode. There is no server and no
-> account. The app uses the camera, Location Services, haptics and the iOS
-> share sheet.
+> account. The app uses the camera, haptics and the iOS share sheet. It never
+> asks for location.
 >
 > To test offline, which is the primary use case: launch the app, put the
 > device in airplane mode, open any park, rate a site, add a note and a photo,
-> and read it back from the Journal tab. All of it works. Map tiles are the one
-> thing that needs a connection, and the app says so.
+> and read it back from the Journal tab. All of it works.
 
 ## Guideline 1.2, other people's content
 
@@ -82,11 +78,7 @@ Data deletion exists anyway, under More, then Your data.
 
 ## Third-party material to declare
 
-- Map images: Esri Light and Dark Gray Canvas, rendering OpenStreetMap and
-  other data, © Esri, HERE, Garmin, © OpenStreetMap contributors. Attribution
-  is shown on the map and in More.
 - Park, campground, site and trail data: Government of Ontario open data.
-- Leaflet, BSD 2-Clause, vendored in `vendor/leaflet/`.
 
 The app claims no affiliation with Ontario Parks, the Government of Ontario or
 Apple, and says so in More, in the privacy policy and in the terms. Booking is
@@ -130,11 +122,11 @@ year you will know which one to book.
 > advertising and no tracking, and you can export the whole thing to a file and
 > load it on another phone.
 >
-> Also in the app: a map of the parks, favourites, a journal of everything you
-> have rated, and French.
+> Also in the app: favourites, a journal of everything you have rated with
+> filters for finding the sites worth booking, and French.
 >
 > Not affiliated with Ontario Parks or the Government of Ontario. Book through
-> their official channels.
+> their official site.
 
 **Keywords:** ontario,parks,camping,campsite,campground,ratings,journal,
 offline,trails,outdoors,review,booking

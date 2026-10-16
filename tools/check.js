@@ -26,8 +26,8 @@ function rel(p) { return path.join(ROOT, p); }
 
 // ---- 1. syntax ----
 console.log('\n[1] Syntax (node --check)');
-['app.js', 'share.js', 'map.js', 'service-worker.js',
- 'data/parks.js', 'data/park-pins.js', 'data/ecosystem.js', 'tools/check.js'].forEach(function (f) {
+['app.js', 'share.js', 'service-worker.js',
+ 'data/parks.js', 'data/ecosystem.js', 'tools/check.js'].forEach(function (f) {
   if (!fs.existsSync(rel(f))) { bad(f, 'missing'); return; }
   try { cp.execFileSync(process.execPath, ['--check', rel(f)], { stdio: 'pipe' }); ok(f); }
   catch (e) { bad(f, 'syntax error'); }
@@ -96,7 +96,7 @@ try {
 // ---- 6. house style ----
 console.log('\n[6] House style');
 try {
-  var STYLED = ['app.js', 'index.html', 'assets/ios.css', 'map.js', 'share.js', 'service-worker.js'];
+  var STYLED = ['app.js', 'index.html', 'assets/ios.css', 'share.js', 'service-worker.js'];
   var dashed = STYLED.filter(function (f) { return fs.existsSync(rel(f)) && fs.readFileSync(rel(f), 'utf8').indexOf('\u2014') >= 0; });
   if (dashed.length) bad('em dash present', dashed.join(', ')); else ok('no em dashes in ' + STYLED.length + ' files');
   var appSrc = fs.readFileSync(rel('app.js'), 'utf8');

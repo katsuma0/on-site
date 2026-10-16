@@ -39,4 +39,4 @@ On your Mac (Xcode 15 or newer, Apple Developer account):
   share sheet.
 - External links (the official summary, the sibling apps) open in Safari.
 
-The map tiles need a connection; everything else works offline.
+Everything works offline once the app has loaded.
