@@ -21,18 +21,20 @@ const CORE = [
   './apple-touch-icon.png'
 ];
 
-/* A release is fetched whole: every file at once, past the browser's HTTP
-   cache and the CDN's (the query string is new each release), so this cache
-   holds one version of the app and never a mix of two. Any failed file fails
-   the install, and the browser tries again on the next launch. */
+/* A release is fetched whole: every file, past the browser's HTTP cache and
+   the CDN's (the query string is new each release), so this cache holds one
+   version of the app and never a mix of two. Any failed file fails the
+   install and the browser tries again later (the app asks on every return);
+   a file an earlier try already stored is kept, so a weak signal still gets
+   there in a few goes instead of starting over each time. */
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => Promise.all(CORE.map((u) =>
+      .then((c) => Promise.all(CORE.map((u) => c.match(u).then((hit) => hit ||
         fetch(u + (u.indexOf('?') < 0 ? '?' : '&') + 'v=' + CACHE, { cache: 'no-store' }).then((res) => {
           if (!res || !res.ok) throw new Error('could not fetch ' + u);
           return c.put(u, res);
-        }))))
+        })))))
       .then(() => self.skipWaiting())
   );
 });
@@ -48,8 +50,9 @@ self.addEventListener('activate', (e) => {
 /* Cache-first, same-origin only, offline nav fallback. A cached file is
    served as it is: refreshing files one by one in the background is what let
    a new page run on an old script, so new files arrive only as a whole new
-   release (the CACHE name above changes with every one). A launch with a
-   query string still gets this release's page.
+   release (the CACHE name above changes with every one). Only this
+   release's own cache is read, never a newer one still being filled. A
+   launch with a query string still gets this release's page.
    Cross-origin requests are left to the browser: caching opaque responses
    pads each entry by megabytes and blows through the origin storage quota. */
 self.addEventListener('fetch', (e) => {
@@ -58,7 +61,7 @@ self.addEventListener('fetch', (e) => {
   if (new URL(req.url).origin !== self.location.origin) return;
   const nav = req.mode === 'navigate';
   e.respondWith(
-    caches.match(req, { ignoreSearch: nav }).then((cached) => {
+    caches.open(CACHE).then((c) => c.match(req, { ignoreSearch: nav })).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
         if (res && res.ok && !nav) {
@@ -66,7 +69,7 @@ self.addEventListener('fetch', (e) => {
           caches.open(CACHE).then((c) => c.put(req, copy));
         }
         return res;
-      }).catch(() => (nav ? caches.match('./index.html') : undefined));
+      }).catch(() => (nav ? caches.open(CACHE).then((c) => c.match('./index.html')) : undefined));
     })
   );
 });

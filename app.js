@@ -667,20 +667,12 @@ function wireGlobalSearch(){ const gq=document.getElementById('gq');
 
 /* ================= parks list ================= */
 var regionFilter='All';
-/* has the user touched this park at all: a rating, wishlist, note or photo */
+/* a park's rating progress and its trailer marks, for its row */
 function parkTouchInfo(p){
-  var st=parkStats(p), touched=false, visited=false, flagged=0;
+  var st=parkStats(p), flagged=0;
   p.campgrounds.forEach(function(cg){ cgSites(cg).forEach(function(s){
-    var e=state.site[keyOf(p.id,cg.id,s)];
-    if(e&&e.trailer) flagged++;
-    if(e&&(typeof e.score==='number'||e.want||e.note||e.trailer)) touched=true;
-    if(e&&(typeof e.score==='number'||(e.note&&String(e.note).trim()))) visited=true; }); });
-  if(!visited){ for(var ck in state.campground){ if(ck.indexOf(p.id+'#')===0){ var ce=state.campground[ck];
-    if(ce&&(typeof ce.score==='number'||ce.note)){ touched=visited=true; break; } } } }
-  if(!visited){ for(var tk in state.trail){ if(tk.indexOf(p.id+'#')===0){ var te=state.trail[tk];
-    if(te&&(typeof te.score==='number'||te.note)){ touched=visited=true; break; } } } }
-  if(!visited){ photoKeys.forEach(function(pk){ if(String(pk).indexOf(p.id+'#')===0) touched=visited=true; }); }
-  return {rated:st.rated,total:st.total,avg:st.avg,aside:st.aside,flagged:flagged,touched:touched,visited:visited};
+    var e=state.site[keyOf(p.id,cg.id,s)]; if(e&&e.trailer) flagged++; }); });
+  return {rated:st.rated,total:st.total,avg:st.avg,aside:st.aside,flagged:flagged};
 }
 /* recency stamp so My parks and the Journal can lead with the latest park */
 function touchPark(pid){ if(!state.touched||typeof state.touched!=='object') state.touched={}; state.touched[pid]=Date.now(); }
@@ -805,7 +797,7 @@ function renderFavs(){ const box=document.getElementById('favsBody'); if(!box) r
   const visible=PARKS.filter(parkVisible), info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
   const favParks=visible.filter(p=>isFav('parks',p.id)).sort((a,b)=>a.name.localeCompare(b.name));
-  const visited=visible.filter(p=>info[p.id].visited)
+  const vis=new Set(visitedParkIds()), visited=visible.filter(p=>vis.has(p.id))
     .sort((a,b)=>((ts[b.id]||0)-(ts[a.id]||0))||a.name.localeCompare(b.name));
   const favSites=favSiteRows(visible);
   if(!favParks.length&&!visited.length&&!favSites){
@@ -1498,11 +1490,14 @@ function fitSheetToKeyboard(){
   const sh=field&&field.closest?field.closest('.sheet.on'):null, kb=sh?keyboardInset():0, vv=window.visualViewport;
   document.querySelectorAll('.sheet.kb,.sheet.kbcap').forEach(function(x){ if(x!==sh||kb<=40){ x.classList.remove('kb','kbcap'); x.style.bottom=''; x.style.maxHeight=''; } });
   if(sh&&kb>40&&vv){
-    /* a bottom sheet rides up on the keyboard; the centred dialog on a wide
-       screen (the 700px layer in ios.css) keeps its place and only stops
-       short of the keyboard's top */
-    if(matchMedia('(min-width: 700px)').matches){ sh.classList.add('kbcap');
-      sh.style.maxHeight=Math.max(160,Math.floor(vv.offsetTop+vv.height-sh.getBoundingClientRect().top)-8)+'px'; }
+    /* a bottom sheet rides up on the keyboard. Between 700 and 1099px ios.css
+       makes the sheet a dialog pinned near the top (keep this range in step
+       with those two blocks); it keeps its place and only stops short of the
+       keyboard, unless that leaves too little room, when it rides up too.
+       Each call starts clean, so a rotation switches mode without leftovers. */
+    sh.classList.remove('kb','kbcap'); sh.style.bottom='';
+    const room=Math.floor(vv.offsetTop+vv.height-sh.getBoundingClientRect().top)-8;
+    if(matchMedia('(min-width: 700px) and (max-width: 1099.98px)').matches&&room>=160){ sh.classList.add('kbcap'); sh.style.maxHeight=room+'px'; }
     else { sh.classList.add('kb'); sh.style.bottom=kb+'px'; sh.style.maxHeight=Math.max(160,Math.floor(vv.height)-8)+'px'; }
     keepCaretInView(field); } }
 (function(){ const vv=window.visualViewport;
@@ -2026,7 +2021,7 @@ function renderAvatar(){
   inp.addEventListener('input',function(){ setDisplayName(inp.value); renderAvatar(); });
   inp.addEventListener('keydown',function(e){ if(e.key==='Enter') inp.blur(); });
 })();
-function accountStats(){ var s=journalStats(); return {parks:Object.keys(journalEntries()).length,sites:s.n}; }
+function accountStats(){ var s=journalStats(); return {parks:visitedParkIds().length,sites:s.n}; }
 function countPhotosSaved(){ return openDB().then(function(db){ return new Promise(function(res){
     var tx=db.transaction(STORE,'readonly'); var rq=tx.objectStore(STORE).getAll();
     rq.onsuccess=function(){ var n=0; (rq.result||[]).forEach(function(r){ if(r&&Array.isArray(r.list)) n+=r.list.length; }); res(n); };
@@ -2082,13 +2077,12 @@ async function renderPhotosScreen(){
 })();
 
 /* ---- journal tab: everything rated, grouped by park ---- */
-function journalStats(){ var parks=new Set(), sites=0, sum=0, n=0;
+/* rating totals; the visited count is visitedParkIds() */
+function journalStats(){ var sites=0, sum=0, n=0;
   ['site','campground','trail'].forEach(function(b){ var o=state[b]||{};
     for(var k in o){ var e=o[k]; if(!e) continue; var pid=k.split('#')[0]; if(!PARK_BY_ID[pid]) continue;
-      if(typeof e.score==='number'&&(b!=='site'||siteCounts(k))){ if(b==='site') sites++; sum+=e.score; n++; parks.add(pid); }
-      if((e.note&&String(e.note).trim())||(b==='site'&&e.want)) parks.add(pid); } });
-  photoKeys.forEach(function(k){ var pid=String(k).split('#')[0]; if(PARK_BY_ID[pid]) parks.add(pid); });
-  return {parks:parks.size,sites:sites,n:n,avg:n?sum/n:0}; }
+      if(typeof e.score==='number'&&(b!=='site'||siteCounts(k))){ if(b==='site') sites++; sum+=e.score; n++; } } });
+  return {sites:sites,n:n,avg:n?sum/n:0}; }
 function journalEntries(){ var byPark={};
   function push(pid,en){ if(!PARK_BY_ID[pid]) return; (byPark[pid]=byPark[pid]||[]).push(en); }
   var o=state.site||{}, k, e;
@@ -2107,7 +2101,20 @@ function journalEntries(){ var byPark={};
     if(!trRated&&!(e.note&&String(e.note).trim())&&!photoKeys.has(k)) continue; var tp=k.split('#');
     push(tp[0],{type:'trail',k:k,title:tp.slice(1).join('#'),sub:TL('Trail'),
       score:trRated?e.score:null,want:false,note:!!(e.note&&String(e.note).trim()),photo:photoKeys.has(k)}); }
+  /* a photo with no rating or note saved beside it is still a visit (adding a
+     photo stores only the photo); a two-part key is a trail when the park
+     has a trail by that name, otherwise its campground or park rating */
+  photoKeys.forEach(function(pk){ var k=String(pk), sp=k.split('#'), pid=sp[0], p=PARK_BY_ID[pid]; if(!p) return;
+    if(sp.length>=3){ if(!(state.site||{})[k]) push(pid,{type:'site',k:k,title:TL('Site')+' '+sp.slice(2).join('#'),sub:sp[1],score:null,want:false,note:false,photo:true,trailer:false}); return; }
+    if((state.campground||{})[k]||(state.trail||{})[k]) return; var name=sp.slice(1).join('#');
+    if((p.trails||[]).some(function(t){ return t.name===name; })) push(pid,{type:'trail',k:k,title:name,sub:TL('Trail'),score:null,want:false,note:false,photo:true});
+    else push(pid,{type:'campground',k:k,title:name,sub:name===p.name?TL('Park rating'):TL('Campground'),score:null,want:false,note:false,photo:true}); });
   return byPark; }
+/* a park counts as visited once it holds a rating, a note or a photo the
+   Journal shows; wishlist and trailer marks are plans, not visits. Journal,
+   Favourites and Account all count with this. */
+function visitedParkIds(byPark){ byPark=byPark||journalEntries();
+  return Object.keys(byPark).filter(function(pid){ return byPark[pid].some(function(e){ return e.score!=null||e.note||e.photo; }); }); }
 function openJournalEntry(k,type){ var parts=k.split('#'), pid=parts[0]; if(!PARK_BY_ID[pid]) return;
   openPark(pid,'view-journal');
   if(type==='site'){ expandCg(parts[1]); openSheet('site',k,parts[1],parts.slice(2).join('#')); }
@@ -2175,7 +2182,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
     return ((ts[b]||0)-(ts[a]||0))||na.localeCompare(nb); });
   var PHOTO_G='<svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg>';
   var html='<div class="acct-stats">'
-    +'<div class="acct-stat"><b class="tnum">'+pids.length+'</b><span>'+TL('Parks visited')+'</span></div>'
+    +'<div class="acct-stat"><b class="tnum">'+visitedParkIds(byPark).length+'</b><span>'+TL('Parks visited')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+s.n+'</b><span>'+TL('Ratings')+'</span></div>'
     +'<div class="acct-stat"><b class="tnum">'+(s.n?s.avg.toFixed(1):'0')+'</b><span>'+TL('Average')+'</span></div>'
     +'</div>';
@@ -2200,7 +2207,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
        with their words kept for screen readers */
     var NB='\u00a0', ICON=function(id){ return '<svg aria-hidden="true"><use href="assets/icons.svg#'+id+'"/></svg>'; };
     var cnt=function(cls,id,num,word){ return '<span class="jcount '+cls+'">'+ICON(id)+num+'<span class="sr-only">'+NB+word+'</span></span>'; };
-    var bits=[]; if(n) bits.push('<span class="jcount jc-rate">'+n+NB+TL(n===1?'rating':'ratings')+'</span>');
+    var bits=[]; if(n) bits.push('<span class="jcount jc-rate"><span class="tnum">'+n+'</span><span class="jc-word">'+NB+TL(n===1?'rating':'ratings')+'</span></span>');
     if(wants) bits.push(cnt('jc-want','star',wants,TL('wishlist')));
     if(photos) bits.push(cnt('jc-photo','image',photos,TL(photos===1?'photo':'photos')));
     if(notes) bits.push(cnt('jc-note','notebook',notes,TL(notes===1?'note':'notes')));
@@ -2448,6 +2455,14 @@ makeSheetSwipe(sheet,closeSheet);
   window.addEventListener('hashchange',fromHash);
   fromHash();
 })();
+/* back to where the user was when an update reloaded the page */
+var SW_PLACE='site-sw-place';
+(function(){ var pl=null; try{ pl=JSON.parse(sessionStorage.getItem(SW_PLACE)); sessionStorage.removeItem(SW_PLACE); }catch(e){}
+  if(!pl) return;
+  if(pl.tab&&pl.tab!=='guide'&&pl.tab!=='search'&&TAB_SECTIONS[pl.tab]) showTab(pl.tab);
+  if(pl.park&&PARK_BY_ID[pl.park]) openPark(pl.park,ALL_VIEWS.indexOf(pl.host)>=0?pl.host:'view-parks');
+  if(pl.y>0) requestAnimationFrame(function(){ window.scrollTo(0,pl.y); });
+})();
 if(window.OnShare) OnShare.config({ app:'on-site', base:'https://katsuma.ca/on-site/', accent:'#284162' });
 (function(){ /* #/shared/<data> receive route */
   function fromSharedHash(){
@@ -2465,17 +2480,30 @@ if('serviceWorker' in navigator){
     try{ if(window.caches&&caches.keys) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))); }catch(e){}
   } else {
     window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
-    /* A new release takes over while this page still runs the old one. Load
-       it soon after a launch, when nothing is lost; later on, wait until the
-       app is put away. A first install has no old page to replace. */
-    var swShownAt=Date.now(), swReloading=false;
-    var swReload=function(){ if(swReloading) return; swReloading=true; location.reload(); };
-    if(navigator.serviceWorker.controller) navigator.serviceWorker.addEventListener('controllerchange',function(){
-      var a=document.activeElement, busy=document.querySelector('.sheet.on')||(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName));
-      if(!busy&&Date.now()-swShownAt<10000) swReload();
-      else document.addEventListener('visibilitychange',function(){ if(document.hidden) swReload(); }); });
+    /* A new release takes over while this page still runs the old one. It
+       loads at once when the app has just been shown and not yet touched;
+       otherwise the next time the app is put away, unless the camera or a
+       file picker is what hid it (the photo would be lost with the page).
+       Either way the tab, the park and the scroll come back after the
+       reload. A first install's own takeover is not a new release. */
+    var swHad=!!navigator.serviceWorker.controller, swShownAt=Date.now(), swTouched=false, swPicker=false, swWaiting=false, swReloading=false;
+    navigator.serviceWorker.getRegistration().then(function(r){ if(r&&r.active) swHad=true; }).catch(function(){});
+    var swBusy=function(){ var a=document.activeElement; return swPicker||document.querySelector('.sheet.on')||(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); };
+    var swReload=function(){ if(swReloading) return; swReloading=true;
+      try{ var t=document.querySelector('#tabbar .tab.active'), vp=document.getElementById('view-park');
+        sessionStorage.setItem(SW_PLACE,JSON.stringify({tab:t?t.dataset.tab:'guide',park:(curPark&&vp&&!vp.hidden)?curPark.id:null,host:parkHost,y:Math.round(window.scrollY||0)})); }catch(e){}
+      location.reload(); };
+    navigator.serviceWorker.addEventListener('controllerchange',function(){
+      if(!swHad){ swHad=true; return; }
+      if(!swTouched&&!swBusy()&&Date.now()-swShownAt<10000) swReload(); else swWaiting=true; });
+    ['pointerdown','keydown'].forEach(function(t){ document.addEventListener(t,function(){ swTouched=true; },true); });
+    document.addEventListener('click',function(e){ if(e.target&&e.target.type==='file') swPicker=true; },true);
+    ['change','cancel'].forEach(function(t){ document.addEventListener(t,function(e){ if(e.target&&e.target.type==='file') swPicker=false; },true); });
     /* a home screen app is resumed, not relaunched, so look for a release then too */
-    document.addEventListener('visibilitychange',function(){ if(document.hidden) return; swShownAt=Date.now();
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden){ if(swWaiting&&!swPicker) swReload(); return; }
+      swShownAt=Date.now(); swTouched=false;
+      setTimeout(function(){ swPicker=false; },1000);   /* a picker with no cancel event cannot hold it forever */
       navigator.serviceWorker.getRegistration().then(function(r){ if(r) return r.update(); }).catch(function(){}); });
   }
 }

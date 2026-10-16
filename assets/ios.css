@@ -1062,7 +1062,9 @@ button {
   /* while the rail is up the park list keeps clear of it: the rows end a
      few points before the rail's left edge instead of running under it */
   @media (min-width:360px){ #view-parks.rail-on .wrap{padding-right:calc(var(--gutter) + 18px)} }
-  /* a park row's second line may wrap (the French set-aside count is long) */
+  /* a Favourites park row's second line may wrap: the French set-aside and
+     rated counts run long on the narrowest phones at large text */
+  #favsBody .ios-row[data-park]:not([data-site]) .ios-row-sub{white-space:normal}
 
   /* ---- journal tab ----------------------------------------------------- */
   #journalBody .acct-stats{margin:var(--stack) 0}
@@ -1091,7 +1093,8 @@ button {
   .jf-chips .fchip.on .wstar{color:inherit}
   .jf-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 4px var(--stack);
     font-size:var(--fs-footnote);color:var(--label-2)}
-  .jf-clear{appearance:none;border:0;background:none;color:var(--tint-text);font:inherit;font-weight:600;cursor:pointer;padding:10px 0;margin:-10px 0}
+  .jf-clear{appearance:none;border:0;background:none;color:var(--tint-text);font:inherit;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;min-height:44px;padding:0;margin:-12px 0;white-space:nowrap;flex:none}
   .jpark{margin-bottom:var(--stack)}
   .jpark-head{width:100%;text-align:left;background:var(--card);border-radius:var(--r-sm)}
   .jpark-rate{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none;padding-left:10px}
@@ -1109,15 +1112,21 @@ button {
   .jcount{display:inline-flex;align-items:center;gap:3px;flex:none}
   .jcount svg{width:13px;height:13px;flex:none}
   .jcount.jc-want svg{color:var(--orange)}
-  /* when the line runs out of room the rating words shorten with an
-     ellipsis; the icon counts after them always show whole */
-  .jcount.jc-rate{display:block;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
-  /* on the narrowest phones the five stars give way to one star and the
-     number, so the counts keep their room */
+  /* when the line runs out of room only the word "ratings" shortens with an
+     ellipsis; its number and the icon counts after it always show whole */
+  .jcount.jc-rate{flex:0 1 auto;min-width:0;gap:0}
+  .jc-rate .tnum{flex:none}
+  .jc-word{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* on the narrowest phones, and at the two largest text sizes, the five
+     stars give way to one star and the average, so the counts keep room */
   @media (max-width:359.9px){
     .jpark-rate .jstars{display:none}
     .jpark-rate .jnum::before{content:"\2605\00a0";color:var(--orange)}
   }
+  :root[data-textsize="l"] .jpark-rate .jstars,
+  :root[data-textsize="xl"] .jpark-rate .jstars{display:none}
+  :root[data-textsize="l"] .jpark-rate .jnum::before,
+  :root[data-textsize="xl"] .jpark-rate .jnum::before{content:"\2605\00a0";color:var(--orange)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .jpark-list{margin:8px 0 0}   /* close to its park, so it reads as that park's list */
   .j-glyphs{flex:none;display:flex;gap:7px;margin-left:auto;color:var(--label-2)}

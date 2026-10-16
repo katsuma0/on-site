@@ -80,8 +80,8 @@ Data deletion exists anyway, under More, then Your data.
 
 - Park, campground, site and trail data: Government of Ontario open data.
 
-The app claims no affiliation with Ontario Parks, the Government of Ontario or
-Apple, and says so in More, in the privacy policy and in the terms. Booking is
+The app claims no affiliation with Ontario Parks or the Government of Ontario,
+and says so in More and in the terms (the terms also name Apple). Booking is
 directed to their official channels. This matters here more than in the sibling
 app, because the whole subject is a government-run park system: nothing in the
 listing or the app may read as official.
