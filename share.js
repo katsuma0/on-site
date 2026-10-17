@@ -125,7 +125,7 @@
     x.beginPath(); x.moveTo(120, S - 132); x.lineTo(S - 120, S - 132); x.stroke();
     if (o.meta) { x.fillStyle = 'rgba(60,60,67,0.6)'; x.font = '400 31px ' + SF; x.fillText(o.meta, S / 2, S - 84); }
     var host = String(CFG.base || '').replace(/^https?:\/\//, '').replace(/\/+$/, '');
-    x.fillStyle = A; x.font = '600 31px ' + SF; x.fillText(CFG.app + (host ? ' · ' + host : ''), S / 2, S - 44);
+    x.fillStyle = A; x.font = '600 31px ' + SF; x.fillText((o.eyebrow || CFG.app) + (host ? ' · ' + host : ''), S / 2, S - 44);
 
     return new Promise(function (res) { c.toBlob(function (b) { res(b); }, 'image/png', 0.92); });
   }

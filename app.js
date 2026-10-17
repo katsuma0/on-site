@@ -1659,7 +1659,7 @@ function showThemeToast(msg,onTap,ms){
 function hideThemeToast(){ if(toastEl){ toastEl.classList.remove('on'); toastEl.onclick=null; toastEl.setAttribute('inert',''); } }
 function onParkNameTap(p){ /* park themes retired in favour of the shared appearance setting */ }
 
-/* ---- settings sheet (tap the Site Journal title) ---- */
+/* ---- about stats (openSettings now shows the More tab) ---- */
 var settingsSheet=document.getElementById('settingsSheet'), settingsBackdrop=document.getElementById('settingsBackdrop');
 function fillAboutStats(){
   var el=document.getElementById('aboutStats'); if(!el) return;

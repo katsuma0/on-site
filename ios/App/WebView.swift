@@ -315,9 +315,9 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
             return
         }
 
-        presentShareSheet(items: items) { [weak self] completed in
+        presentShareSheet(items: items, from: anchorRect(body["rect"])) { [weak self] status in
             self?.removeTemporary(folder)
-            self?.resolveShare(id: id, status: completed ? "shared" : "cancel")
+            self?.resolveShare(id: id, status: status)
         }
     }
 
@@ -400,7 +400,17 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         return controller.presentingViewController != nil
     }
 
-    private func presentShareSheet(items: [Any], completion: ((Bool) -> Void)?) {
+    // The control the page shared from, in page points, if it said.
+    private func anchorRect(_ value: Any?) -> CGRect? {
+        guard let r = value as? [String: Any],
+              let x = r["x"] as? Double, let y = r["y"] as? Double,
+              let w = r["w"] as? Double, let h = r["h"] as? Double, w > 0, h > 0 else { return nil }
+        return CGRect(x: x, y: y, width: w, height: h)
+    }
+
+    /// Presents the share sheet; the completion hears "shared", "cancel" or
+    /// "error" (UIKit could not present it) exactly once.
+    private func presentShareSheet(items: [Any], from anchor: CGRect? = nil, completion: ((String) -> Void)?) {
         let activity = UIActivityViewController(activityItems: items, applicationActivities: nil)
         let outcome = ShareOutcome(completion)
         // As in WebKit's own navigator.share (WKShareSheet.mm), the handler can
@@ -413,13 +423,17 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
             outcome.settle()
         }
         if let popover = activity.popoverPresentationController, let webView = webView {
+            // on iPad the popover points at the button that was tapped (the
+            // share button on the rating sheet, the Export row), else low
+            // and centred
             popover.sourceView = webView
-            popover.sourceRect = CGRect(x: webView.bounds.midX,
-                                        y: webView.bounds.maxY - 80, width: 1, height: 1)
+            popover.sourceRect = anchor ?? CGRect(x: webView.bounds.midX,
+                                                  y: webView.bounds.maxY - 80, width: 1, height: 1)
         }
         // Never leave the completion unsettled: the page's share promise
-        // would stay pending forever.
-        if !presentOnTop(activity) { outcome.settle() }
+        // would stay pending forever. A sheet UIKit refused is an error,
+        // not a cancel, so the page can say the share did not happen.
+        if !presentOnTop(activity) { outcome.failed = true; outcome.settle() }
     }
 
     private func makeTemporaryDirectory() -> URL {
@@ -472,12 +486,13 @@ private final class DialogAnswer<Value> {
 /// One share sheet's result, reported to the page exactly once.
 private final class ShareOutcome {
     var shared = false
-    private var completion: ((Bool) -> Void)?
+    var failed = false
+    private var completion: ((String) -> Void)?
 
-    init(_ completion: ((Bool) -> Void)?) { self.completion = completion }
+    init(_ completion: ((String) -> Void)?) { self.completion = completion }
 
     func settle() {
-        completion?(shared)
+        completion?(failed ? "error" : shared ? "shared" : "cancel")
         completion = nil
     }
 

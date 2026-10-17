@@ -96,13 +96,22 @@ enum NativeBridge {
             delete pending[id];
             reject(failure('Share failed'));
           }
+          /* the control that was tapped, so an iPad popover can point at it */
+          function anchor() {
+            try {
+              var e = document.activeElement, r = e && e.getBoundingClientRect && e.getBoundingClientRect();
+              if (r && r.width > 0 && r.height > 0) { return { x: r.left, y: r.top, w: r.width, h: r.height }; }
+            } catch (e) {}
+            return null;
+          }
           function send() {
             var sent = post('share', {
               id: id,
               title: String(data.title || ''),
               text: String(data.text || ''),
               url: String(data.url || ''),
-              files: out
+              files: out,
+              rect: anchor()
             });
             if (!sent) { fail(); }
           }

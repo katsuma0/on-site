@@ -29,7 +29,8 @@ katsuma.ca/on-site. Everything lives on the device: localStorage for the
 journal, IndexedDB for photos. There is no server, no account and no
 analytics, and that is the point.
 
-Names over time: Site Journal, then on-camp (v0.205), then ON site. The
+Names over time: Site Journal, then on-camp, then on-site (v0.205, which is
+why the repo and the URL still say on-site), then ON site (v0.237). The
 sibling app is on-fishing (Ontario fishing regulations), at
 katsuma.ca/on-fishing. on-wildlife is not active.
 

@@ -16,7 +16,8 @@ paste it as it is.
 Done in the repo:
 
 - Version 0.237, build 1. `MARKETING_VERSION` matches the version the app
-  shows under More, and `node tools/check.js` fails if they ever drift.
+  shows in Profile (tap the avatar), and `node tools/check.js` fails if they
+  ever drift.
 - Privacy, terms and support pages inside the app (More, then Legal),
   written for the app: no network requests, works in airplane mode.
 - Permission prompts in English and French, including the one for Save to
@@ -109,8 +110,9 @@ Then go through this list on the iPhone, and on an iPad if you have one:
 - [ ] An official park link, the katsuma.ca links and on-fishing open in
       Safari.
 - [ ] Force-quit and relaunch: everything is still there.
-- [ ] iPad: portrait, landscape and a resized window; Export a backup opens
-      the share sheet as a popover near the bottom of the screen.
+- [ ] iPad: portrait, landscape and a resized window; Export a backup and the
+      rating's share button each open the share sheet as a popover pointing
+      at the button that was tapped.
 
 ## 4. Archive and upload
 
@@ -326,8 +328,9 @@ the iOS 27.1 SDK or later.
 - **2.5.2, self-contained.** All code ships in the bundle. The app downloads
   no code and loads nothing from the network.
 - **1.2, user-generated content.** Does not apply: there is no service and no
-  other users. The only export is a backup file the person sends themselves
-  through the share sheet.
+  other users. The only things that leave the device are a backup file and a
+  rating shared as plain text, both sent by the person themselves through the
+  share sheet.
 - **5.1.1, privacy.** The policy is linked in App Store Connect and inside the
   app (More, Legal, Privacy policy). There are no accounts, so 5.1.1(v)
   account deletion does not apply, and More, Your data, Reset all data deletes
