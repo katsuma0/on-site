@@ -1103,6 +1103,9 @@ button {
   /* a Favourites park row's second line may wrap: the French set-aside and
      rated counts run long on the narrowest phones at large text */
   #favsBody .ios-row[data-park]:not([data-site]) .ios-row-sub{white-space:normal}
+  /* the Journal's park rows are the same row, so their "N sites rated" line
+     wraps the same way instead of shortening with an ellipsis */
+  #journalBody .jpark-head .ios-row-sub{white-space:normal}
   /* the Parks list's "N rated" sits at the size of the region line beneath
      the name, a detail, not a second title */
   #parkList .ios-row-value{font-size:var(--fs-footnote);letter-spacing:var(--ls-footnote)}

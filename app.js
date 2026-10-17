@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.237';
+var APP_VERSION='0.238';
 /* true inside the iPhone app: Bridge.swift sets window.Capacitor before this file runs */
 var IN_APP=!!window.Capacitor;
 

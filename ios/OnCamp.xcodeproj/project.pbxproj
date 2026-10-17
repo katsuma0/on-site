@@ -331,7 +331,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.237;
+				MARKETING_VERSION = 0.238;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -363,7 +363,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.237;
+				MARKETING_VERSION = 0.238;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
