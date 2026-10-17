@@ -98,6 +98,8 @@ Then go through this list on the iPhone, and on an iPad if you have one:
 - [ ] Leave the app, swipe down on the Home Screen, type a park's name and
       tap the result: the app opens on that park. Type any other word and tap
       **Search in App**: the app's search shows it.
+- [ ] Force-quit the app (swipe it away), then do the same two searches: the
+      app launches straight onto the park, and onto the search.
 - [ ] Switch the iPhone to French (Settings, General, Language & Region): the
       app and its permission prompts are in French.
 - [ ] Light and dark: the in-app Theme setting and the system setting both
@@ -105,8 +107,8 @@ Then go through this list on the iPhone, and on an iPad if you have one:
 - [ ] An official park link, the katsuma.ca links and on-fishing open in
       Safari.
 - [ ] Force-quit and relaunch: everything is still there.
-- [ ] iPad: portrait, landscape and a resized window; the share sheet opens
-      next to its button.
+- [ ] iPad: portrait, landscape and a resized window; Export a backup opens
+      the share sheet as a popover near the bottom of the screen.
 
 ## 4. Archive and upload
 
