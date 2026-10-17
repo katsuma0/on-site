@@ -1,6 +1,6 @@
-# on-site for iPhone and iPad
+# ON site for iPhone and iPad
 
-The App Store app for on-site. The web app in this repo is bundled into it at
+The App Store app for ON site. The web app in this repo is bundled into it at
 build time, so it works offline from the first launch and keeps the journal
 inside the app on the device. Submitting it is covered step by step in
 [SUBMISSION.md](SUBMISSION.md).

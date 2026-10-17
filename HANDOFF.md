@@ -1,6 +1,6 @@
-# on-site, project handoff
+# ON site, project handoff
 
-The full context for working on on-site: what it is, why it exists, how its
+The full context for working on ON site: what it is, why it exists, how its
 owner thinks, the writing voice, and where things stand. Read it before a big
 change. `CLAUDE.md` has the hard technical rules and the release loop;
 `ios/SUBMISSION.md` has the App Store submission.
@@ -9,7 +9,7 @@ change. `CLAUDE.md` has the hard technical rules and the release loop;
 
 ## 1. What this is
 
-on-site is a private journal for Ontario's provincial park campgrounds, built
+ON site is a private journal for Ontario's provincial park campgrounds, built
 by **Katsuma Onishi**, who books the camping trips for friends and family and
 got tired of gambling on sites nobody had seen. Walk a campground, rate each
 site out of five, add a note or a photo, mark the ones worth booking again,
@@ -29,7 +29,7 @@ katsuma.ca/on-site. Everything lives on the device: localStorage for the
 journal, IndexedDB for photos. There is no server, no account and no
 analytics, and that is the point.
 
-Names over time: Site Journal, then on-camp (v0.205), then on-site. The
+Names over time: Site Journal, then on-camp (v0.205), then ON site. The
 sibling app is on-fishing (Ontario fishing regulations), at
 katsuma.ca/on-fishing. on-wildlife is not active.
 
@@ -65,15 +65,19 @@ katsuma.ca/on-fishing. on-wildlife is not active.
   the official park page. Favourite pill, and a reset row for that park.
 - **Rating sheet:** 0 to 5, Wishlist, Trailer site, then "Add a note or
   photo" with the camera or the photo library. Typing stays above the
-  keyboard.
+  keyboard. A share button at the bottom left sends the rating as a line of
+  text (park, campground, site, score) through the iOS share sheet.
 - **Favourites:** favourite parks, parks you have rated, favourite sites.
 - **Journal:** everything rated, with filters (score, wishlist, notes,
-  photos) and sorting, built for deciding what to book.
+  photos) and sorting, built for deciding what to book. Each park is a row
+  like the Parks list, "N sites rated" under the name, with its average as a
+  five-cell meter at the right. Stars mean wishlist and nothing else.
 - **More:** Learn (bear safety, ticks, campfires, leave no trace, wildlife on
   the roads, cold water), Appearance (theme, text size S to XL, language,
-  Car/tent or RV/trailer), Your data (export, import, reset), on-fishing,
-  About, and Legal (privacy, terms, support).
-- **Profile:** a display name, used only for the initial on the avatar.
+  Car/tent or RV/trailer), Your data (export, import, reset), About, and
+  Legal (privacy, terms, support).
+- **Profile:** a display name, used only for the initial on the avatar, and
+  the version number.
 - **Read-only consoles:** `debugsearch` and `statsearch`, typed into the
   Parks search. They are disclosed to App Review and are the only hidden
   things in the app.
@@ -126,7 +130,8 @@ for history only.
 
 ## 7. Where things stand
 
-v0.236 is ready to be tested in Xcode and submitted. Everything that can be
+v0.237 is ready to be tested in Xcode and submitted. It renames the app ON
+site, adds the share button and the five-cell average, and lightens More. Everything that can be
 done in the repo is done: Home Screen search, French throughout (permission
 prompts included), accurate privacy, terms and support pages inside the app,
 one window on iPad, iOS 17 or later, the launch colour, a crisp icon, AA

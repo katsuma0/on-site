@@ -1,6 +1,6 @@
-# on-site, project guide for Claude
+# ON site, project guide for Claude
 
-on-site (once called Site Journal, then on-camp) is Katsuma Onishi's private
+ON site (once called Site Journal, then on-camp) is Katsuma Onishi's private
 journal for Ontario's provincial park campgrounds. Walk a campground, rate each
 site out of five, add a note or a photo, mark the sites worth booking again,
 and next year you know which one to book. It is used offline, in the parks.
@@ -78,7 +78,7 @@ Parks.
 - **French:** every user-facing string goes through `TL()` (or a `data-i18n`
   attribute, which `applyLang()` fills). `FR` is keyed by the exact English,
   values use the typographic apostrophe (U+2019). Proper nouns (parks,
-  campgrounds, on-site, on-fishing) are not translated. The language follows
+  campgrounds, ON site, on-fishing) are not translated. The language follows
   the device on first launch and can be changed under More, Appearance.
 - **Never rename storage keys.** localStorage: `ontario-scout-v2` (ratings,
   notes, wishlist, pins), `oncamp-favs`, `outdoors-profile`,
@@ -131,11 +131,23 @@ Parks.
 - Four tabs: Parks (search, region filter, A to Z rail), Favourites
   (favourite parks, parks you have rated, favourite sites), Journal
   (everything rated, with filters and sorting), More (Learn, Appearance, Your
-  data, on-fishing, About, Legal). The avatar opens Profile, which holds only a display name.
+  data, About, Legal). The avatar opens Profile, which holds only a display
+  name and the version.
+- One row shape for a park everywhere (`parkRowHtml`): the name over a
+  footnote line. Parks shows the region, with "N rated" at the right at the
+  footnote size; Favourites and the Journal show "N sites rated". A Journal
+  row adds the park's average at the right (`avgRateHtml`): a five-cell
+  meter in the tint that fills to the nearest half. Stars mean wishlist, and
+  only wishlist: the solid orange star everywhere (site chips use an orange
+  ring).
 - A park can be favourited only from its own page (the Favourite pill).
 - Rating sheet: 0 to 5 dots, Wishlist, Trailer site, then "Add a note or
   photo" (the keyboard never opens by itself). The line being typed always
-  stays above the keyboard. Done stays reachable at the bottom.
+  stays above the keyboard. Done stays reachable at the bottom, with Clear
+  beside it and the share button at the left: `shareRating()` sends plain
+  text (park, campground, site, score, wishlist, then "ON site") through
+  `navigator.share`, which the app's bridge turns into the iOS share sheet;
+  a browser without one copies it.
 - Swipe right on a park page goes back; sheets swipe down to close.
 - Site chips: the score's colour (`scoreColor()`, the clay to green `STOPS`
   tinted toward the accent) with a badge; amber wishlist star; a star for a
@@ -144,13 +156,12 @@ Parks.
 - Trailer sites: marked per site or a whole campground at once. The Car/tent
   or RV/trailer setting decides whether they count toward progress.
 - Fishing pills link to `https://katsuma.ca/on-fishing/#zone=NN`.
-- The About Version row opens the Versions sheet on the web; in the app it is
-  a plain row, since updates come from the App Store.
 
 ## Skipped or declined (do not re-suggest)
 
 - Maps of any kind (removed in v0.234), driving times, park themes and
   unlockables, sample or dummy data, the dedication page, the bear report
-  (the on-wildlife app is not active), sharing review cards, and Planned
-  features inside the app (they live on katsuma.ca).
+  (the on-wildlife app is not active), sharing review cards as images (a
+  rating shares as text), a Version row or an on-fishing link in More, and
+  Planned features inside the app (they live on katsuma.ca).
 - Percentages and hover styles.

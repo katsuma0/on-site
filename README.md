@@ -1,4 +1,4 @@
-# on-site
+# ON site
 
 A private journal for Ontario's provincial park campgrounds, by Katsuma
 Onishi. Walk a campground, rate each site out of five, add a note or a photo,

@@ -1,7 +1,7 @@
-# Submitting on-site to the App Store
+# Submitting ON site to the App Store
 
 Everything App Store Connect will ask for, with the answer already worked
-out and checked against the app as it is in this repo (v0.236).
+out and checked against the app as it is in this repo (v0.237).
 
 Checked against the App Review Guidelines last updated 16 October 2026 and the
 Program License Agreement revised 13 October 2026. On the day you submit,
@@ -15,7 +15,7 @@ paste it as it is.
 
 Done in the repo:
 
-- Version 0.236, build 1. `MARKETING_VERSION` matches the version the app
+- Version 0.237, build 1. `MARKETING_VERSION` matches the version the app
   shows under More, and `node tools/check.js` fails if they ever drift.
 - Privacy, terms and support pages inside the app (More, then Legal),
   written for the app: no network requests, works in airplane mode.
@@ -39,7 +39,7 @@ Connect, take screenshots, submit. The checklist at the end has every step.
   asks. App Store Connect blocks new apps until it is accepted. A free app
   needs no paid-apps agreement, tax or banking forms.
 - **Digital Services Act:** in App Store Connect, Business, then Compliance,
-  then Digital Services Act, choose **This is not a trader account**. on-site
+  then Digital Services Act, choose **This is not a trader account**. ON site
   is free, has no in-app purchases and no ads.
 - **Mac and Xcode:** uploads need **Xcode 26 or later** (Apple's rule since
   28 April 2026). Use the current release (27.1 at the time of writing) on an
@@ -54,9 +54,9 @@ Connect, take screenshots, submit. The checklist at the end has every step.
 
 | Setting | Value |
 | --- | --- |
-| Display name | `on-site` |
+| Display name | `ON site` |
 | Bundle ID | `io.github.katsuma0.oncamp` (fixed forever after the first upload) |
-| Version / build | `MARKETING_VERSION = 0.236`, `CURRENT_PROJECT_VERSION = 1` |
+| Version / build | `MARKETING_VERSION = 0.237`, `CURRENT_PROJECT_VERSION = 1` |
 | Minimum iOS | 17.0 |
 | Devices | iPhone and iPad (`TARGETED_DEVICE_FAMILY = 1,2`) |
 | iPhone orientation | Portrait. iPad: all four. |
@@ -91,6 +91,8 @@ Then go through this list on the iPhone, and on an iPad if you have one:
 - [ ] Delete the app, reinstall, and tap **Don't Allow** on the camera:
       everything else still works.
 - [ ] Open a photo, long-press it and save it to Photos.
+- [ ] On a rated site, tap the share button at the bottom left of the
+      sheet: the share sheet offers one line of text, and Messages sends it.
 - [ ] Type a long note at text size M and XL: the line you are typing stays
       above the keyboard.
 - [ ] More, Your data: **Export a backup** to Files, **Reset all data**, then
@@ -134,13 +136,13 @@ Apps, then the plus button, then New App.
 | Field | Value |
 | --- | --- |
 | Platforms | iOS |
-| Name | `on-site` (if that name is taken: `on-site: Campsite Journal`) |
+| Name | `ON site` (if that name is taken: `ON site: Campsite Journal`) |
 | Primary language | English (Canada) |
 | Bundle ID | `io.github.katsuma0.oncamp` |
 | SKU | `onsite-ios` |
 | User access | Full access |
 
-Rename the version on the record to **0.236**.
+Rename the version on the record to **0.237**.
 
 ### App Information
 
@@ -207,10 +209,10 @@ text sizes stop well short of the 200% Apple asks for.
 Walk the campground, rate each site out of five, and next year you will know which one to book.
 ```
 
-**Description** (1,445 of 4,000):
+**Description** (1,499 of 4,000):
 
 ```text
-Choosing a campsite you have never seen is a gamble. Some are lovely, some back onto the road, and a year later you cannot remember which was which. on-site is the notebook for that.
+Choosing a campsite you have never seen is a gamble. Some are lovely, some back onto the road, and a year later you cannot remember which was which. ON site is the notebook for that.
 
 Walk a campground and rate each site out of five. Add a note or a photo, and mark the ones worth booking again. You can rate the campgrounds, the trails and the park itself too.
 
@@ -226,6 +228,7 @@ Also in the app:
 • Trailer sites marked as such, counted or set aside to suit how you camp
 • Any park, one search away from the Home Screen
 • Notes on bear safety, ticks, campfires, leave no trace and cold water
+• Share a rating as a message, straight from the site
 • Light and dark appearance, adjustable text size, and a French interface
 
 Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.
@@ -242,9 +245,9 @@ provincial,camping,campground,ratings,journal,offline,trails,tent,trailer,notes,
 | --- | --- |
 | Support URL | `https://katsuma.ca/support.html` |
 | Marketing URL | `https://katsuma.ca/projects/on-site/` (optional) |
-| Version | `0.236` |
+| Version | `0.237` |
 | Copyright | `2026 Katsuma Onishi` (no ©; Apple adds it. Use your legal name.) |
-| Build | The 0.236 build you tested through TestFlight |
+| Build | The 0.237 build you tested through TestFlight |
 | Sign-in required | Unticked |
 | Contact | Your name, an email you check, and a phone number as `+1 ...` |
 | Version release | **Manually release this version** |
@@ -252,21 +255,21 @@ provincial,camping,campground,ratings,journal,offline,trails,tent,trailer,notes,
 What's New is not shown for a first version. Leave the standard Apple
 licence agreement (EULA) in place.
 
-**App Review notes** (2,399 of 4,000 bytes):
+**App Review notes** (2,534 of 4,000 bytes):
 
 ```text
-on-site is a private campsite journal for Ontario's provincial parks. You rate each campsite out of five, add notes and photos, and mark the sites worth booking again.
+ON site is a private campsite journal for Ontario's provincial parks. You rate each campsite out of five, add notes and photos, and mark the sites worth booking again.
 
 How it is built: the interface is HTML and JavaScript bundled inside the app and rendered locally by WKWebView from a custom app:// scheme. Nothing is loaded from the internet. The park guide (124 parks, 372 campgrounds, about 20,000 campsites, 211 trails) is bundled in the binary, and the app works fully in airplane mode. There is no account, no server, no analytics and no advertising. The Profile screen holds only an optional display name, kept on the device.
 
-Native features: parks are indexed for Home Screen search with Core Spotlight, and Search in App continues a query inside the app. The camera and photo library attach site photos, Save to Photos keeps one, the share sheet exports a backup file, taps have haptics, and the app follows the system language (English or French) and appearance. A free web version also exists; the app adds these features and works offline from the first launch.
+Native features: parks are indexed for Home Screen search with Core Spotlight, and Search in App continues a query inside the app. The camera and photo library attach site photos, Save to Photos keeps one, the share sheet exports a backup file and sends a rating as a message, taps have haptics, and the app follows the system language (English or French) and appearance. A free web version also exists; the app adds these features and works offline from the first launch.
 
 To test (airplane mode is fine, and is the main use case):
 1. Parks tab: open Grundy Lake, then the Hemlock campground, and tap site 101.
-2. Tap a score, then "Add a note or photo". Type a note, tap Camera or Add photos, and tap Done.
+2. Tap a score, then "Add a note or photo". Type a note, tap Camera or Add photos. The share button at the bottom left offers the rating as text (for example "Grundy Lake · Hemlock · Site 101 · 4/5"). Tap Done.
 3. Journal tab: Grundy Lake is listed. Tap it to see the site, its score and the note.
 4. On the Grundy Lake page, tap Favourite. The park now appears in the Favourites tab.
-5. Leave the app, swipe down on the Home Screen and type Killbear. Tap the on-site result: the app opens on Killbear.
+5. Leave the app, swipe down on the Home Screen and type Killbear. Tap the ON site result: the app opens on Killbear.
 6. More, Your data, Export a backup: the share sheet offers a .json file.
 
 Hidden diagnostics (guideline 2.5.19): typing the single word debugsearch or statsearch in the Parks search field shows a read-only text card. debugsearch lists diagnostics (parks loaded, a search self-test, recent script errors); statsearch lists counts of the user's own ratings. Neither changes data, unlocks anything or contacts a server. There are no other hidden features.
@@ -348,7 +351,7 @@ the iOS 27.1 SDK or later.
 
 ## 10. Submit, then release
 
-1. On the version page, check the build is the 0.236 one you tested, the
+1. On the version page, check the build is the 0.237 one you tested, the
    contact details are current and the notes are pasted.
 2. Open https://katsuma.ca/privacy.html, https://katsuma.ca/support.html and
    the marketing page on your phone over cellular, to be sure they load.
