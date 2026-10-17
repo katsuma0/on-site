@@ -1046,7 +1046,7 @@ function sheetA11yClose(){
   if(_sheetLastFocus&&_sheetLastFocus.focus){ try{ _sheetLastFocus.focus({preventScroll:true}); }catch(e){} }
   _sheetLastFocus=null; }
 /* the wishlist toggle's star: decoration for the eye, the word is the name */
-var WANT_STAR='<span aria-hidden="true">\u2605</span> ';
+var WANT_STAR='<span class="wstar" aria-hidden="true">\u2605</span> ';
 function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
   for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
     b.setAttribute('aria-label', i+' / 5'); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
@@ -1238,8 +1238,20 @@ function updateFootAll(){ const b=document.getElementById('trailerAllBtn'); if(!
   if(!mode){
     /* never hide the control under the focus: hand it to the toggle first */
     if(document.activeElement===b){ const tb=document.getElementById('trailerBtn'); if(tb){ try{ tb.focus({preventScroll:true}); }catch(e){} } }
-    b.hidden=true; b.removeAttribute('data-mode'); return; }
-  b.hidden=false; b.dataset.mode=mode; b.textContent=footAllLabel(mode,n); b.setAttribute('aria-label',footAllAria(mode,n,cur.cg)); }
+    b.hidden=true; b.removeAttribute('data-mode'); layoutFoot(); return; }
+  b.hidden=false; b.dataset.mode=mode; b.textContent=footAllLabel(mode,n); b.setAttribute('aria-label',footAllAria(mode,n,cur.cg)); layoutFoot(); }
+/* The foot is one line: share, the offer, Clear, Done. When the offer's words
+   and the buttons cannot share a line (narrow phones, large text, French),
+   the offer takes a line of its own above them, so the share glyph stays at
+   the bottom left and Done at the bottom right. Measured, not guessed: the
+   natural wrap is read once, then the stacked order is applied. */
+function layoutFoot(){ const f=document.querySelector('#sheet .sheet-foot'), b=document.getElementById('trailerAllBtn'), s=document.getElementById('shareBtn'), c=document.getElementById('clearBtn'), d=document.getElementById('doneBtn');
+  if(!f||!s||!c||!d) return; f.classList.remove('stacked');
+  /* wrapped when Clear's or Done's middle sits below the share glyph's
+     bottom (on one line they are centred together, at different heights) */
+  const below=function(el){ return el.offsetTop+el.offsetHeight/2>s.offsetTop+s.offsetHeight; };
+  if(b&&!b.hidden&&(below(c)||below(d))) f.classList.add('stacked'); }
+window.addEventListener('resize',function(){ if(sheet&&sheet.classList.contains('on')) layoutFoot(); },{passive:true});
 function emptyShell(e){ return !!e&&e.score==null&&!e.want&&!e.trailer&&!(e.note&&String(e.note).trim()); }
 document.getElementById('trailerBtn').addEventListener('click',function(){
   if(cur.type!=='site'||!curPark) return;

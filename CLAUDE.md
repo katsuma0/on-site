@@ -149,9 +149,10 @@ Parks.
   `navigator.share`, which the app's bridge turns into the iOS share sheet;
   a browser without one copies it.
 - Swipe right on a park page goes back; sheets swipe down to close.
-- Site chips: the score's colour (`scoreColor()`, the clay to green `STOPS`
-  tinted toward the accent) with a badge; amber wishlist star; a star for a
-  note or a photo, the medallion (`MEDAL_SVG`) for both.
+- Site chips: the site number on the score's colour (`scoreColor()`, the clay
+  to green `STOPS` tinted toward the accent); an orange ring (`.wanted`) for
+  the wishlist; `.marked` for a note or a photo; a hatched chip for a trailer
+  site set aside. The chip's aria-label spells all of it out.
 - Progress bars and stats stay hidden until a site in that park is rated.
 - Trailer sites: marked per site or a whole campground at once. The Car/tent
   or RV/trailer setting decides whether they count toward progress.

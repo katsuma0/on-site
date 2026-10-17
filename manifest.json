@@ -1,7 +1,7 @@
 {
   "name": "ON site",
   "short_name": "ON site",
-  "description": "A private journal for Ontario Parks campsites. Rate the sites, note which to book next time.",
+  "description": "A private journal for Ontario park campsites. Rate the sites, note which to book next time.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

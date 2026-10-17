@@ -400,11 +400,13 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         return controller.presentingViewController != nil
     }
 
-    // The control the page shared from, in page points, if it said.
+    // The control the page shared from, in page points, if it said. A rect
+    // as large as the page itself is no control; the fallback is used.
     private func anchorRect(_ value: Any?) -> CGRect? {
         guard let r = value as? [String: Any],
               let x = r["x"] as? Double, let y = r["y"] as? Double,
-              let w = r["w"] as? Double, let h = r["h"] as? Double, w > 0, h > 0 else { return nil }
+              let w = r["w"] as? Double, let h = r["h"] as? Double, w > 0, h > 0,
+              let bounds = webView?.bounds, w < bounds.width || h < bounds.height else { return nil }
         return CGRect(x: x, y: y, width: w, height: h)
     }
 

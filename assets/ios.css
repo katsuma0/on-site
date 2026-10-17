@@ -852,6 +852,8 @@ button {
   .want-btn{width:100%;cursor:pointer;font-weight:600;font-size:var(--fs-body);border:0;background:var(--tint-soft);color:var(--tint-text);
     border-radius:var(--r-sm);padding:14px;min-height:var(--ctl-lg);margin-bottom:0;transition:.15s}
   .want-btn[aria-pressed="true"]{background:var(--tint-fill);color:var(--on-tint)}
+  .want-btn .wstar{color:var(--orange)}
+  .want-btn[aria-pressed="true"] .wstar{color:inherit}
   /* Wishlist and Trailer site share one row, each half the old button's width
      and the same height, so the rating row above never moves; subhead type
      gives a two-line French label room inside the control height */
@@ -875,7 +877,8 @@ button {
   #sheet.kb .sheet-foot{position:static;margin:22px 0 0;padding:0}
   .saved{font-size:var(--fs-caption2);font-weight:700;color:var(--on-tint);background:var(--tint);padding:5px 11px;border-radius:99px;opacity:0;transition:.2s}
   /* the offer to label the rest of a campground sits in the foot's empty left
-     side (Clear and Done are pushed right), so it adds no height to the sheet */
+     side (Clear and Done are pushed right). Where its words and the buttons
+     cannot share a line, layoutFoot() stacks it above them (.stacked) */
   /* share, at the foot's left: a 44pt target (more at the larger text
      sizes) around a 24px glyph, pulled out by the difference so the glyph
      sits on the sheet's content edge, 6px before the next control */
@@ -891,7 +894,10 @@ button {
      long: on a 390px phone at the default size it stays one line. */
   .btn-all{flex:1 1 0;min-width:min(calc(100% - 40px),8.2em);appearance:none;border:0;background:none;cursor:pointer;text-align:left;color:var(--tint);
     font-family:var(--font-sys);font-weight:600;font-size:var(--fs-subhead);line-height:1.2;min-height:var(--ctl);padding:0 var(--gap-l) 0 0;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}   /* never taller than Done, so the sheet never grows */
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}   /* two lines at most, never taller than Done */
+  /* stacked: the offer on a line of its own, the share glyph, Clear and Done
+     on the bottom line where the thumb expects them */
+  .sheet-foot.stacked .btn-all{order:-1;flex:1 0 100%;min-width:0;padding-right:0}
   .btn-all:active{opacity:.6}
   /* the French offer ("Marquer 97 autres") is shorter, so it needs less
      room before the foot has to wrap */
@@ -1128,7 +1134,8 @@ button {
     display:inline-flex;align-items:center;min-height:44px;padding:0;margin:-12px 0;white-space:nowrap;flex:none}
   .jpark{margin-bottom:var(--stack)}
   .jpark-head{width:100%;text-align:left;background:var(--card);border-radius:var(--r-sm)}
-  .jpark-rate{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none;padding-left:10px}
+  .jpark-rate{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none}
+  .jpark-rate + .ios-chevron{margin-left:8px}
   /* the park's average as a five-cell meter: the 0 to 5 rating control in
      miniature. Five rounded cells on a dim track, filled left to right in the
      tint to the nearest half, so 3.5 reads as three cells and half of the
