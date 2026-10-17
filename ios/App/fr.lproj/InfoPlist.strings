@@ -1,0 +1,4 @@
+/* Permission prompts, in French. */
+"NSCameraUsageDescription" = "Ajoutez des photos d’un emplacement à votre journal.";
+"NSPhotoLibraryUsageDescription" = "Choisissez des photos d’emplacements dans votre photothèque pour votre journal.";
+"NSPhotoLibraryAddUsageDescription" = "Enregistrez des photos d’emplacements dans votre photothèque quand vous le choisissez.";

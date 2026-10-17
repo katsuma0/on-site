@@ -1,4 +1,7 @@
 # Universal Design System
+
+> **History.** This spec describes Site Journal v0.17x and is kept for reference only. The app now uses the iOS design system in `assets/ios.css` (shown on `styleguide.html`); where the two disagree, the CSS wins.
+
 ### Site Journal and the Fishing Regulation Map
 One theme, two apps. Copy this file into the fishing app repo and treat it as law. Every value below is lifted verbatim from Site Journal v0.174's Default theme, so anything built from this list is pixel compatible.
 

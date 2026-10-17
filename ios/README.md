@@ -1,12 +1,14 @@
-# on-site for iPhone
+# on-site for iPhone and iPad
 
-A native iOS app around your Ontario Parks campsite journal. The web app in this repo is bundled in at
-build time, so it works offline, keeps its log on the phone, and the share
-buttons open the real iOS share sheet (iMessage, Mail, anywhere).
+The App Store app for on-site. The web app in this repo is bundled into it at
+build time, so it works offline from the first launch and keeps the journal
+inside the app on the device. Submitting it is covered step by step in
+[SUBMISSION.md](SUBMISSION.md).
 
 ## Run it on your phone
 
-On your Mac (Xcode 15 or newer, Apple Developer account):
+On a Mac with **Xcode 26 or newer** (the current release, on Apple silicon)
+and a paid Apple Developer account:
 
 1. Get the code and open the project:
 
@@ -14,29 +16,61 @@ On your Mac (Xcode 15 or newer, Apple Developer account):
        cd on-site
        open ios/OnCamp.xcodeproj
 
-2. In Xcode, click the blue project icon, pick the "OnCamp" target,
-   open "Signing & Capabilities", tick "Automatically manage signing" and
-   choose your Team. If the bundle id is taken, change it to anything
-   (for example add your initials).
+2. Click the blue project icon, pick the OnCamp target, open
+   **Signing & Capabilities**, tick **Automatically manage signing** and
+   choose your team. Keep the bundle ID `io.github.katsuma0.oncamp`: it is the
+   App Store app's identity and cannot change after the first upload. (For a
+   throwaway test on a free Personal Team you can change it, but never commit
+   that.)
 
-3. Plug in your iPhone, choose it in the device menu at the top, and press
-   Run. Xcode installs the app on your phone.
+3. If Xcode offers **Update to recommended settings**, untick **User Script
+   Sandboxing**: the build phase that copies the web app fails with it on.
+   Keep the Swift language version at Swift 5.
 
-4. First time only, on the phone:
-   - Settings -> Privacy & Security -> Developer Mode -> turn on (restarts).
-   - If launch is blocked: Settings -> General -> VPN & Device Management ->
-     trust your developer certificate.
+4. Plug in your iPhone, choose it in the device menu at the top, and press
+   Run.
+
+5. First time only, on the phone:
+   - Settings, Privacy & Security, Developer Mode: turn it on (it restarts).
+   - If the launch is blocked: Settings, General, VPN & Device Management,
+     and trust your developer certificate.
 
 ## How it works
 
-- `App/` is a small Swift shell: a full-screen WKWebView served from a local
-  custom scheme (`app://localhost/`), the same architecture Capacitor uses,
-  so localStorage and IndexedDB live in the app's own container.
-- The "Bundle Web App" build phase copies the web files from the repo root
-  into the app on every build. Edit the web app, press Run, done.
-- A tiny injected bridge maps `navigator.share` to the native share sheet
-  (the share card crosses as a real PNG), taps to haptics, and exports to a
-  share sheet.
-- External links (the official summary, the sibling apps) open in Safari.
+- `App/` is a small SwiftUI shell around one full-screen WKWebView, served
+  from a local custom scheme (`app://localhost/`) by `LocalSchemeHandler`, so
+  localStorage and IndexedDB live in the app's own container and nothing is
+  loaded from the network.
+- The **Bundle Web App** build phase copies the web files from the repo root
+  into the app (`OnCamp.app/Web`) on every build. Edit the web app, press
+  Run, done. The service worker is not bundled; the app never needs it.
+- `Bridge.swift` is injected before the page's own code. It sets
+  `window.Capacitor`, which is how the web app knows it is inside the app
+  (`IN_APP` in `app.js`), and connects `navigator.share` (the backup file goes
+  to the real share sheet), haptics and the installed-app signal.
+- `Spotlight.swift` puts the guide's parks into the Home Screen search. The
+  page sends the list after it loads and again when the language changes.
+  `App.swift` hands a picked result, or a Search in App query, back to the
+  page through `WebRouter`.
+- The in-app theme (Auto, Light, Dark) and language reach the shell too, so
+  the status bar, alerts and share sheet match the page.
+- Links to official park pages, katsuma.ca and on-fishing open in Safari;
+  mail links open Mail.
+- Permission prompts are in `App/en.lproj` and `App/fr.lproj`
+  (`InfoPlist.strings`), with the English copies also set as
+  `INFOPLIST_KEY_*` build settings. `App/Info.plist` holds only what build
+  settings cannot: one window on iPad, the launch colour and Search in App.
+- `AppIcon.svg` is the icon's source. The 1024 px PNG in `Assets.xcassets` is
+  rendered from it, with no transparency.
 
-Everything works offline once the app has loaded.
+## Debugging on a device
+
+Debug builds are inspectable: on the Mac, Safari, Develop, then your iPhone,
+then the page. The read-only consoles work in the app too: type `debugsearch`
+or `statsearch` into the Parks search.
+
+## Releasing an update
+
+Bump `APP_VERSION` in `app.js` and `MARKETING_VERSION` in the project
+together (`node tools/check.js` checks they match), raise
+`CURRENT_PROJECT_VERSION` for every upload, then Product, Archive.

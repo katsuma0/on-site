@@ -1,4 +1,7 @@
 # Exact Format Spec: Search Bar and Results
+
+> **History.** This spec describes Site Journal v0.17x and is kept for reference only. The app now uses the iOS design system in `assets/ios.css` (shown on `styleguide.html`); where the two disagree, the CSS wins.
+
 Measured from Site Journal v0.175. Paste the blocks, swap the words and categories, and the fishing regulation page's search will be an exact visual copy.
 
 ---

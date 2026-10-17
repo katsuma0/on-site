@@ -12,6 +12,8 @@
 		B00000000000000000000003 /* SchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000003 /* SchemeHandler.swift */; };
 		B00000000000000000000004 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* Bridge.swift */; };
 		B00000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* Assets.xcassets */; };
+		B00000000000000000000006 /* Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* Spotlight.swift */; };
+		B00000000000000000000007 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +22,10 @@
 		F00000000000000000000003 /* SchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemeHandler.swift; sourceTree = "<group>"; };
 		F00000000000000000000004 /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
 		F00000000000000000000005 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F00000000000000000000006 /* Spotlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotlight.swift; sourceTree = "<group>"; };
+		F00000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F00000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		F00000000000000000000009 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F00000000000000000000010 /* OnCamp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OnCamp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -49,7 +55,10 @@
 				F00000000000000000000002 /* WebView.swift */,
 				F00000000000000000000003 /* SchemeHandler.swift */,
 				F00000000000000000000004 /* Bridge.swift */,
+				F00000000000000000000006 /* Spotlight.swift */,
 				F00000000000000000000005 /* Assets.xcassets */,
+				A00000000000000000000001 /* InfoPlist.strings */,
+				F00000000000000000000007 /* Info.plist */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -104,6 +113,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				fr,
 				Base,
 			);
 			mainGroup = 700000000000000000000001;
@@ -122,6 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B00000000000000000000005 /* Assets.xcassets in Resources */,
+				B00000000000000000000007 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,7 +156,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nSRC=\"${SRCROOT}/..\"\nDEST=\"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Web\"\nrm -rf \"$DEST\"\nmkdir -p \"$DEST\"\nfor item in index.html assets app.js share.js manifest.json parks-data.json data icon-192.png icon-512.png apple-touch-icon.png; do\n  cp -R \"$SRC/$item\" \"$DEST/$item\"\ndone\necho \"Bundled web app into $DEST\"\n";
+			shellScript = "set -e\nSRC=\"${SRCROOT}/..\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Web\"\nrm -rf \"$DEST\"\nmkdir -p \"$DEST\"\nfor item in index.html assets app.js share.js manifest.json data icon-192.png icon-512.png apple-touch-icon.png; do\n  cp -R \"$SRC/$item\" \"$DEST/$item\"\ndone\nfind \"$DEST\" -name .DS_Store -delete\necho \"Bundled web app into $DEST\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -158,10 +169,23 @@
 				B00000000000000000000002 /* WebView.swift in Sources */,
 				B00000000000000000000003 /* SchemeHandler.swift in Sources */,
 				B00000000000000000000004 /* Bridge.swift in Sources */,
+				B00000000000000000000006 /* Spotlight.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A00000000000000000000001 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F00000000000000000000008 /* en */,
+				F00000000000000000000009 /* fr */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		C00000000000000000000001 /* Debug */ = {
@@ -216,7 +240,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -273,7 +297,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -291,22 +315,23 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "on-site";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Add photos of a campsite to your journal.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save campsite photos to your photo library when you choose to.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pick campsite photos from your library for your journal.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.196;
+				MARKETING_VERSION = 0.236;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -322,22 +347,23 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "on-site";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Add photos of a campsite to your journal.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save campsite photos to your photo library when you choose to.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pick campsite photos from your library for your journal.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.196;
+				MARKETING_VERSION = 0.236;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

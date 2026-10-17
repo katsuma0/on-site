@@ -1,0 +1,4 @@
+/* Permission prompts, in English. Keep in step with the INFOPLIST_KEY_* values in project.pbxproj. */
+"NSCameraUsageDescription" = "Add photos of a campsite to your journal.";
+"NSPhotoLibraryUsageDescription" = "Pick campsite photos from your library for your journal.";
+"NSPhotoLibraryAddUsageDescription" = "Save campsite photos to your photo library when you choose to.";

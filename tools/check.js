@@ -10,6 +10,12 @@
  *   5. Every local file precached by the service worker (CORE) exists, the
  *      cache version is declared, and share.js and the design system
  *      (assets/ios.css + assets/icons.svg) are precached.
+ *   6. House style: no em dashes, typographic apostrophes in French, the
+ *      app version and the service worker cache in lockstep.
+ *   7. The iOS project: MARKETING_VERSION matches the app version, every
+ *      item the Bundle Web App phase copies exists, every file the project
+ *      references exists, and the English permission prompts in
+ *      InfoPlist.strings match the project's INFOPLIST_KEY_* values.
  *
  * Exit code is non-zero if anything fails.
  */
@@ -115,6 +121,33 @@ try {
   if (vm && firstVer && parseInt(firstVer[1], 10) <= parseInt(vm[1], 10)) ok('newest changelog line (v0.' + firstVer[1] + ') is not ahead of APP_VERSION 0.' + vm[1]);
   else bad('changelog line', 'first verline is v0.' + (firstVer && firstVer[1]) + ', APP_VERSION is 0.' + (vm && vm[1]));
 } catch (e) { bad('house style', e.message); }
+
+// ---- 7. iOS project ----
+console.log('\n[7] iOS project');
+try {
+  var pbx = fs.readFileSync(rel('ios/OnCamp.xcodeproj/project.pbxproj'), 'utf8');
+  var appV = (fs.readFileSync(rel('app.js'), 'utf8').match(/var APP_VERSION='([^']+)'/) || [])[1];
+  var mvs = (pbx.match(/MARKETING_VERSION = [^;]+;/g) || []).map(function (m) { return m.replace(/MARKETING_VERSION = |;/g, ''); });
+  if (mvs.length && mvs.every(function (v) { return v === appV; })) ok('MARKETING_VERSION ' + mvs.join(', ') + ' matches APP_VERSION ' + appV);
+  else bad('MARKETING_VERSION', mvs.join(', ') + ' vs APP_VERSION ' + appV);
+  var loop = pbx.match(/for item in ([^;]+?); do/);
+  if (!loop) bad('Bundle Web App', 'copy list not found');
+  else {
+    var items = loop[1].trim().split(/\s+/), missing = items.filter(function (it) { return !fs.existsSync(rel(it)); });
+    if (missing.length) bad('Bundle Web App copies missing files', missing.join(', ')); else ok('Bundle Web App copies ' + items.length + ' items, all present');
+  }
+  var refs = [], re = /isa = PBXFileReference;[^}]*?path = ("?)([^";]+)\1; sourceTree = "<group>"/g, m;
+  while ((m = re.exec(pbx))) refs.push(m[2]);
+  var gone = refs.filter(function (r) { return !fs.existsSync(rel('ios/App/' + r)); });
+  if (gone.length) bad('project references missing files', gone.join(', ')); else ok('all ' + refs.length + ' files the project references exist');
+  var strings = fs.readFileSync(rel('ios/App/en.lproj/InfoPlist.strings'), 'utf8'), drift = [];
+  ['NSCameraUsageDescription', 'NSPhotoLibraryUsageDescription', 'NSPhotoLibraryAddUsageDescription'].forEach(function (k) {
+    var inProj = (pbx.match(new RegExp('INFOPLIST_KEY_' + k + ' = "([^"]+)";')) || [])[1];
+    var inStr = (strings.match(new RegExp('"' + k + '" = "([^"]+)";')) || [])[1];
+    if (!inProj || inProj !== inStr) drift.push(k);
+  });
+  if (drift.length) bad('permission prompts differ between project and en InfoPlist.strings', drift.join(', ')); else ok('English permission prompts match the project');
+} catch (e) { bad('iOS project', e.message); }
 
 console.log('\n' + (fails.length ? ('FAILED: ' + fails.length + ' check(s)\n - ' + fails.join('\n - ')) : ('ALL ' + passes + ' CHECKS PASSED')));
 process.exit(fails.length ? 1 : 0);
