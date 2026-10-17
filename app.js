@@ -1045,6 +1045,8 @@ function sheetA11yClose(){
   sheetBgEls().forEach(function(el){ try{ el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }catch(e){} });
   if(_sheetLastFocus&&_sheetLastFocus.focus){ try{ _sheetLastFocus.focus({preventScroll:true}); }catch(e){} }
   _sheetLastFocus=null; }
+/* the wishlist toggle's star: decoration for the eye, the word is the name */
+var WANT_STAR='<span aria-hidden="true">\u2605</span> ';
 function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
   for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
     b.setAttribute('aria-label', i+' / 5'); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
@@ -1059,7 +1061,7 @@ function renderSheetBody(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(
   if(type==='site'){ document.getElementById('d-kind').textContent=TL('Site'); document.getElementById('d-title').textContent=TL('Site')+' '+site;
     whr.textContent=(cgId===curPark.name?((curPark.region||'').split(' · ')[0]||'')+' · '+cgId:cgId+' · '+curPark.name); whr.style.display='';
     document.getElementById('d-ctx').textContent=''; document.getElementById('togRow').style.display=''; pw.style.display='';
-    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.textContent='★ '+TL('Wishlist'); renderPhotos(k);
+    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.innerHTML=WANT_STAR+TL('Wishlist'); renderPhotos(k);
   } else if(type==='trail'){ const t=(curPark.trails||[]).find(x=>x.name===cgId); whr.style.display='none';
     document.getElementById('d-kind').textContent=TL('Trail'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+TL(t.difficulty):''); document.getElementById('togRow').style.display='none'; pw.style.display=''; renderPhotos(k);
@@ -1194,7 +1196,7 @@ function afterChange(){ touchPark(cur.k.split('#')[0]); persist();
   else { refreshCgHeader(cur.cg); refreshParkRate(); } }
 function setScore(v){ const e=ensure(); e.score=(e.score===v?null:v); buzz(9); paintDots(); flashSaved(); afterChange(); }
 document.getElementById('wantBtn').addEventListener('click',function(){ const e=ensure(); e.want=!e.want; buzz(9);
-  this.setAttribute('aria-pressed',e.want); this.textContent='★ '+TL('Wishlist'); if(e.want&&e.score==null) showThemeToast(TL('Added to your wishlist.')); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
+  this.setAttribute('aria-pressed',e.want); this.innerHTML=WANT_STAR+TL('Wishlist'); if(e.want&&e.score==null) showThemeToast(TL('Added to your wishlist.')); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
 /* ---- Trailer site: the right half of the toggle row ----
    One tap labels the site; the label and a rating live side by side, and the
    Equipment setting decides whether the site counts. A labelled card says so
@@ -1347,7 +1349,7 @@ document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e
     disarm();
     delete state[cur.type][cur.k];
     const cnta=document.getElementById('d-notes'); cnta.value=''; autoGrowNotes(cnta);
-    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.textContent='★ '+TL('Wishlist');
+    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.innerHTML=WANT_STAR+TL('Wishlist');
     paintDots(); paintTrailer(); flashSaved(); afterChange(); updateFootAll(); updateSiteNav();
   });
 })();
@@ -1392,7 +1394,7 @@ function campCard(it){
   var kicker=it.kind==='site'?TL('Site review'):it.kind==='trail'?TL('Trail review'):it.kind==='park'?TL('Park review'):TL('Campground review');
   var emoji=it.kind==='trail'?'🥾':'🏕️';
   var chips=[];
-  if(it.score!=null){ var s=Math.max(0,Math.min(5,it.score|0)); chips.push({label:'★'.repeat(s)+'☆'.repeat(5-s)}); }
+  if(it.score!=null){ var s=Math.max(0,Math.min(5,it.score|0)); chips.push({label:s+'/5'}); }
   if(it.want) chips.push({label:TL('Wishlist')});
   var sub=(it.sub&&it.sub!==it.title)?it.sub:'';
   return { eyebrow:'ON site', kicker:kicker, emoji:emoji, title:it.title, subtitle:sub,
@@ -1833,7 +1835,8 @@ function jfFiltersHtml(){
    orange star means wishlist everywhere in the app. The number sits beside. */
 function avgRateHtml(avg,half){
   var cells=[0,1,2,3,4].map(function(i){ var f=half-i; return f>=1?'<i class="on"></i>':f>0?'<i class="half"></i>':'<i></i>'; }).join('');
-  return '<span class="jpark-rate" role="img" aria-label="'+avg.toFixed(1)+' / 5"><span class="jmeter" aria-hidden="true">'+cells+'</span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>'; }
+  var num=avg.toLocaleString(LANG==='fr'?'fr-CA':'en-CA',{minimumFractionDigits:1,maximumFractionDigits:1});   /* 3,5 in French */
+  return '<span class="jpark-rate" role="img" aria-label="'+num+' '+TL('of')+' 5"><span class="jmeter" aria-hidden="true">'+cells+'</span><span class="jnum tnum">'+num+'</span></span>'; }
 function renderJournal(){ var box=document.getElementById('journalBody'); if(!box) return;
   var byPark=journalEntries(), pids=Object.keys(byPark);
   if(!pids.length){

@@ -131,13 +131,14 @@ for history only.
 ## 7. Where things stand
 
 v0.237 is ready to be tested in Xcode and submitted. It renames the app ON
-site, adds the share button and the five-cell average, and lightens More. Everything that can be
-done in the repo is done: Home Screen search, French throughout (permission
-prompts included), accurate privacy, terms and support pages inside the app,
-one window on iPad, iOS 17 or later, the launch colour, a crisp icon, AA
-contrast in both themes, side safe areas, and the submission guide. What is
-left is the owner's: the device test in Xcode, the archive and upload, the
-App Store Connect fields and the screenshots (`ios/SUBMISSION.md`).
+site, adds the share button and the five-cell average, and lightens More.
+Everything that can be done in the repo is done: Home Screen search, French
+throughout (permission prompts included), accurate privacy, terms and
+support pages inside the app, one window on iPad, iOS 17 or later, the
+launch colour, a crisp icon, AA contrast in both themes, side safe areas,
+and the submission guide. What is left is the owner's: the device test in
+Xcode, the archive and upload, the App Store Connect fields and the
+screenshots (`ios/SUBMISSION.md`).
 
 Ideas for later live on katsuma.ca as Planned features: offline campground
 maps, missing backcountry sites, public accounts, site availability and
