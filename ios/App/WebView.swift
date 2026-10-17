@@ -65,7 +65,10 @@ struct WebScreen: UIViewRepresentable {
 
 /* Requests from the system (a park picked in iPhone search, Search in App)
    arrive as user activities. On a cold launch the page has not loaded yet,
-   so the request waits and runs once it has. */
+   so the request waits and runs once it has. Each script answers true once
+   it has run, so a request that reaches a page which has just died (iOS
+   can stop it in the background) waits for the reload instead of being
+   lost. */
 final class WebRouter {
     static let shared = WebRouter()
     weak var coordinator: WebCoordinator?
@@ -74,24 +77,26 @@ final class WebRouter {
     func openSearchResult(_ identifier: String) {
         guard identifier.hasPrefix(ParkIndexer.prefix) else { return }
         let parkID = String(identifier.dropFirst(ParkIndexer.prefix.count))
-        run("window.onsiteOpenPark && window.onsiteOpenPark(\(Self.literal(parkID)));")
+        run("typeof window.onsiteOpenPark === 'function' && (window.onsiteOpenPark(\(Self.literal(parkID))), true)")
     }
 
     func search(_ query: String) {
-        run("window.onsiteSearch && window.onsiteSearch(\(Self.literal(query)));")
+        run("typeof window.onsiteSearch === 'function' && (window.onsiteSearch(\(Self.literal(query))), true)")
     }
 
     func pageDidLoad() {
         guard let script = pendingScript else { return }
         pendingScript = nil
-        coordinator?.evaluate(script)
+        run(script)
     }
 
     private func run(_ script: String) {
-        if let coordinator = coordinator, coordinator.isPageReady {
-            coordinator.evaluate(script)
-        } else {
+        guard let coordinator = coordinator, coordinator.isPageReady else {
             pendingScript = script
+            return
+        }
+        coordinator.evaluate(script) { [weak self] ran in
+            if !ran { self?.pendingScript = script }
         }
     }
 
@@ -111,12 +116,17 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
 
     weak var webView: WKWebView?
     private(set) var isPageReady = false
+    private var hasPage = false   // a document has committed and is on screen
     private var downloadURL: URL?
     private var language = "en"
     private var interfaceStyle: UIUserInterfaceStyle = .unspecified
 
-    func evaluate(_ script: String) {
-        webView?.evaluateJavaScript(script, completionHandler: nil)
+    // `ran` hears whether the script ran and answered true.
+    func evaluate(_ script: String, ran: ((Bool) -> Void)? = nil) {
+        guard let webView = webView else { ran?(false); return }
+        webView.evaluateJavaScript(script) { result, error in
+            ran?(error == nil && (result as? Bool) == true)
+        }
     }
 
     // MARK: - Page lifecycle
@@ -125,15 +135,32 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         isPageReady = false
     }
 
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        hasPage = true
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         isPageReady = true
         applyInterfaceStyle()
         WebRouter.shared.pageDidLoad()
     }
 
+    // A navigation that fails before it commits leaves the previous page in
+    // place; let the requests waiting for a page through to it. A cancelled
+    // one was replaced by a newer navigation, whose didFinish runs them.
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!,
+                 withError error: Error) {
+        let failure = error as NSError
+        guard hasPage,
+              !(failure.domain == NSURLErrorDomain && failure.code == NSURLErrorCancelled) else { return }
+        isPageReady = true
+        WebRouter.shared.pageDidLoad()
+    }
+
     // iOS can stop the page's process to free memory. Load the page again
     // rather than leave a blank screen; the journal is saved as it is written.
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        hasPage = false
         isPageReady = false
         if webView.url == nil {
             webView.load(URLRequest(url: Self.startURL))
@@ -144,9 +171,11 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
 
     // MARK: - Navigation policy
 
+    // Handler types are spelled as the SDK declares them (@MainActor
+    // @Sendable); a plain @escaping still matches but draws a warning.
     func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
-                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+                 decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
         let scheme = (url.scheme ?? "").lowercased()
         if navigationAction.shouldPerformDownload {
@@ -211,7 +240,7 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
 
     func download(_ download: WKDownload, decideDestinationUsing response: URLResponse,
                   suggestedFilename: String,
-                  completionHandler: @escaping (URL?) -> Void) {
+                  completionHandler: @escaping @MainActor @Sendable (URL?) -> Void) {
         let dir = makeTemporaryDirectory()
         let name = suggestedFilename.isEmpty ? "export" : suggestedFilename
         let url = dir.appendingPathComponent(name)
@@ -321,56 +350,76 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
     private var okTitle: String { "OK" }
     private var cancelTitle: String { language == "fr" ? "Annuler" : "Cancel" }
 
-    // MARK: - JS dialogs
+    // MARK: - JS dialogs (the add-a-site prompt uses one)
+    // WebKit stalls the page's JS until a dialog is answered, and throws if
+    // the handler is released unanswered (an alert UIKit refused to show) or
+    // answered twice. DialogAnswer replies exactly once, with the fallback
+    // when the alert goes away unanswered.
 
     func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping () -> Void) {
-        // WebKit stalls the page's JS until the handler is called, so if there
-        // is nowhere to present, answer immediately.
-        guard let top = topViewController() else { completionHandler(); return }
+                 completionHandler: @escaping @MainActor @Sendable () -> Void) {
+        let answer = DialogAnswer<Void>(fallback: ()) { _ in completionHandler() }
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in completionHandler() })
-        top.present(alert, animated: true)
+        alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in answer(()) })
+        presentOnTop(alert)
     }
 
     func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping (Bool) -> Void) {
-        guard let top = topViewController() else { completionHandler(false); return }
+                 completionHandler: @escaping @MainActor @Sendable (Bool) -> Void) {
+        let answer = DialogAnswer<Bool>(fallback: false) { completionHandler($0) }
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in completionHandler(false) })
-        alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in completionHandler(true) })
-        top.present(alert, animated: true)
+        alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in answer(false) })
+        alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in answer(true) })
+        presentOnTop(alert)
     }
 
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String,
                  defaultText: String?, initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping (String?) -> Void) {
-        guard let top = topViewController() else { completionHandler(nil); return }
+                 completionHandler: @escaping @MainActor @Sendable (String?) -> Void) {
+        let answer = DialogAnswer<String?>(fallback: nil) { completionHandler($0) }
         let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
         alert.addTextField { $0.text = defaultText }
-        alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in completionHandler(nil) })
+        alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in answer(nil) })
         alert.addAction(UIAlertAction(title: okTitle, style: .default) { [weak alert] _ in
-            completionHandler(alert?.textFields?.first?.text)
+            answer(alert?.textFields?.first?.text)
         })
-        top.present(alert, animated: true)
+        presentOnTop(alert)
     }
 
     // MARK: - Helpers
 
+    /// Presents on the topmost view controller. False when UIKit cannot
+    /// present right now (no window, or another presentation mid-transition).
+    @discardableResult
+    private func presentOnTop(_ controller: UIViewController) -> Bool {
+        guard let top = topViewController(), top.viewIfLoaded?.window != nil,
+              !top.isBeingPresented, !top.isBeingDismissed else { return false }
+        top.present(controller, animated: true)
+        return controller.presentingViewController != nil
+    }
+
     private func presentShareSheet(items: [Any], completion: ((Bool) -> Void)?) {
-        // Never present without settling the completion; a dropped completion
-        // would leave the page's share promise pending forever.
-        guard let top = topViewController() else { completion?(false); return }
         let activity = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        activity.completionWithItemsHandler = { _, completed, _, _ in completion?(completed) }
+        let outcome = ShareOutcome(completion)
+        // As in WebKit's own navigator.share (WKShareSheet.mm), the handler can
+        // run more than once before the sheet is dismissed, so the page's
+        // promise is settled, and its files deleted, only once the sheet is gone.
+        activity.completionWithItemsHandler = { [weak activity] _, completed, _, _ in
+            if completed { outcome.shared = true }
+            if let sheet = activity, sheet.presentingViewController != nil,
+               !sheet.isBeingDismissed { return }
+            outcome.settle()
+        }
         if let popover = activity.popoverPresentationController, let webView = webView {
             popover.sourceView = webView
             popover.sourceRect = CGRect(x: webView.bounds.midX,
                                         y: webView.bounds.maxY - 80, width: 1, height: 1)
         }
-        top.present(activity, animated: true)
+        // Never leave the completion unsettled: the page's share promise
+        // would stay pending forever.
+        if !presentOnTop(activity) { outcome.settle() }
     }
 
     private func makeTemporaryDirectory() -> URL {
@@ -399,4 +448,39 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         while let presented = top?.presentedViewController { top = presented }
         return top
     }
+}
+
+/// Replies to a JS dialog exactly once: with the button tapped, or with the
+/// fallback if the alert is released unanswered.
+private final class DialogAnswer<Value> {
+    private var reply: ((Value) -> Void)?
+    private let fallback: Value
+
+    init(fallback: Value, _ reply: @escaping (Value) -> Void) {
+        self.fallback = fallback
+        self.reply = reply
+    }
+
+    func callAsFunction(_ value: Value) {
+        reply?(value)
+        reply = nil
+    }
+
+    deinit { reply?(fallback) }
+}
+
+/// One share sheet's result, reported to the page exactly once.
+private final class ShareOutcome {
+    var shared = false
+    private var completion: ((Bool) -> Void)?
+
+    init(_ completion: ((Bool) -> Void)?) { self.completion = completion }
+
+    func settle() {
+        completion?(shared)
+        completion = nil
+    }
+
+    // the safety net: settled at the latest when UIKit releases the sheet
+    deinit { settle() }
 }

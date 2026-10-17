@@ -29,7 +29,7 @@ enum ParkIndexer {
             attributes.title = name
             attributes.displayName = name
             attributes.contentDescription = park["text"] as? String
-            attributes.keywords = park["keywords"] as? [String]
+            attributes.keywords = (park["keywords"] as? [Any])?.compactMap { $0 as? String }
             let item = CSSearchableItem(uniqueIdentifier: prefix + id,
                                         domainIdentifier: domain,
                                         attributeSet: attributes)
@@ -45,7 +45,7 @@ enum ParkIndexer {
         if !stale.isEmpty {
             index.deleteSearchableItems(withIdentifiers: Array(stale), completionHandler: nil)
         }
-        index.indexSearchableItems(items) { error in
+        index.indexSearchableItems(items) { [identifiers] error in
             if error == nil { save(identifiers) }
         }
     }
