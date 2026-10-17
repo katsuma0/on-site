@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>on-site, an Ontario Parks site journal</title>
+<title>ON site, an Ontario parks site journal</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="on-site">
+<meta name="apple-mobile-web-app-title" content="ON site">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <script>
@@ -71,7 +71,7 @@
 <header class="ios-header" id="iosHeader">
   <div class="ios-header-row">
     <button class="ios-avatar" id="avatarBtn" type="button" aria-label="Profile" data-i18n-aria="Profile"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></button>
-    <span class="ios-brand">on-site</span>
+    <span class="ios-brand">ON site</span>
     <div class="ios-header-actions">
       <button class="ios-glass-btn" id="searchBtn" type="button" aria-label="Search" data-i18n-aria="Search"><svg aria-hidden="true"><use href="assets/icons.svg#search"/></svg></button>
     </div>
@@ -81,7 +81,7 @@
 <main id="views">
 <section id="view-parks">
   <div class="appbar">
-    <div class="titlebar"><h1 id="appTitle">on-site</h1></div>
+    <div class="titlebar"><h1 id="appTitle">ON site</h1></div>
   </div>
   <div class="wrap">
     <div id="parkList"></div>
@@ -174,10 +174,15 @@
         <span class="ios-row-body"><span class="ios-row-title" data-i18n="Import a backup">Import a backup</span></span>
         <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
       </button>
-      <div class="ios-row">
+      <div class="ios-row" id="acctVerRow">
         <span class="ios-row-body"><span class="ios-row-title" data-i18n="Version">Version</span></span>
         <span class="ios-row-value tnum" id="acctVersion"></span>
       </div>
+      <button class="ios-row" id="acctVerBtn" type="button" hidden>
+        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Version">Version</span></span>
+        <span class="ios-row-value tnum" id="acctVersionWeb"></span>
+        <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
+      </button>
     </div>
   </div>
 </section>
@@ -208,7 +213,7 @@
   <label class="fld" data-i18n="Rating">Rating</label>
   <div class="dots" id="dots"></div>
   <div class="tog-row" id="togRow">
-    <button class="want-btn" id="wantBtn" aria-pressed="false">☆ Wishlist</button>
+    <button class="want-btn" id="wantBtn" aria-pressed="false"><span class="wstar" aria-hidden="true">★</span> Wishlist</button>
     <button class="want-btn" id="trailerBtn" type="button" aria-pressed="false">Trailer site</button>
   </div>
   <button class="extra-toggle" id="extraToggle" type="button" aria-expanded="false" aria-controls="noteBlock" hidden><span data-i18n="Add a note or photo">Add a note or photo</span></button>
@@ -230,6 +235,7 @@
   </div>
   </div>
   <div class="sheet-foot">
+    <button class="foot-share" id="shareBtn" type="button" aria-label="Share" data-i18n-aria="Share"><svg aria-hidden="true"><use href="assets/icons.svg#share"/></svg></button>
     <button class="btn-all" id="trailerAllBtn" type="button" hidden></button>
     <button class="btn-clear" id="clearBtn" data-i18n="Clear">Clear</button>
     <button class="btn-done" id="doneBtn" data-i18n="Done">Done</button>
@@ -246,6 +252,7 @@
 <div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions" data-focus-self>
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
+  <div class="verline"><span class="vv">v0.237</span>ON site: a share button on the rating sheet, Journal rows that match the Parks list, a clearer average mark, and a lighter More tab</div>
   <div class="verline"><span class="vv">v0.236</span>Ready for the App Store: parks in Home Screen search, the Wildlands listed with the rest, French on French devices, accurate privacy and support pages, and a final polish</div>
   <div class="verline"><span class="vv">v0.235</span>Updates arrive whole and keep your place, Planned features is a plain list, the Journal sorts by average with filters that wrap, the keyboard fits iPad and landscape, and steadier spacing</div>
   <div class="verline"><span class="vv">v0.234</span>Favourites take the map’s place, the Journal filters and sorts for booking, no more zoom, notes stay above the keyboard, and even spacing throughout</div>
@@ -349,19 +356,10 @@
   <p class="ios-group-foot" data-i18n="Export a backup to move your journal to another device. Importing a backup replaces what is on this device.">Export a backup to move your journal to another device. Importing a backup replaces what is on this device.</p>
   <input type="file" id="importInput" accept=".json,application/json" hidden>
 
-  <h2 class="ios-section-title" data-i18n="More from the Ontario outdoors">More from the Ontario outdoors</h2>
-  <div class="ios-group">
-    <a class="ios-row" id="fishLink" href="https://katsuma.ca/on-fishing/" target="_blank" rel="noopener">
-      <span class="ios-tile ios-tile--blue"><svg aria-hidden="true"><use href="assets/icons.svg#fish"/></svg></span>
-      <span class="ios-row-body"><span class="ios-row-title">on-fishing</span></span>
-      <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
-    </a>
-  </div>
-
   <h2 class="ios-section-title" data-i18n="About">About</h2>
   <div class="aboutbody">
     <p data-i18n="Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.">Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.</p>
-    <p data-i18n="on-site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.">on-site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.</p>
+    <p data-i18n="ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.">ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.</p>
     <p data-i18n="Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.">Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.</p>
   </div>
   <div class="ios-group" id="aboutStats" style="margin-top:16px"></div>
@@ -369,18 +367,15 @@
   <h2 class="ios-section-title" data-i18n="Legal">Legal</h2>
   <div class="ios-group">
     <button class="ios-row" type="button" data-legal="privacy">
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Privacy policy">Privacy policy</span>
-      <span class="ios-row-sub" data-i18n="What stays on this device, and what does not">What stays on this device, and what does not</span></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Privacy policy">Privacy policy</span></span>
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
     <button class="ios-row" type="button" data-legal="terms">
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Terms of use">Terms of use</span>
-      <span class="ios-row-sub" data-i18n="Including what this app is not safe for">Including what this app is not safe for</span></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Terms of use">Terms of use</span></span>
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
     <button class="ios-row" type="button" data-legal="support">
-      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Support">Support</span>
-      <span class="ios-row-sub" data-i18n="Help, and how to reach me">Help, and how to reach me</span></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Support">Support</span></span>
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
   </div>

@@ -67,6 +67,10 @@ enum NativeBridge {
       var seq = 0;
       var runTag = 'p' + Math.random().toString(36).slice(2, 10);
       var pending = {};
+      /* a tap does not focus a <button> in WebKit (document.activeElement
+         stays on the body), so the tapped control is remembered instead */
+      var lastTap = null;
+      document.addEventListener('click', function (ev) { lastTap = ev.target; }, true);
       function failure(message) {
         var err = new Error(message);
         err.name = 'DataError';
@@ -96,13 +100,25 @@ enum NativeBridge {
             delete pending[id];
             reject(failure('Share failed'));
           }
+          /* the control that was tapped, so an iPad popover can point at it */
+          function anchor() {
+            try {
+              var e = lastTap && lastTap.closest ? lastTap.closest('button, a, [role="button"], [tabindex]') : null;
+              if (!e) { e = document.activeElement; }
+              if (!e || e === document.body || e === document.documentElement || !e.getBoundingClientRect) { return null; }
+              var r = e.getBoundingClientRect();
+              if (r.width > 0 && r.height > 0) { return { x: r.left, y: r.top, w: r.width, h: r.height }; }
+            } catch (err) {}
+            return null;
+          }
           function send() {
             var sent = post('share', {
               id: id,
               title: String(data.title || ''),
               text: String(data.text || ''),
               url: String(data.url || ''),
-              files: out
+              files: out,
+              rect: anchor()
             });
             if (!sent) { fail(); }
           }

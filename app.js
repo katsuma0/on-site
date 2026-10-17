@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.236';
+var APP_VERSION='0.237';
 /* true inside the iPhone app: Bridge.swift sets window.Capacitor before this file runs */
 var IN_APP=!!window.Capacitor;
 
@@ -116,10 +116,7 @@ var FR={
   'Tap the heart on a park to keep it here.':'Touchez le cœur d’un parc pour le garder ici.',
   'Parks you rate or write in show up here.':'Les parcs que vous notez ou commentez apparaissent ici.',
   'Legal':'Mentions légales','Privacy policy':'Politique de confidentialité',
-  'What stays on this device, and what does not':'Ce qui reste sur cet appareil, et ce qui n’y reste pas',
-  'Terms of use':'Conditions d’utilisation',
-  'Including what this app is not safe for':'Y compris ce pour quoi cette appli n’est pas sûre',
-  'Support':'Assistance','Help, and how to reach me':'Aide, et comment me joindre',
+  'Terms of use':'Conditions d’utilisation','Support':'Assistance',
   'Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.':'Sans lien avec Parcs Ontario ni avec le gouvernement de l’Ontario. Réservez par leur site officiel.',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
@@ -130,12 +127,12 @@ var FR={
   'Add a favourite':'Ajouter aux favoris','Remove from favourites':'Retirer des favoris',
   'Favourite':'Favori','Favourited':'En favori',
   'Loading':'Chargement',
-  'of':'sur','sites rated':'emplacements évalués','average':'de moyenne',
+  'of':'sur','sites rated':'emplacements évalués','site rated':'emplacement évalué','wishlist site':'emplacement en liste de souhaits','wishlist sites':'emplacements en liste de souhaits','average':'de moyenne',
   'Saved to your journal':'Enregistré dans votre journal','Saved to your favourites':'Ajouté à vos favoris',
   'Site':'Emplacement','Every park, campground, site and trail in the guide.':'Chaque parc, terrain, emplacement et sentier du guide.',
   /* guide and park screens */
   'All parks A to Z':'Tous les parcs de A à Z','All regions':'Toutes les régions',
-  'Wishlist':'Liste de souhaits','Top sites':'Meilleurs emplacements','Stats':'Statistiques',
+  'Wishlist':'Liste de souhaits','Share':'Partager','Copied.':'Copié.','Top sites':'Meilleurs emplacements','Stats':'Statistiques',
   'Average':'Moyenne','Rated':'Notés','Notes':'Notes','Scouted':'Explorés',
   'Rating spread':'Répartition des notes','By campground':'Par terrain',
   'Star a site to build your booking shortlist.':'Ajoutez un emplacement en favori pour créer votre liste de réservation.',
@@ -157,7 +154,7 @@ var FR={
   'Could not build the backup. Try again.':'Impossible de créer la sauvegarde. Réessayez.',
   'Could not read that file.':'Impossible de lire ce fichier.',
   'Sharing is not available right now. Try again.':'Le partage n’est pas disponible pour le moment. Réessayez.',
-  'That file is not an on-site backup.':'Ce fichier n’est pas une sauvegarde on-site.',
+  'That file is not an ON site backup.':'Ce fichier n’est pas une sauvegarde ON site.',
   'Link copied, card saved':'Lien copié, carte enregistrée',
   'Park data cleared.':'Données du parc effacées.',
   'Hidden park revealed. Welcome to the Wildlands.':'Parc caché révélé. Bienvenue dans les Wildlands.',
@@ -224,7 +221,6 @@ var FR={
   'Undo':'Annuler','Undone.':'Annulé.','trailer mark':'marque pour roulottes','trailer marks':'marques pour roulottes',
   /* more screen: sections, data rows */
   'About':'À propos','Learn':'Apprendre','Your data':'Vos données',
-  'More from the Ontario outdoors':'Plus du plein air en Ontario',
   'Export a backup':'Exporter une sauvegarde','Import a backup':'Importer une sauvegarde',
   'Reset all data':'Réinitialiser toutes les données',
   'Tap again to erase everything':'Touchez encore pour tout effacer',
@@ -232,9 +228,9 @@ var FR={
   'A park review someone sent you.':'Un avis de parc que quelqu’un vous a envoyé.',
   'Visibility':'Visibilité','Private':'Privé',
   'Everything stays on this device':'Tout reste sur cet appareil',
-  /* about the app, three body paragraphs (on-site and Parcs Ontario kept as names) */
+  /* about the app, three body paragraphs (ON site and Parcs Ontario kept as names) */
   'Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.':'Depuis mon plus jeune âge, mes parents m’emmenaient souvent camper. Ces derniers temps, je partage cette passion avec mes amis et je leur fais découvrir la beauté du plein air. Avec cela vient la responsabilité de réserver les emplacements, et choisir un emplacement que l’on n’a jamais vu est un pari.',
-  'on-site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping des parcs de l’Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque terrain de camping réservable des parcs provinciaux de l’Ontario, jusqu’aux emplacements individuels, ainsi que les sentiers qui les entourent.',
+  'ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.':'ON site est un journal privé pour les terrains de camping des parcs de l’Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque terrain de camping réservable des parcs provinciaux de l’Ontario, jusqu’aux emplacements individuels, ainsi que les sentiers qui les entourent.',
   'Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Les évaluations, les notes et les photos sont stockées sur cet appareil, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre appareil. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.',
 };
 function TL(s){ return (LANG==='fr'&&FR[s])||s; }
@@ -612,7 +608,7 @@ function openFavSite(pid,cgId,site,host){
    rated or written in, most recent first. A park can sit in both lists: one
    says you chose it, the other that you have been. */
 function parkSubLine(p,st){
-  if(st.rated>0) return st.rated+' '+TL('of')+' '+st.total+' '+TL('sites rated');
+  if(st.rated>0) return st.rated+' '+TL(st.rated===1?'site rated':'sites rated');
   if(st.aside>0) return st.aside+' '+TL(st.aside===1?'trailer site set aside':'trailer sites set aside');
   if(st.flagged>0) return st.flagged+' '+TL(st.flagged===1?'trailer site':'trailer sites');
   const town=(p.region||'').split(' · ').slice(1).join(' · ');
@@ -807,7 +803,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
     var data={}; BK_KEYS.forEach(function(k){ try{ var v=localStorage.getItem(k); if(v!=null) data[k]=v; }catch(e){} });
     return {app:'site-journal',format:1,appVersion:APP_VERSION,exported:new Date().toISOString(),data:data,photos:photos}; }); }
   function backupName(){ var d=new Date(); function p(n){ return (n<10?'0':'')+n; }
-    return 'on-site-backup-'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.json'; }
+    return 'ON site backup '+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.json'; }
   function exportDone(){ showThemeToast(TL('Backup exported. Keep it somewhere safe.')); }
   function downloadFile(file){ if(window.Capacitor){ showThemeToast('Sharing is not available right now. Try again.'); return; }
     var url=URL.createObjectURL(file); var a=document.createElement('a'); a.href=url; a.download=file.name;
@@ -834,7 +830,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   fi.addEventListener('change',function(){
     var f=fi.files&&fi.files[0]; if(!f) return;
     f.text().then(function(txt){ var p=null; try{ p=JSON.parse(txt); }catch(e){}
-      if(!p||p.app!=='site-journal'||!p.data||typeof p.data['ontario-scout-v2']!=='string'){ showThemeToast('That file is not an on-site backup.'); return; }
+      if(!p||p.app!=='site-journal'||!p.data||typeof p.data['ontario-scout-v2']!=='string'){ showThemeToast('That file is not an ON site backup.'); return; }
       var n=0; try{ var s=JSON.parse(p.data['ontario-scout-v2']), rv=!!(s&&s.gear==='rv');
         ['site','campground','trail'].forEach(function(t){ var m=s&&s[t]||{}; for(var k in m){ var e=m[k]; if(e&&typeof e.score==='number'&&(t!=='site'||rv||!e.trailer)) n++; } }); }catch(e){}
       pendingPayload=p; importRows.forEach(function(b){ b.classList.add('armed'); });
@@ -1049,6 +1045,8 @@ function sheetA11yClose(){
   sheetBgEls().forEach(function(el){ try{ el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }catch(e){} });
   if(_sheetLastFocus&&_sheetLastFocus.focus){ try{ _sheetLastFocus.focus({preventScroll:true}); }catch(e){} }
   _sheetLastFocus=null; }
+/* the wishlist toggle's star: decoration for the eye, the word is the name */
+var WANT_STAR='<span class="wstar" aria-hidden="true">\u2605</span> ';
 function buildDots(){ const d=document.getElementById('dots'); d.innerHTML=''; d.setAttribute('role','radiogroup'); d.setAttribute('aria-label',TL('Rating'));
   for(let i=0;i<=5;i++){ const b=document.createElement('button'); b.className='dot'; b.textContent=i; b.dataset.v=i; b.setAttribute('role','radio');
     b.setAttribute('aria-label', i+' / 5'); b.setAttribute('aria-checked','false'); b.addEventListener('click',()=>setScore(i)); d.appendChild(b); } }
@@ -1063,7 +1061,7 @@ function renderSheetBody(type,k,cgId,site){ cur={type,k,cg:cgId,site,trailName:(
   if(type==='site'){ document.getElementById('d-kind').textContent=TL('Site'); document.getElementById('d-title').textContent=TL('Site')+' '+site;
     whr.textContent=(cgId===curPark.name?((curPark.region||'').split(' · ')[0]||'')+' · '+cgId:cgId+' · '+curPark.name); whr.style.display='';
     document.getElementById('d-ctx').textContent=''; document.getElementById('togRow').style.display=''; pw.style.display='';
-    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.textContent=(w?'★ ':'☆ ')+TL('Wishlist'); renderPhotos(k);
+    const w=wantOf(k); wb.setAttribute('aria-pressed',w); wb.innerHTML=WANT_STAR+TL('Wishlist'); renderPhotos(k);
   } else if(type==='trail'){ const t=(curPark.trails||[]).find(x=>x.name===cgId); whr.style.display='none';
     document.getElementById('d-kind').textContent=TL('Trail'); document.getElementById('d-title').textContent=cgId;
     document.getElementById('d-ctx').textContent=(t?fmtLen(t.length)+' · '+TL(t.difficulty):''); document.getElementById('togRow').style.display='none'; pw.style.display=''; renderPhotos(k);
@@ -1198,7 +1196,7 @@ function afterChange(){ touchPark(cur.k.split('#')[0]); persist();
   else { refreshCgHeader(cur.cg); refreshParkRate(); } }
 function setScore(v){ const e=ensure(); e.score=(e.score===v?null:v); buzz(9); paintDots(); flashSaved(); afterChange(); }
 document.getElementById('wantBtn').addEventListener('click',function(){ const e=ensure(); e.want=!e.want; buzz(9);
-  this.setAttribute('aria-pressed',e.want); this.textContent=(e.want?'★ ':'☆ ')+TL('Wishlist'); if(e.want&&e.score==null) showThemeToast(TL('Added to your wishlist.')); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
+  this.setAttribute('aria-pressed',e.want); this.innerHTML=WANT_STAR+TL('Wishlist'); if(e.want&&e.score==null) showThemeToast(TL('Added to your wishlist.')); flashSaved(); touchPark(cur.k.split('#')[0]); persist(); if(cur.site) refreshChip(cur.k); renderGlance(); });
 /* ---- Trailer site: the right half of the toggle row ----
    One tap labels the site; the label and a rating live side by side, and the
    Equipment setting decides whether the site counts. A labelled card says so
@@ -1240,8 +1238,20 @@ function updateFootAll(){ const b=document.getElementById('trailerAllBtn'); if(!
   if(!mode){
     /* never hide the control under the focus: hand it to the toggle first */
     if(document.activeElement===b){ const tb=document.getElementById('trailerBtn'); if(tb){ try{ tb.focus({preventScroll:true}); }catch(e){} } }
-    b.hidden=true; b.removeAttribute('data-mode'); return; }
-  b.hidden=false; b.dataset.mode=mode; b.textContent=footAllLabel(mode,n); b.setAttribute('aria-label',footAllAria(mode,n,cur.cg)); }
+    b.hidden=true; b.removeAttribute('data-mode'); layoutFoot(); return; }
+  b.hidden=false; b.dataset.mode=mode; b.textContent=footAllLabel(mode,n); b.setAttribute('aria-label',footAllAria(mode,n,cur.cg)); layoutFoot(); }
+/* The foot is one line: share, the offer, Clear, Done. When the offer's words
+   and the buttons cannot share a line (narrow phones, large text, French),
+   the offer takes a line of its own above them, so the share glyph stays at
+   the bottom left and Done at the bottom right. Measured, not guessed: the
+   natural wrap is read once, then the stacked order is applied. */
+function layoutFoot(){ const f=document.querySelector('#sheet .sheet-foot'), b=document.getElementById('trailerAllBtn'), s=document.getElementById('shareBtn'), c=document.getElementById('clearBtn'), d=document.getElementById('doneBtn');
+  if(!f||!s||!c||!d) return; f.classList.remove('stacked');
+  /* wrapped when Clear's or Done's middle sits below the share glyph's
+     bottom (on one line they are centred together, at different heights) */
+  const below=function(el){ return el.offsetTop+el.offsetHeight/2>s.offsetTop+s.offsetHeight; };
+  if(b&&!b.hidden&&(below(c)||below(d))) f.classList.add('stacked'); }
+window.addEventListener('resize',function(){ if(sheet&&sheet.classList.contains('on')) layoutFoot(); },{passive:true});
 function emptyShell(e){ return !!e&&e.score==null&&!e.want&&!e.trailer&&!(e.note&&String(e.note).trim()); }
 document.getElementById('trailerBtn').addEventListener('click',function(){
   if(cur.type!=='site'||!curPark) return;
@@ -1351,12 +1361,43 @@ document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e
     disarm();
     delete state[cur.type][cur.k];
     const cnta=document.getElementById('d-notes'); cnta.value=''; autoGrowNotes(cnta);
-    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.textContent='☆ '+TL('Wishlist');
+    const wb=document.getElementById('wantBtn'); wb.setAttribute('aria-pressed',false); wb.innerHTML=WANT_STAR+TL('Wishlist');
     paintDots(); paintTrailer(); flashSaved(); afterChange(); updateFootAll(); updateSiteNav();
   });
 })();
 document.getElementById('doneBtn').addEventListener('click',closeSheet);
 backdrop.addEventListener('click',closeSheet);
+
+/* ---- share a rating as text (the share button at the foot of the sheet) ----
+   Park, campground, site number and score, joined the way the app joins
+   metadata, so it reads the same in iMessage as on the page. In the app the
+   bridge hands it to the iOS share sheet; a browser without one copies it. */
+function ratingShareText(){
+  if(!cur.type||!cur.k||!curPark) return '';
+  var alg=(curPark.region||'').indexOf('Algonquin')===0, score=sc(cur.type,cur.k), bits=[];
+  /* a campground named after its park (Achray, or Algonquin - Tea Lake) is the park itself */
+  var own=!cur.cg||cur.cg===curPark.name||cur.cg==='Algonquin - '+curPark.name;
+  if(alg) bits.push('Algonquin');
+  bits.push(curPark.name);
+  if(cur.type==='site'){ if(!own) bits.push(cur.cg); bits.push(TL('Site')+' '+cur.site); }
+  else if(!own) bits.push(cur.cg);   /* a campground or a trail; the park itself adds nothing */
+  if(score!=null) bits.push(score+'/5');
+  if(cur.type==='site'&&wantOf(cur.k)) bits.push(TL('Wishlist'));
+  return bits.join(' \u00b7 ')+'\nON site';
+}
+function copyShareText(text){
+  var fail=function(){ showThemeToast('Sharing is not available right now. Try again.'); };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ showThemeToast('Copied.'); },fail); return; } }catch(e){}
+  fail();
+}
+function shareRating(){
+  var text=ratingShareText(); if(!text) return;
+  if(navigator.share){
+    navigator.share({text:text}).catch(function(err){ if(err&&err.name==='AbortError') return; copyShareText(text); });
+    return; }
+  copyShareText(text);
+}
+(function(){ var b=document.getElementById('shareBtn'); if(b) b.addEventListener('click',function(){ buzz(6); shareRating(); }); })();
 
 /* ---- a review someone shared from an older version (#/shared/<data>) ----
    share.js draws the same card the sender saw. No server, nothing tracked. */
@@ -1365,10 +1406,10 @@ function campCard(it){
   var kicker=it.kind==='site'?TL('Site review'):it.kind==='trail'?TL('Trail review'):it.kind==='park'?TL('Park review'):TL('Campground review');
   var emoji=it.kind==='trail'?'🥾':'🏕️';
   var chips=[];
-  if(it.score!=null){ var s=Math.max(0,Math.min(5,it.score|0)); chips.push({label:'★'.repeat(s)+'☆'.repeat(5-s)}); }
+  if(it.score!=null){ var s=Math.max(0,Math.min(5,it.score|0)); chips.push({label:s+'/5'}); }
   if(it.want) chips.push({label:TL('Wishlist')});
   var sub=(it.sub&&it.sub!==it.title)?it.sub:'';
-  return { eyebrow:'on-site', kicker:kicker, emoji:emoji, title:it.title, subtitle:sub,
+  return { eyebrow:'ON site', kicker:kicker, emoji:emoji, title:it.title, subtitle:sub,
     chips:chips.slice(0,4), meta:(it.when?(TL('Reviewed')+' '+fmtMonthYear(it.when)):'') };
 }
 /* ---- receive a shared review (#/shared/<data>) ---- */
@@ -1630,7 +1671,7 @@ function showThemeToast(msg,onTap,ms){
 function hideThemeToast(){ if(toastEl){ toastEl.classList.remove('on'); toastEl.onclick=null; toastEl.setAttribute('inert',''); } }
 function onParkNameTap(p){ /* park themes retired in favour of the shared appearance setting */ }
 
-/* ---- settings sheet (tap the Site Journal title) ---- */
+/* ---- about stats (openSettings now shows the More tab) ---- */
 var settingsSheet=document.getElementById('settingsSheet'), settingsBackdrop=document.getElementById('settingsBackdrop');
 function fillAboutStats(){
   var el=document.getElementById('aboutStats'); if(!el) return;
@@ -1639,14 +1680,8 @@ function fillAboutStats(){
   function row(k,v){ return '<div class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+k+'</span></span>'+
     '<span class="ios-row-value tnum">'+v+'</span></div>'; }
   el.innerHTML=row(TL('Parks in guide'),parks)+row(TL('Campgrounds'),cgs)+row(TL('Sites'),sites.toLocaleString())+
-    (IN_APP?'<div class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+TL('Version')+'</span></span>'+
-      '<span class="ios-row-value tnum">'+APP_VERSION+'</span></div>'
-    :'<button class="ios-row ios-row--plain" id="aboutVerBtn" type="button"><span class="ios-row-body"><span class="ios-row-title">'+TL('Version')+'</span></span>'+
-      '<span class="ios-row-value tnum">v'+APP_VERSION+'</span>'+CHEV_RIGHT+'</button>')+
     '<a class="ios-row ios-row--plain" href="https://katsuma.ca/" target="_blank" rel="noopener">'+
     '<span class="ios-row-body"><span class="ios-row-title">katsuma.ca</span></span>'+CHEV_RIGHT+'</a>';
-  var vb=document.getElementById('aboutVerBtn');
-  if(vb) vb.addEventListener('click',function(){ buzz(6); openVersions(); });
 }
 /* ---- account + saved photos ---- */
 /* One shared profile for the three outdoors apps on this origin: the display
@@ -1668,6 +1703,7 @@ function renderAvatar(){
   var el=document.getElementById('avatarBtn'); if(el) el.innerHTML=avatarGlyph();
   var big=document.getElementById('acctAvatar'); if(big) big.innerHTML=avatarGlyph();
 }
+(function(){ var b=document.getElementById('acctVerBtn'); if(b) b.addEventListener('click',function(){ buzz(6); openVersions(); }); })();
 (function(){ var inp=document.getElementById('displayName'); if(!inp) return;
   inp.value=displayName();
   inp.addEventListener('input',function(){ setDisplayName(inp.value); renderAvatar(); });
@@ -1683,8 +1719,12 @@ function renderAccount(){
   var st=accountStats();
   var e1=document.getElementById('stParks'); if(e1) e1.textContent=st.parks;
   var e2=document.getElementById('stSites'); if(e2) e2.textContent=st.sites;
-  var av=document.getElementById('acctVersion');
-  if(av) av.textContent=(IN_APP?'':'v')+APP_VERSION;   /* the app shows it the way Settings does */
+  /* the app shows the version the way Settings does, a plain row; the web
+     version's row is a button that opens the change log */
+  var row=document.getElementById('acctVerRow'), btn=document.getElementById('acctVerBtn');
+  if(row) row.hidden=!IN_APP; if(btn) btn.hidden=IN_APP;
+  var av=document.getElementById('acctVersion'); if(av) av.textContent=APP_VERSION;
+  var aw=document.getElementById('acctVersionWeb'); if(aw) aw.textContent='v'+APP_VERSION;
   countPhotosSaved().then(function(n){
     var e3=document.getElementById('stPhotos'); if(e3) e3.textContent=n;
     var pc=document.getElementById('acctPhotoCount'); if(pc) pc.textContent=n||''; });
@@ -1801,6 +1841,14 @@ function jfFiltersHtml(){
     +'<div class="jf-row"><span class="jf-label" id="jfSortL">'+TL('Sort')+'</span><div class="jf-chips" role="group" aria-labelledby="jfSortL">'
       +sorts.map(function(o){ return chip('data-jsort',o[0],o[1],_jf.sort===o[0]); }).join('')+'</div></div>'
     +'</div>'; }
+/* a park's average out of five: the 0 to 5 rating control in miniature, five
+   small rounded cells filled left to right in the tint to the nearest half,
+   so 3.5 reads as three cells and half of the fourth. Never a star: the solid
+   orange star means wishlist everywhere in the app. The number sits beside. */
+function avgRateHtml(avg,half){
+  var cells=[0,1,2,3,4].map(function(i){ var f=half-i; return f>=1?'<i class="on"></i>':f>0?'<i class="half"></i>':'<i></i>'; }).join('');
+  var num=avg.toLocaleString(LANG==='fr'?'fr-CA':'en-CA',{minimumFractionDigits:1,maximumFractionDigits:1});   /* 3,5 in French */
+  return '<span class="jpark-rate" role="img" aria-label="'+num+' '+TL('of')+' 5"><span class="jmeter" aria-hidden="true">'+cells+'</span><span class="jnum tnum">'+num+'</span></span>'; }
 function renderJournal(){ var box=document.getElementById('journalBody'); if(!box) return;
   var byPark=journalEntries(), pids=Object.keys(byPark);
   if(!pids.length){
@@ -1849,29 +1897,29 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
       +(glyphs?'<span class="j-glyphs">'+glyphs+'</span>':'')
       +(col?'<span class="tr-rate rated" style="background:'+col+'">'+en.score+'/5</span>':'')
       +'</button>'; }
-  /* each park is one collapsed row: stars for its average, the counts beneath,
-     and the entries only on tap. A long flat list was noise. */
+  /* each park is one row shaped like the Parks list: the name, how many of
+     its sites are rated beneath, its average at the right, and the entries
+     only on tap. A long flat list was noise. */
   spids.forEach(function(pid){ var p=PARK_BY_ID[pid], list=byPark[pid], items=shown[pid];
     var rated=list.filter(function(e){ return e.score!=null; }), n=rated.length;
-    var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, half=Math.round(avg*2)/2;   /* stars fill to the nearest half */
+    var avg=n?rated.reduce(function(a,e){ return a+e.score; },0)/n:0, half=Math.round(avg*2)/2;   /* the mark fills to the nearest half */
+    var sitesRated=rated.filter(function(e){ return e.type==='site'; }).length;
     var wants=list.filter(function(e){ return e.want; }).length, photos=list.filter(function(e){ return e.photo; }).length, notes=list.filter(function(e){ return e.note; }).length;
-    /* one line, always: the rating count in words, the rest as small icons
-       with their words kept for screen readers */
-    var NB='\u00a0', ICON=function(id){ return '<svg aria-hidden="true"><use href="assets/icons.svg#'+id+'"/></svg>'; };
-    var cnt=function(cls,id,num,word){ return '<span class="jcount '+cls+'">'+ICON(id)+num+'<span class="sr-only">'+NB+word+'</span></span>'; };
-    var bits=[]; if(n) bits.push('<span class="jcount jc-rate"><span class="tnum">'+n+'</span><span class="jc-word">'+NB+TL(n===1?'rating':'ratings')+'</span></span>');
-    if(wants) bits.push(cnt('jc-want','star',wants,TL('wishlist')));
-    if(photos) bits.push(cnt('jc-photo','image',photos,TL(photos===1?'photo':'photos')));
-    if(notes) bits.push(cnt('jc-note','notebook',notes,TL(notes===1?'note':'notes')));
-    var stars=n?'<span class="jpark-rate" aria-label="'+avg.toFixed(1)+' / 5"><span class="jstars" aria-hidden="true"><span class="jstars-fill" style="width:'+(half/5*100)+'%">★★★★★</span>★★★★★</span><span class="jnum tnum">'+avg.toFixed(1)+'</span></span>':'';
+    /* the second line says what the park holds: sites rated, else other
+       ratings (a campground or a trail), else what was saved without one */
+    var sub=sitesRated?sitesRated+' '+TL(sitesRated===1?'site rated':'sites rated')
+      :n?n+' '+TL(n===1?'rating':'ratings')
+      :[wants?wants+' '+TL(wants===1?'wishlist site':'wishlist sites'):'',
+        photos?photos+' '+TL(photos===1?'photo':'photos'):'',
+        notes?notes+' '+TL(notes===1?'note':'notes'):''].filter(Boolean).join(' \u00b7 ');
     /* with a filter on, matching parks open to their entries (that is the
        point of filtering); a park folded by hand stays folded */
     var open=filtering?!_jFold[pid]:!!_jOpen[pid];
     html+='<div class="jpark" data-pid="'+pid+'">'
-      +'<button class="ios-row jpark-head" type="button" aria-expanded="'+(open?'true':'false')+'">'
+      +'<button class="ios-row ios-row--plain jpark-head" type="button" aria-expanded="'+(open?'true':'false')+'">'
         +'<span class="ios-row-body"><span class="ios-row-title">'+esc(p.name)+'</span>'
-        +(bits.length?'<span class="ios-row-sub jcounts">'+bits.join('')+'</span>':'')+'</span>'
-        +stars+'<span class="ios-chevron jchev"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>'
+        +(sub?'<span class="ios-row-sub">'+sub+'</span>':'')+'</span>'
+        +(n?avgRateHtml(avg,half):'')+'<span class="ios-chevron jchev"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>'
       +'</button>'
       +'<div class="ios-group jpark-list"'+(open?'':' hidden')+'>'+items.map(rowHtml).join('')+'</div>'
       +'</div>';
@@ -2018,7 +2066,7 @@ var LEGAL_PAGES={
     +'<p><b>What leaves this device.</b> Nothing is sent to me. A backup you export goes only where you send it. '
       +(IN_APP?'The app makes no network requests of its own, and it works the same in airplane mode. A link to an official park page or to katsuma.ca opens in Safari.'
               :'The web version is served from GitHub Pages, which keeps ordinary server logs. A link to an official park page opens that site.')+'</p>'
-    +(IN_APP?'<p><b>Home Screen search.</b> So you can find a park by searching from the Home Screen, the app adds the names of the parks in its guide to this device’s search index. Your own ratings, notes and photos are never added. You can turn this off for on-site in the Settings app.</p>':'')
+    +(IN_APP?'<p><b>Home Screen search.</b> So you can find a park by searching from the Home Screen, the app adds the names of the parks in its guide to this device’s search index. Your own ratings, notes and photos are never added. You can turn this off for ON site in the Settings app.</p>':'')
     +'<p><b>Permissions.</b> The camera and photo library are used only when you attach a photo to a site, and a photo is saved to your library only when you choose to save it. The app never asks for your location. If you decline, everything else still works'+(IN_APP?', and you can change your mind in the Settings app at any time':'')+'.</p>'
     +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and '+(IN_APP?'deleting the app':'clearing this site’s data')+' does the same. Export a backup writes your whole journal to one file, and Import a backup reads it back on any device, replacing what is there. There is no server copy, so nothing can be recovered once it is gone.</p>'
     +'<p><b>Children.</b> The app is safe for a child to use. Nothing in it collects personal information from anyone, of any age.</p>'
@@ -2029,7 +2077,7 @@ var LEGAL_PAGES={
     +'<p><b>Ce qui quitte cet appareil.</b> Rien ne m’est envoyé. Une sauvegarde que vous exportez va seulement là où vous l’envoyez. '
       +(IN_APP?'L’application ne fait aucune requête réseau de son côté et fonctionne de la même façon en mode avion. Un lien vers une page officielle d’un parc ou vers katsuma.ca s’ouvre dans Safari.'
               :'La version Web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires. Un lien vers une page officielle d’un parc ouvre ce site.')+'</p>'
-    +(IN_APP?'<p><b>Recherche de l’écran d’accueil.</b> Pour que vous puissiez trouver un parc en cherchant depuis l’écran d’accueil, l’application ajoute le nom des parcs de son guide à l’index de recherche de cet appareil. Vos propres évaluations, notes et photos n’y sont jamais ajoutées. Vous pouvez désactiver cette fonction pour on-site dans l’app Réglages.</p>':'')
+    +(IN_APP?'<p><b>Recherche de l’écran d’accueil.</b> Pour que vous puissiez trouver un parc en cherchant depuis l’écran d’accueil, l’application ajoute le nom des parcs de son guide à l’index de recherche de cet appareil. Vos propres évaluations, notes et photos n’y sont jamais ajoutées. Vous pouvez désactiver cette fonction pour ON site dans l’app Réglages.</p>':'')
     +'<p><b>Autorisations.</b> L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement, et une photo n’est enregistrée dans votre photothèque que si vous choisissez de l’enregistrer. L’application ne demande jamais votre position. Si vous refusez, tout le reste fonctionne quand même'+(IN_APP?', et vous pouvez changer d’avis dans l’app Réglages à tout moment':'')+'.</p>'
     +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et '+(IN_APP?'supprimer l’application':'effacer les données de ce site')+' fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier, et Importer une sauvegarde le relit sur n’importe quel appareil, en remplaçant ce qui s’y trouve. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
     +'<p><b>Enfants.</b> L’application peut être utilisée sans danger par un enfant. Rien en elle ne recueille de renseignements personnels de quiconque, à tout âge.</p>'
@@ -2057,7 +2105,7 @@ var LEGAL_PAGES={
     +'<p><b>No signal?</b> '+(IN_APP?'Everything works offline, in airplane mode too. Nothing in the app needs a connection.':'Every park, site and rating works offline once the app has loaded.')+'</p>'
     +(IN_APP?'<p><b>Updates.</b> Updates come through the App Store, and your journal stays in place when the app updates.</p>'
             :'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates the next time you open it.</p>')
-    +(IN_APP?'<p><b>Find a park fast.</b> Swipe down on the Home Screen and type a park’s name to open it straight in on-site.</p>':'')
+    +(IN_APP?'<p><b>Find a park fast.</b> Swipe down on the Home Screen and type a park’s name to open it straight in ON site.</p>':'')
     +'<p><b>Accessibility.</b> Text size is set in the app: More, then Appearance, then Text size. Buttons and controls are labelled for VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>',
     hFr:''
     +'<p><b>Me joindre.</b> Écrivez à '+MAIL+' et je répondrai. Les problèmes peuvent aussi être signalés à '+ISSUES+'.</p>'
@@ -2066,7 +2114,7 @@ var LEGAL_PAGES={
     +'<p><b>Pas de signal ?</b> '+(IN_APP?'Tout fonctionne hors ligne, en mode avion aussi. Rien dans l’application n’a besoin d’une connexion.':'Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.')+'</p>'
     +(IN_APP?'<p><b>Mises à jour.</b> Les mises à jour arrivent par l’App Store, et votre journal reste en place quand l’application se met à jour.</p>'
             :'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour la prochaine fois que vous l’ouvrez.</p>')
-    +(IN_APP?'<p><b>Trouver un parc rapidement.</b> Glissez vers le bas sur l’écran d’accueil et tapez le nom d’un parc pour l’ouvrir directement dans on-site.</p>':'')
+    +(IN_APP?'<p><b>Trouver un parc rapidement.</b> Glissez vers le bas sur l’écran d’accueil et tapez le nom d’un parc pour l’ouvrir directement dans ON site.</p>':'')
     +'<p><b>Accessibilité.</b> La taille du texte se règle dans l’application : Plus, puis Apparence, puis Taille du texte. Les boutons et les commandes sont étiquetés pour VoiceOver. Si quelque chose est difficile à lire, à toucher ou à entendre annoncé, dites-le-moi. C’est un bogue, pas une préférence.</p>'},
 };
 function openLegal(key){
