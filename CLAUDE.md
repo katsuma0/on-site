@@ -1,81 +1,156 @@
-# Site Journal — project guide for Claude
+# on-site, project guide for Claude
 
-Personal Ontario Parks campsite journal built for Katsuma Onishi. He books campsites for family and friends; the app lets him walk a campground, rate sites 1-10, star wishlist sites, and attach notes/photos so he knows what to book next time. Mobile-first PWA, tested on iPhone, hosted via GitHub Pages, used offline in parks.
+on-site (once called Site Journal, then on-camp) is Katsuma Onishi's private
+journal for Ontario's provincial park campgrounds. Walk a campground, rate each
+site out of five, add a note or a photo, mark the sites worth booking again,
+and next year you know which one to book. It is used offline, in the parks.
+
+It ships two ways from this one repo:
+
+- **The App Store app** for iPhone and iPad, in `ios/`: a SwiftUI shell around
+  one WKWebView with the web app bundled inside. See `ios/README.md`, and
+  `ios/SUBMISSION.md` for everything App Store Connect needs.
+- **The web app** at https://katsuma.ca/on-site/ (GitHub Pages), installable
+  as a PWA.
+
+`HANDOFF.md` has the owner's taste, the writing voice and the history. Read it
+before a big change.
 
 ## Repo layout
-- `index.html` — the entire app: HTML + CSS + vanilla JS + an embedded minified copy of the park data in `<script type="application/json" id="parks-data-embedded">`. No build system, no frameworks.
-- `parks-data.json` — pretty-printed park data. The app boots from the embedded copy instantly, then refreshes from this file in the background.
-- `service-worker.js` — offline cache. Cache name is `scout-vNN`.
-- `manifest.json`, icons — PWA install.
-- `pipeline/` — SQLite data pipeline (Katsuma is learning SQL; keep it approachable):
-  - `schema.sql` — tables parks, campgrounds, sites (one row per site), trails.
-  - `build_db.py` — all park data lives inline here (PARKS / CAMPGROUNDS / TRAILS / F facilities dicts). Running it rebuilds `scout.db`.
-  - `export_to_app.py` — exports scout.db → parks-data.json (alphabetical by park name). `--all` includes unverified sites (currently everything). It also enforces the capitalization house style on campground descriptions.
 
-## THE DEPLOY LOOP (run after ANY data change)
+- `index.html`: markup only. Every screen and sheet, plus the Versions list.
+- `app.js`: all logic. Also holds the French dictionary `FR`, the in-app
+  Learn notes and the legal pages (`LEGAL_PAGES`).
+- `assets/ios.css`: the iOS design system (part 1), the app's own styles
+  (part 2) and the faces and text sizes (part 3). `styleguide.html` shows it.
+- `assets/icons.svg` (the symbol sprite) and `assets/fonts/` (Lato under the
+  OFL, Noto Sans 1.04 under Apache 2.0, licences beside them).
+- `data/parks.js`: the park data as `window.PARKS_DATA`, loaded first so the
+  app starts instantly and offline. `parks-data.json` is the same data as
+  plain JSON, for the pipeline and the web version's background refresh.
+- `share.js`: the on-* share module. Today it only draws the card when
+  someone opens a `#/shared/` review link made by an older version.
+- `service-worker.js`, `manifest.json`, icons: the web version's install and
+  offline cache. Never used inside the app.
+- `pipeline/`: the SQLite data pipeline (Katsuma is learning SQL, so keep it
+  approachable). `build_db.py` holds the data and builds `scout.db`;
+  `export_to_app.py --all` writes `parks-data.json`.
+- `tools/check.js`: the zero-dependency check. Run `node tools/check.js`
+  before every commit.
+- `ios/`: the Xcode project (`OnCamp.xcodeproj`), the Swift shell in `App/`
+  and the icon source `AppIcon.svg`.
+- `DESIGN.md`, `FORMAT-SPEC.md`, `SEARCH-SPEC.md`: historical specs from
+  v0.17x. Where they disagree with `assets/ios.css`, the CSS wins.
+
+## Every release
+
+1. Bump `APP_VERSION` in `app.js` (`0.NNN`).
+2. Set `MARKETING_VERSION` to the same number in
+   `ios/OnCamp.xcodeproj/project.pbxproj` (Debug and Release).
+3. Bump `CACHE` in `service-worker.js` to `scout-v` plus the minor number plus
+   2 (0.236 goes with `scout-v238`).
+4. Add one `.verline` at the top of the Versions sheet in `index.html`: one
+   line, plain words, milestones only.
+5. `node tools/check.js` must print ALL CHECKS PASSED. It enforces 1 to 3,
+   the French apostrophes, no em dashes, and the iOS project's files and
+   permission strings.
+
+For an App Store upload, also raise `CURRENT_PROJECT_VERSION` (the build
+number) for every upload.
+
+## Updating park data
+
 ```
 cd pipeline
 python3 build_db.py
 python3 export_to_app.py --all
 cp parks-data.json ../parks-data.json
 ```
-Then in `index.html`: replace the embedded JSON block with the new data, minified
-(`json.dumps(data, ensure_ascii=False, separators=(',',':'))`), regex on
-`<script type="application/json" id="parks-data-embedded">.*?</script>`.
 
-After ANY change to index.html or service-worker.js: **bump the cache version**
-(`scout-vNN` → `scout-vNN+1`) in service-worker.js, and validate the JS:
-extract the plain `<script>` blocks (NOT the application/json one) to a temp file
-and run `node --check` on it.
+Then regenerate `data/parks.js` from it (wrap the JSON as
+`window.PARKS_DATA = <json>;` under its one-line comment), and release as
+above. New park text is the owner's own writing, never copied from Ontario
+Parks.
 
-## Hard rules / house style
-- **NO em dashes anywhere** (—). Use commas. This applies to code, data, and UI text.
-- Comma/middot lists capitalize each segment's first letter ("All electric, Near the beach"). `export_to_app.py` enforces this for campground subs automatically.
-- Region strings are `"<Broad> · <Town>"`. Broad buckets: `Northern Park`, `Near North Park`, `Algonquin` (plain, no "Park"), `Central Park`, `Southeast Park`, `Southwest Park`. Examples: `Near North Park · Britt`, `Algonquin · Highway 60`.
-- **Never rename storage keys**: localStorage `ontario-scout-v2` (ratings/notes/wishlist), `site-journal-theme`, `site-journal-theme-vars`, `site-journal-unlocks`; IndexedDB `scout-photos`. Renaming loses user data.
-- Fractions, never percentages, in all UI ("3/652 sites", not "0%").
-- No `:hover` styles (they stick on touch). Press feedback via `:active` scale only.
-- Text on accent-coloured backgrounds uses `var(--paper)`, never `#fff` (dark themes have light accents).
-- **Spacing system** (use these, never ad-hoc pixel values): gaps come in exactly three sizes via tokens `--gap-s` (6px, micro), `--gap-m` (10px, standard: list rhythm, element gaps), `--gap-l` (12px, large clusters). Card interiors use `--pad-card` (14px 16px); sheet rows, inputs, and list rows use `--pad-row` (12px 14px). Stacked cards/rows separate with `margin-bottom:var(--gap-m)`; sections separate with 20-22px. Pills are 8px 13px, small chips 7px 12px, primary buttons 10px 14px. All park-page boxes (About toggle, campground rows, trail cards, stat tiles, wishlist items, top-site rows) share one height token `--row-h` (64px) with contents vertically centred; top-site rows stay borderless with hairline separators. Radii come in exactly three tokens plus two shapes: `--r` (16px, cards and sheets), `--r-sm` (12px, rows, inputs, buttons, dots), `--r-xs` (8px, tiny badges and photo thumbs), `99px` for pills, `50%` for circles. Never introduce a raw radius value.
-- **Touch targets**: every interactive control is at least 44px tall (Apple HIG). Interactive pills (`.fchip`, `.cg-rate`) are min-height 44px / padding 10px 16px / 13px text; display-only pills (`.tr-rate`) may be smaller. Primary action buttons are min-height 48px. Small tap areas get padding+negative-margin expansion rather than layout changes (see `.backbtn`).
+## Hard rules
 
-## App behaviours to preserve
-- Home = alphabetical park list; search bar matches parks / campgrounds / "Hemlock 112" / trails.
-- Swipe RIGHT anywhere on a park page = back to All parks. Rating + settings sheets swipe DOWN to close (drags starting in a textarea are ignored; horizontal swipes ignored); background scroll locks while a sheet is open.
-- Parks with exactly one campground open that campground by default.
-- Site chips: number is the main element; rated = heatmap colour + score badge bottom-right; wishlist star top-left (amber); note OR photo = small star top-right; note AND photo = medallion (circle with a negative-space star, `MEDAL_SVG`). Trails use the same star/medallion system, top-right of the card.
-- Progress bars / stats stay hidden until at least one site in that park is rated.
-- Park page hierarchy: section labels (`.seclabel`, e.g. Campgrounds / Trails) are `var(--ink)`, never the accent; campground and trail names carry the accent (`var(--forest)`); the About card matches campground-card styling but its title is `var(--ink)` (only tappable campground/trail names carry the accent). The park-page top ribbon reads `< All parks`. For Algonquin split parks the page h2 reads `Algonquin · {Name}` (h2 remains the theme-unlock tap target); the About toggle reads `About {Name}`; the campground header shows its real name.
-- Rating sheet: for sites the green context line reads "Campground · Park" (for the Algonquin split parks, where campground name == park name, it reads "Algonquin · <name>").
+- **No em dashes anywhere** (code, data, UI). Commas and periods.
+- **French:** every user-facing string goes through `TL()` (or a `data-i18n`
+  attribute, which `applyLang()` fills). `FR` is keyed by the exact English,
+  values use the typographic apostrophe (U+2019). Proper nouns (parks,
+  campgrounds, on-site, on-fishing) are not translated. The language follows
+  the device on first launch and can be changed under More, Appearance.
+- **Never rename storage keys.** localStorage: `ontario-scout-v2` (ratings,
+  notes, wishlist, pins), `oncamp-favs`, `outdoors-profile`,
+  `outdoors-appearance`, `oncamp-lang`, `site-journal-jfilter`,
+  `oncamp-pins-to-favs` (a one-time migration marker). IndexedDB:
+  `scout-photos`. The retired `site-journal-theme*`, `-unlocks`, `-sort`,
+  `-group` and `-origin` keys are still carried by backups and cleared by
+  Reset, so old backups restore cleanly. The backup file keeps
+  `app:'site-journal'` for the same reason.
+- **Inside the app** (`IN_APP`, which is `!!window.Capacitor`; the stand-in
+  object comes from `ios/App/Bridge.swift`):
+  - the service worker never registers, and any old one is removed;
+  - `refreshParksFromNetwork` returns at once, the bundled data is the truth;
+  - the app makes no network requests of its own. Links open in Safari.
+  - The page talks to the shell through four message handlers: `share`,
+    `haptic`, `spotlight` (`postSpotlight()`, the parks for the Home Screen
+    search) and `appearance` (`postAppearance()`, theme and language).
+    `window.onsiteOpenPark` and `window.onsiteSearch` are how the shell opens
+    a search result.
+- **Nothing hidden.** The only hidden features are the read-only consoles,
+  `debugsearch` and `statsearch`, typed into the Parks search. App Review
+  guideline 2.5.19 rejects hidden, dormant or undocumented features, so never
+  add an unlockable, a secret command, dormant code or a remote switch. Any
+  new hidden behaviour must be added to the review notes in
+  `ios/SUBMISSION.md` first.
+- **Keep the 4+ age rating.** The Learn notes are prevention-only outdoor
+  safety. No medical or treatment advice, nothing graphic.
+- **Privacy is a promise.** No analytics, no third-party code, no account, no
+  network calls from the app. If that ever changes, the in-app privacy page
+  (`LEGAL_PAGES` in `app.js`), https://katsuma.ca/privacy.html (repo
+  `katsuma0/katsuma0.github.io`) and the App Store privacy answers all change
+  with it.
+- Fractions, never percentages ("3/652 sites").
+- No `:hover` styles (they stick on touch). Press feedback is `:active` only.
+- Every control is at least 44px tall (`--ctl`); sizes come from the tokens
+  in `ios.css`, never raw values. Cards stack `--stack` apart, the same as
+  the side gutter (`--gutter`, or `--pad-l` and `--pad-r` where a device
+  reserves its edges).
+- Colours come only from the token blocks at the top of `ios.css`, and must
+  hold AA contrast in light and dark. Destructive text uses `--red-text`.
+- Region strings are `"<Broad> · <Town>"`, with the broad buckets
+  `Northern Park`, `Near North Park`, `Algonquin` (plain), `Central Park`,
+  `Southeast Park`, `Southwest Park`.
+- Algonquin is split into nine parks, one per car campground (`algonquintea`,
+  `algonquincanisbay` and so on). `migrateAlgonquin` moves any old keys; keep
+  it.
 
-## Theme system (unlockables)
-- Tap "Site Journal" title → settings sheet: "Theme" heading, swatch list, bare fraction counter (e.g. "3/29"). List has natural height up to 7 rows, then fixed 396px with inner scroll.
-- Default theme is named `Default` (id `forest`, defined in `:root`). Every park has exactly one theme; **theme name = park name exactly**, theme id = park id.
-- Unlock: tapping the park's name (h2) on its page → toast "✦ <Name> theme unlocked · Tap to use". Grundy Lake's first unlock appends "· Shout out Laurie" (easter egg, keep forever).
-- Palettes are generated from 3 seeds `{paper, ink, primary, dark?}` via `buildVars()` (mixhex). Dark themes set `dark:true` (light ink, dark shadows). Alphabetically early parks = light themes; later = dark/moodier. Keep every theme unique.
-- Rating heatmap (`STOPS`, clay→green) is tinted ~14% toward the active theme via `color-mix(in srgb, <stop> 86%, var(--forest))` in `scoreColor()`. Don't hardcode score colours elsewhere.
-- **Every new park batch must add a matching theme** in `PARK_THEMES` (the x/NN counter updates automatically).
+## App behaviour to preserve
 
-## Data status (v57)
-- 123 parks (94 camping incl Mississagi/Tidewater + 19 day-use + 10 wilderness-permit rate-only) - COMPLETE: everything reservable on Ontario Parks included, ~19,869 sites, 164 trails. Second batch (next-tier busiest, GTA outward): Earl Rowe, Rock Point, Bass Lake, McRae Point, Craigleith, Selkirk, Port Burwell, Point Farms, Inverhuron, Sauble Falls. Near-exact anchors: Sauble Falls East numbering (100-154), Bass Lake per-campground counts, published barrier-free site numbers at Earl Rowe (90/102/230/242), Bass Lake (5/6), McRae Point (51/53), Turkey Point (81/212). Craigleith and Inverhuron have no in-app trails (none confirmed in-park). All sites `verified=0` (estimates) EXCEPT ranges corrected from official Ontario Parks campground-map PDFs for Grundy Lake, Killbear, Killarney George Lake (those PDFs are text-extractable only for "Northeast Zone" maps; southern parks' maps are image-only).
-- Algonquin is split into 9 top-level parks (one per car campground): ids `algonquintea, algonquincanisbay, algonquinmew, algonquintworivers, algonquinpog, algonquinkearney, algonquinraccoon, algonquinrock, algonquinachray`, names "Tea Lake", "Canisbay", etc. Corridor trails were assigned to the nearest campground by KM. A one-time JS migration (`migrateAlgonquin` / `migrateAlgPhotos`) moves any old `algonquin#` keys — keep it in place.
-- The fishing chip links to `https://katsuma0.github.io/onfishingreg/#zone=NN` (zone parsed from the park's fmz field).
+- Four tabs: Parks (search, region filter, A to Z rail), Favourites
+  (favourite parks, parks you have rated, favourite sites), Journal
+  (everything rated, with filters and sorting), More (Learn, Appearance, Your
+  data, on-fishing, About, Legal). The avatar opens Profile, which holds only a display name.
+- A park can be favourited only from its own page (the Favourite pill).
+- Rating sheet: 0 to 5 dots, Wishlist, Trailer site, then "Add a note or
+  photo" (the keyboard never opens by itself). The line being typed always
+  stays above the keyboard. Done stays reachable at the bottom.
+- Swipe right on a park page goes back; sheets swipe down to close.
+- Site chips: the score's colour (`scoreColor()`, the clay to green `STOPS`
+  tinted toward the accent) with a badge; amber wishlist star; a star for a
+  note or a photo, the medallion (`MEDAL_SVG`) for both.
+- Progress bars and stats stay hidden until a site in that park is rated.
+- Trailer sites: marked per site or a whole campground at once. The Car/tent
+  or RV/trailer setting decides whether they count toward progress.
+- Fishing pills link to `https://katsuma.ca/on-fishing/#zone=NN`.
+- The About Version row opens the Versions sheet on the web; in the app it is
+  a plain row, since updates come from the App Store.
 
-## Park roadmap
-Katsuma's full top-30 list is COMPLETE as of v56, plus a second batch of the next 10 busiest southern parks in v57 (Lake Superior, Turkey Point, Emily, Mara, Bonnechere, Mikisew, Rondeau, Neys, Chutes, and Fairbank all added with themes). Batchawana Bay was skipped: it is a day-use-only park with no campsites. If more parks are requested later: research campground names/site ranges via web search; mark estimates `verified=0`; blurbs get the park's character + location, no em dashes; add a matching theme (light for early alphabet, dark for later); region format `"Broad Park · Town"` (Algonquin plain). Site numbering for most 2024+ additions is estimated; northern parks (Lake Superior, Neys, Chutes, Fairbank, Mikisew) may have text-readable Northeast Zone campground-map PDFs for a future verification pass.
+## Skipped or declined (do not re-suggest)
 
-## Skipped / declined (don't re-suggest)
-- Campground map images/PDFs in the app (too heavy for now).
-- Percentages anywhere. Hover styles. Export/import backup buttons.
-## iOS app (Capacitor)
-- buzz(ms) bridges to Capacitor Haptics (impact MEDIUM when ms>=12 else LIGHT) when window.Capacitor is present; navigator.vibrate fallback on web. All button feedback routes through buzz(), so native haptics need no further wiring.
-- navigator.storage.persist() is requested on load. In the Capacitor WKWebView, localStorage (ratings/pins/state) and IndexedDB scout-photos persist in the app container.
-- Planned wrapper: Capacitor project with webDir "www" containing index.html, parks-data.json, manifest.json, icons (service worker unnecessary inside the app shell).
-- Version tag: .ver pill next to the Site Journal h1 shows "v0.NNN beta"; bump NNN in lockstep with the scout-vNNN cache name every release.
-- About Site Journal has Motivation and Versions sections (.fld labels). Add a .verline entry ONLY for significant feature releases, not data batches. Per-park reset: wipeParkData(pid) clears state buckets + photos by pid# prefix and unpins.
-- Easter egg: park id queenelizabethii is hidden (parkVisible gate on home, region counts, search) until a search containing "queen elizabeth" fires revealEgg() (state.eggQE2). Never list it in the Versions changelog.
-- Town-origin sort: TOWN_MODE "Closest to town" uses PARK_LL coords + TOWNS list, haversine*1.3/82 km/h rounded to 0.25h (site-journal-origin localStorage). Curated DRIVE_H remains for Closest to GTA. Sheets show only the small kind label, no h3.
-- CRITICAL: the service worker must NEVER register inside Capacitor (window.Capacitor check in index.html); it cache-firsts index.html and freezes the iOS app on stale builds. The Capacitor branch also unregisters old SWs and clears Cache Storage.
-- CRITICAL: refreshParksFromNetwork must return immediately under window.Capacitor. The app uses embedded data only; a stale www/parks-data.json once silently replaced 124 embedded parks with an old 123-park file. On the web the refresh stays.
-- Secret search commands: debugsearch (diagnostics), statsearch (rating stats), dummydata (left-skewed sample ratings), dummyhundop (confirm button; overwrites EVERYTHING to 5/5 with wishlists, notes, all themes, egg revealed), -dummyhundop (everything 0/5, notes and wishlists wiped, themes locked, egg re-hidden, theme back to Default near Markham incl Grundy Hemlock/Jack Pine, Bon Echo Hardwood, Canisbay all, Silent Lake random cg, Awenda Bear; never overwrites real entries), rendered by renderConsole as monospace .dbg cards with variable_name keys. Never list these in the Versions changelog.
-- Version pill format changed at v154: it is now <button class="ver" id="verBtn">v0.NNN</button> (no "beta"), styled like a title sibling, and opens the Versions sheet. Bump by replacing v0.NNN.
+- Maps of any kind (removed in v0.234), driving times, park themes and
+  unlockables, sample or dummy data, the dedication page, the bear report
+  (the on-wildlife app is not active), sharing review cards, and Planned
+  features inside the app (they live on katsuma.ca).
+- Percentages and hover styles.

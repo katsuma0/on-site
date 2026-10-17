@@ -3,7 +3,7 @@
 import json, os, sqlite3
 
 DB = "scout.db"
-SRC = "Ontario Parks campground maps (ranges) - UNVERIFIED, expand & check"
+SRC = "Compiled by hand from Ontario Parks campground maps and reservations.ontarioparks.ca (site counts checked 2026-07-21)"
 
 F = dict(
     elec="Electrical sites", showers="Showers", flush="Flush toilets", vault="Vault toilets",
@@ -734,7 +734,7 @@ PARKS = {
     facilities=[F["backcountry"],F["boat"]]),
   "queenelizabethii": dict(sort=1200, name="Queen Elizabeth II Wildlands", region="Central Park · Head Lake", backcountry=True,
     url="https://www.ontarioparks.ca/park/queenelizabethiiwildlands",
-    blurb="Ontario's best kept secret: 33,000 hectares of crown wilderness with no gates, no fees, and no facilities, hiding in plain sight south of Algonquin. Not reservable, not operating, not on the map. Yet here you are.",
+    blurb="Ontario's best kept secret: 33,000 hectares of crown wilderness south of Algonquin, with no gates, no fees and no facilities. It is a non-operating park, so there is no campground to book, only the wilderness section of the Ganaraska Trail for experienced navigators.",
     fishing="Dozens of unnamed lakes: bass, pike, the occasional rumour of trout", fmz="FMZ 15",
     facilities=[F["backcountry"],F["trails"]]),
 }

@@ -51,20 +51,55 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.235';
+var APP_VERSION='0.236';
+/* true inside the iPhone app: Bridge.swift sets window.Capacitor before this file runs */
+var IN_APP=!!window.Capacitor;
 
 /* ================= language =================
-   English is the default; French is a choice in More. The dictionary is
+   French when the device is set to French, English otherwise; a choice in
+   More overrides either. The dictionary is
    keyed by the English string, so TL('Journal') is the whole API: a string
    with no entry simply stays as written. Park and campground names are
    data, never translated. Static markup carries data-i18n="<english>" and
    is walked by applyLang() at boot and on every change. */
 var LANG_KEY='oncamp-lang';
 var LANG='en';
-try{ var _lg=localStorage.getItem(LANG_KEY); if(_lg==='fr'||_lg==='en') LANG=_lg; }catch(e){}
+(function(){ var lg=null; try{ lg=localStorage.getItem(LANG_KEY); }catch(e){}
+  if(lg==='fr'||lg==='en') LANG=lg; else if(/^fr(-|$)/i.test(navigator.language||'')) LANG='fr'; })();
 var FR={
+  /* park facilities (data), shown as chips on a park page */
+  'Vault toilets':'Toilettes sèches',
+  'Water taps':'Robinets d’eau',
+  'Hiking trails':'Sentiers de randonnée',
+  'Firewood':'Bois de chauffage',
+  'Beaches':'Plages',
+  'Flush toilets':'Toilettes à chasse d’eau',
+  'Showers':'Douches',
+  'Trailer dump station':'Station de vidange',
+  'Electrical sites':'Emplacements avec électricité',
+  'Boat launch':'Rampe de mise à l’eau',
+  'Laundry':'Buanderie',
+  'Group camping':'Camping de groupe',
+  'Playground':'Terrain de jeux',
+  'Canoe/kayak rentals':'Location de canots et de kayaks',
+  'Park store':'Magasin du parc',
+  'Barrier-free sites':'Emplacements accessibles',
+  'Pet beach':'Plage pour animaux',
+  'Backcountry sites':'Emplacements en arrière-pays',
+  'Cabins / yurts':'Chalets et yourtes',
+  'Radio-free areas':'Zones sans radio',
+  'Visitor centre':'Centre d’accueil',
+  'Bike trail':'Piste cyclable',
+  'Winter camping':'Camping d’hiver',
+  'Walk-in sites':'Emplacements accessibles à pied',
+  'Amphitheatre':'Amphithéâtre',
+  'Pet-free areas':'Zones sans animaux',
+  'Sand dunes':'Dunes de sable',
+  'Canoe launches':'Mises à l’eau pour canots',
+  'PFD loan':'Prêt de gilets de sauvetage',
+  'EV charging':'Recharge pour véhicules électriques',
   /* tabs and screens */
-  'Guide':'Guide','Journal':'Journal','More':'Plus','Account':'Compte','Photos':'Photos',
+  'Guide':'Guide','Journal':'Journal','More':'Plus','Profile':'Profil','Photos':'Photos',
   'Parks':'Parcs','Shared with you':'Partagé avec vous',
   /* search */
   'Search':'Recherche','Search parks and sites':'Chercher parcs et emplacements',
@@ -115,17 +150,14 @@ var FR={
   'Site review':'Avis sur l’emplacement','Trail review':'Avis sur le sentier','Park review':'Avis sur le parc',
   'Reviewed':'Évalué en','Shared':'Partagé','review':'avis',
   'Easy':'Facile','Moderate':'Modéré','Difficult':'Difficile','Easy to moderate':'Facile à modéré','Moderate to difficult':'Modéré à difficile',
-  'Tap to discover':'Touchez pour découvrir',
   /* messages */
   'Backup exported. Keep it somewhere safe.':'Sauvegarde exportée. Gardez-la en lieu sûr.',
   'Backup restored. Welcome back.':'Sauvegarde restaurée. Bon retour.',
-  'Add a rating or a note first':'Ajoutez d’abord une note ou un commentaire',
   'Park data could not be loaded.':'Les données des parcs n’ont pas pu être chargées.',
   'Could not build the backup. Try again.':'Impossible de créer la sauvegarde. Réessayez.',
   'Could not read that file.':'Impossible de lire ce fichier.',
   'Sharing is not available right now. Try again.':'Le partage n’est pas disponible pour le moment. Réessayez.',
-  'Sharing is not available':'Le partage n’est pas disponible',
-  'That file is not a Site Journal backup.':'Ce fichier n’est pas une sauvegarde de Site Journal.',
+  'That file is not an on-site backup.':'Ce fichier n’est pas une sauvegarde on-site.',
   'Link copied, card saved':'Lien copié, carte enregistrée',
   'Park data cleared.':'Données du parc effacées.',
   'Hidden park revealed. Welcome to the Wildlands.':'Parc caché révélé. Bienvenue dans les Wildlands.',
@@ -148,6 +180,9 @@ var FR={
   'This shared link could not be opened. It may be from a newer version of the app.':'Ce lien partagé n’a pas pu être ouvert. Il provient peut-être d’une version plus récente de l’application.',
   'site photo':'photo de l’emplacement',
   'Check your connection and reopen the app.':'Vérifiez votre connexion et rouvrez l’application.',
+  'Nothing to clear yet.':'Rien à effacer pour l’instant.',
+  'Reinstall the app from the App Store.':'Réinstallez l’application depuis l’App Store.',
+  'Fishing zone':'Zone de pêche',
   'not rated':'non noté','wishlist':'liste de souhaits','has a note':'a une note','has a photo':'a une photo',
   'View photo':'Voir la photo',
   /* learn */
@@ -157,7 +192,6 @@ var FR={
   'Leave no trace':'Ne laisser aucune trace',
   'Wildlife on the roads':'La faune sur les routes',
   'Cold water and weather':'Eau froide et météo',
-  'Report a bear or a hazard':'Signaler un ours ou un danger',
   /* rate sheet */
   'Rating':'Note','Clear rating':'Effacer la note',
   'Camera':'Appareil photo','Add photos':'Ajouter des photos',
@@ -174,6 +208,7 @@ var FR={
   'Previous site':'Emplacement précédent','Next site':'Emplacement suivant',
   'Tap again to erase this park':'Touchez encore pour effacer ce parc',
   'sites':'emplacements','rated':'notés','site':'emplacement',
+  'campground':'terrain de camping','campgrounds':'terrains de camping','Day-use park':'Parc d’utilisation diurne',
   /* trailer sites and the equipment setting */
   'Equipment':'Équipement','Car/tent':'Auto/tente','RV/trailer':'VR/roulotte',
   'Trailer sites sit out of the rating':'Les emplacements pour roulottes ne comptent pas dans la note',
@@ -189,25 +224,18 @@ var FR={
   'Undo':'Annuler','Undone.':'Annulé.','trailer mark':'marque pour roulottes','trailer marks':'marques pour roulottes',
   /* more screen: sections, data rows */
   'About':'À propos','Learn':'Apprendre','Your data':'Vos données',
-  /* planned features, in the More tab */
-  'Planned features':'Fonctionnalités prévues',
-  'Offline campground maps':'Cartes de terrain hors ligne',
-  'Missing backcountry sites':'Emplacements en arrière-pays manquants',
-  'Public accounts':'Comptes publics',
-  'Site availability and reserving':'Disponibilité et réservation des emplacements',
-  'Your feedback':'Vos commentaires',
   'More from the Ontario outdoors':'Plus du plein air en Ontario',
   'Export a backup':'Exporter une sauvegarde','Import a backup':'Importer une sauvegarde',
   'Reset all data':'Réinitialiser toutes les données',
   'Tap again to erase everything':'Touchez encore pour tout effacer',
-  'Export a backup to move your journal to another phone.':'Exportez une sauvegarde pour transférer votre journal vers un autre téléphone.',
+  'Export a backup to move your journal to another device. Importing a backup replaces what is on this device.':'Exportez une sauvegarde pour transférer votre journal vers un autre appareil. Importer une sauvegarde remplace ce qui se trouve sur cet appareil.',
   'A park review someone sent you.':'Un avis de parc que quelqu’un vous a envoyé.',
   'Visibility':'Visibilité','Private':'Privé',
-  'Everything stays on this phone':'Tout reste sur ce téléphone',
+  'Everything stays on this device':'Tout reste sur cet appareil',
   /* about the app, three body paragraphs (on-site and Parcs Ontario kept as names) */
   'Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.':'Depuis mon plus jeune âge, mes parents m’emmenaient souvent camper. Ces derniers temps, je partage cette passion avec mes amis et je leur fais découvrir la beauté du plein air. Avec cela vient la responsabilité de réserver les emplacements, et choisir un emplacement que l’on n’a jamais vu est un pari.',
-  'on-site is a private journal for Ontario Parks campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable Ontario Park, down to the campgrounds, the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping de Parcs Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque parc réservable de l’Ontario, jusqu’aux terrains, aux emplacements individuels et aux sentiers qui les entourent.',
-  'Ratings and notes live in the browser and photos in local storage, and you can export a backup to a file and load it on another phone. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Les évaluations et les notes vivent dans le navigateur et les photos dans le stockage local, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre téléphone. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.'
+  'on-site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.':'on-site est un journal privé pour les terrains de camping des parcs de l’Ontario. Pour le prix modique d’une belle promenade autour du terrain, vous pouvez noter chaque emplacement sur cinq, ajouter une note ou une photo, et marquer ceux qui valent la peine d’être réservés de nouveau. Il couvre chaque terrain de camping réservable des parcs provinciaux de l’Ontario, jusqu’aux emplacements individuels, ainsi que les sentiers qui les entourent.',
+  'Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.':'Les évaluations, les notes et les photos sont stockées sur cet appareil, et vous pouvez exporter une sauvegarde vers un fichier et la charger sur un autre appareil. Veuillez ne pas photographier les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.',
 };
 function TL(s){ return (LANG==='fr'&&FR[s])||s; }
 window.TL=TL;
@@ -224,6 +252,7 @@ function setLang(v){
   try{ if(learnRendered&&typeof renderLearn==='function') renderLearn(); }catch(e){}
   try{ var vf=document.getElementById('view-favs'); if(vf&&!vf.hidden) renderFavs(); }catch(e){}
   try{ var bl=document.getElementById('backLabel'); if(bl) bl.textContent=TL(PARK_HOST_LABEL[parkHost]||'All Parks'); }catch(e){}
+  postAppearance(); postSpotlight();
 }
 /* translate every tagged node in the static markup */
 function applyLang(){
@@ -238,20 +267,16 @@ function applyLang(){
     el.setAttribute('aria-label',TL(el.getAttribute('data-i18n-aria')));
   });
 }
-/* fishing regulations live in the sibling on-fishing app; from the iOS shell
-   the link opens in Safari (the old bundled fishing/ copy no longer ships) */
-const FISHREG_BASE='https://katsuma0.github.io/on-fishing/';
+/* fishing regulations live in the sibling on-fishing app; in the iPhone app
+   the link opens in Safari */
+const FISHREG_BASE='https://katsuma.ca/on-fishing/';
 try{ history.scrollRestoration='manual'; }catch(e){} /* every open starts at the top */
 function load(){ try{ const v=localStorage.getItem(KEY); if(v) state=Object.assign({site:{},campground:{},trail:{}},JSON.parse(v)); }catch(e){}
   /* pins are no longer shown anywhere, but the list a reader built is theirs
      and stays in the record; the stats console still counts it */
   if(!Array.isArray(state.pins)) state.pins=[];
-  if(!state.touched||typeof state.touched!=='object'||Array.isArray(state.touched)) state.touched={}; }
-const EGG_ID='queenelizabethii';
-function eggFound(){ return !!state.eggQE2; }
-function parkVisible(p){ return p.id!==EGG_ID||eggFound(); }
-function revealEgg(){ if(eggFound()) return; state.eggQE2=true; persist(); buildSearchIndex(); renderParks(); buzz(12);
-  showThemeToast('Hidden park revealed. Welcome to the Wildlands.'); }
+  if(!state.touched||typeof state.touched!=='object'||Array.isArray(state.touched)) state.touched={};
+  delete state.eggQE2; }   /* the Wildlands was once hidden behind a search; it is an ordinary park now */
 let saveTimer=null;
 function persistNow(){ clearTimeout(saveTimer); saveTimer=null; try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
 function persist(){ clearTimeout(saveTimer); saveTimer=setTimeout(persistNow,250); }
@@ -364,24 +389,12 @@ function searchAll(q){ q=q.trim().toLowerCase(); if(!q) return [];
       });
     }
   }
-  /* the Wildlands answers the search directly, regardless of any list filtering */
-  if(!res.some(r=>r.type==='park'&&r.parkId===EGG_ID)){
-    const eg=PARKS.find(p=>p.id===EGG_ID);
-    if(eg){ const pn=eg.name.toLowerCase();
-      const ets=nameTok.filter(t=>STOP.indexOf(t)<0);
-      if(ets.length&&!siteTok.length&&ets.every(t=>pn.includes(t)))
-        res.push({type:'park',score:200,parkId:eg.id,title:eg.name,
-          sub:eggFound()?(((eg.region||'').split(' · ').slice(1).join(' · '))||eg.region):TL('Tap to discover')}); } }
   const TYPE_RANK={park:0,cg:1,site:2,trail:3};
   res.sort((a,b)=>(TYPE_RANK[a.type]-TYPE_RANK[b.type])||(b.score-a.score)); return res.slice(0,15);
 }
 function onGSearch(){ const gq=document.getElementById('gq'), q=gq.value;
   if(q.trim().toLowerCase()==='debugsearch'){ renderDebug(); return; }
   if(q.trim().toLowerCase()==='statsearch'){ renderStats(); return; }
-  // Data-planting QA commands (dummydata / dummyhundop) are not wired into the
-  // shipped build: they overwrite real ratings and must not be reachable by a
-  // stray keystroke. The functions remain for local testing only.
-  if(['forlaurie','for laurie','tolaurie','to laurie'].indexOf(q.trim().toLowerCase())>=0){ renderLaurie(); return; }
   document.getElementById('gsearch').classList.toggle('has',!!q.trim());
   const rbox=document.getElementById('gresults'), hint=document.getElementById('searchHint');
   if(!q.trim()){ rbox.hidden=true; rbox.innerHTML=''; if(hint) hint.hidden=false; return; }
@@ -423,196 +436,13 @@ function renderConsole(cmd,pairs){
 function renderDebug(){
   const pairs=[];
   try{ pairs.push(['parks_loaded',PARKS.length]); }catch(e){ pairs.push(['parks_loaded','ERR '+e.message]); }
-  try{ pairs.push(['egg_in_data',PARKS.some(p=>p.id===EGG_ID)?'true':'FALSE']); }catch(e){ pairs.push(['egg_in_data','ERR']); }
-  try{ pairs.push(['egg_found',String(eggFound())]); }catch(e){ pairs.push(['egg_found','ERR']); }
+  try{ pairs.push(['wildlands_listed',PARKS.some(p=>p.id==='queenelizabethii')?'true':'FALSE']); }catch(e){ pairs.push(['wildlands_listed','ERR']); }
   try{ const r=searchAll('queen'); pairs.push(['searchAll("queen")',r.length+(r.length?' -> '+r[0].title:'')]); }
   catch(e){ pairs.push(['searchAll("queen")','THREW '+e.message]); }
   try{ pairs.push(['searchAll("q")',searchAll('q').length]); }catch(e){ pairs.push(['searchAll("q")','THREW']); }
   pairs.push(['capacitor',window.Capacitor?'true':'false']);
   pairs.push(['errors',DEBUG_ERRS.length?DEBUG_ERRS.slice(-3).join(' | '):'none']);
   renderConsole('debugsearch',pairs);
-}
-function renderDummyCard(msg){
-  const rbox=document.getElementById('gresults');
-  rbox.hidden=false;
-  rbox.innerHTML='<div class="dbg"><div class="dhead">&gt; dummydata</div>'
-    +'<div class="drow"><span class="dk">status</span><span class="dv">'+esc(msg||'ready, nothing planted')+'</span></div>'
-    +'<button class="dummybtn" id="dummyGo">'+(msg?'Plant again, reshuffled':'Plant dummy data')+'</button></div>';
-  const go=document.getElementById('dummyGo');
-  if(go) go.addEventListener('click',()=>{ buzz(9); const m=plantDummy(); renderDummyCard(m); });
-}
-function renderHundCard(msg){
-  const rbox=document.getElementById('gresults');
-  rbox.hidden=false;
-  rbox.innerHTML='<div class="dbg"><div class="dhead">&gt; dummyhundop</div>'
-    +'<div class="drow"><span class="dk">status</span><span class="dv">'+esc(msg||'ready, overwrites every rating')+'</span></div>'
-    +'<button class="dummybtn" id="hundGo">'+(msg?'Run again':'Max everything to 5/5')+'</button></div>';
-  const go=document.getElementById('hundGo');
-  if(go) go.addEventListener('click',()=>{ buzz(12); const m=plantHund(); renderHundCard(m); });
-}
-function renderLaurie(){
-  const rbox=document.getElementById('gresults');
-  rbox.hidden=false;
-  rbox.innerHTML='<div class="dedic">'
-    +'<div class="d-for">For Laurie</div>'
-    +'<p>who introduced us to Bowser, the famous snapping turtle of Gurd Lake at Grundy.</p>'
-    +'<p>You and your husband were the inspiration for this app.</p>'
-    +'<p>It was a pleasure chatting with you, and I hope our paths cross again.</p>'
-    +'<div class="d-sign">Katsuma</div>'
-    +'</div>';
-  buzz(6);
-}
-function renderZeroCard(msg){
-  const rbox=document.getElementById('gresults');
-  rbox.hidden=false;
-  rbox.innerHTML='<div class="dbg"><div class="dhead">&gt; -dummyhundop</div>'
-    +'<div class="drow"><span class="dk">status</span><span class="dv">'+esc(msg||'ready, the worst season imaginable')+'</span></div>'
-    +'<button class="dummybtn" id="zeroGo" style="background:var(--red)">'+(msg?'Run again':'Zero everything')+'</button></div>';
-  const go=document.getElementById('zeroGo');
-  if(go) go.addEventListener('click',()=>{ buzz(12); const m=plantZero(); renderZeroCard(m); });
-}
-function plantZero(){
-  let sites=0,cgs=0,trails=0,parks=0;
-  PARKS.forEach(p=>{
-    p.campgrounds.forEach(cg=>{ cgSites(cg).forEach(sit=>{ const k=keyOf(p.id,cg.id,sit);
-        const e=state.site[k]||(state.site[k]={}); e.score=0; delete e.want; delete e.note; sites++; });
-      const ck=cidOf(p.id,cg.id); const ce=state.campground[ck]||(state.campground[ck]={}); ce.score=0; delete ce.note; cgs++; });
-    const pk=cidOf(p.id,p.name); const pe=state.campground[pk]||(state.campground[pk]={}); pe.score=0; delete pe.note; parks++;
-    (p.trails||[]).forEach(t=>{ const k=p.id+'#'+t.name; const te=state.trail[k]||(state.trail[k]={}); te.score=0; delete te.note; trails++; });
-  });
-  try{ localStorage.setItem(UNLOCK_KEY,'[]'); }catch(e){}
-  try{ localStorage.removeItem('site-journal-theme'); localStorage.removeItem('site-journal-theme-vars'); }catch(e){}
-  try{ applyTheme('forest'); }catch(e){}
-  state.eggQE2=false;
-  persist(); renderParks();
-  showThemeToast('Everything zeroed. A season to forget.');
-  return sites+' sites, '+cgs+' cgs, '+trails+' trails, '+parks+' parks, all 0/5, nothing unlocked';
-}
-function plantHund(){
-  let sites=0,cgs=0,trails=0,parks=0;
-  PARKS.forEach(p=>{
-    p.campgrounds.forEach(cg=>{ cgSites(cg).forEach(sit=>{ const k=keyOf(p.id,cg.id,sit);
-        const e=state.site[k]||(state.site[k]={}); e.score=5; e.want=true; sites++; e.note='dummytext'+sites; });
-      const ck=cidOf(p.id,cg.id); const ce=state.campground[ck]||(state.campground[ck]={}); ce.score=5; cgs++; ce.note='dummytext'+cgs; });
-    const pk=cidOf(p.id,p.name); const pe=state.campground[pk]||(state.campground[pk]={}); pe.score=5; parks++; pe.note='dummytext'+parks;
-    (p.trails||[]).forEach(t=>{ const k=p.id+'#'+t.name; const te=state.trail[k]||(state.trail[k]={}); te.score=5; trails++; te.note='dummytext'+trails; });
-  });
-  try{ localStorage.setItem(UNLOCK_KEY,JSON.stringify(PARK_THEMES.map(t=>t.id).filter(id=>id!==EGG_ID))); }catch(e){}
-  persist(); renderParks();
-  showThemeToast('Everything maxed. A perfect season.');
-  return sites+' sites, '+cgs+' cgs, '+trails+' trails, '+parks+' parks, all themes';
-}
-function plantDummy(){
-  /* clear the previous batch first so every press is a fresh randomization */
-  const D=state.dummy||{site:[],campground:[],trail:[],themes:[],pins:[]};
-  D.site.forEach(k=>{ delete state.site[k]; });
-  D.campground.forEach(k=>{ delete state.campground[k]; });
-  D.trail.forEach(k=>{ delete state.trail[k]; });
-  if(Array.isArray(state.pins)) D.pins.forEach(pid=>{ const i=state.pins.indexOf(pid); if(i>=0) state.pins.splice(i,1); });
-  try{ const u=getUnlocks().filter(id=>D.themes.indexOf(id)<0); localStorage.setItem(UNLOCK_KEY,JSON.stringify(u)); }catch(e){}
-  const ND={site:[],campground:[],trail:[],themes:[],pins:[]};
-  const MK=[43.86,-79.34];
-  const skew=()=>{ const r=Math.random();
-    if(r<0.02) return 0; if(r<0.06) return 1; if(r<0.15) return 2; if(r<0.35) return 3; if(r<0.75) return 4; return 5; };
-  const shuffled=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-  const distMK=p=>{ const ll=PARK_LL[p.id]||[0,0]; return havKm(MK[0],MK[1],ll[0],ll[1]); };
-  const MUST=['grundy','mikisew','awenda','bonecho','silentlake','algonquincanisbay'];
-  const eligible=PARKS.filter(p=>!p.dayuse&&p.id!==EGG_ID&&p.campgrounds.some(c=>cgSites(c).length)).sort((a,b)=>distMK(a)-distMK(b));
-  const targetParks=Math.max(6, 5+Math.floor(Math.random()*6));
-  const chosen=[]; MUST.forEach(id=>{ const p=PARK_BY_ID[id]; if(p) chosen.push(p); });
-  for(const p of eligible){ if(chosen.length>=targetParks) break; if(chosen.indexOf(p)<0) chosen.push(p); }
-  let siteN=0; const cgKeys=[], ratedKeys=[], perPark={};
-  chosen.forEach(p=>{
-    let cgs=p.campgrounds.filter(c=>cgSites(c).length&&!/backcountry/i.test(c.id));
-    if(p.id==='grundy') cgs=cgs.filter(c=>/hemlock|jack/i.test(c.id));
-    else if(p.id==='bonecho') cgs=cgs.filter(c=>/hardwood/i.test(c.id));
-    else if(p.id==='awenda') cgs=cgs.filter(c=>/bear/i.test(c.id));
-    else if(p.id==='silentlake') cgs=[shuffled(cgs)[0]];
-    else if(p.id!=='algonquincanisbay') cgs=shuffled(cgs).slice(0, Math.min(cgs.length, 1+(Math.random()<0.45?1:0)));
-    if(!cgs.length) return;
-    const pool=[];
-    cgs.forEach(cg=>{ cgKeys.push(cidOf(p.id,cg.id)); const sites=cgSites(cg); const frac=0.25+Math.random()*0.65;
-      shuffled(sites).slice(0, Math.max(2, Math.round(sites.length*frac))).forEach(sit=>{
-        const k=keyOf(p.id,cg.id,sit);
-        if(sc('site',k)==null&&!state.site[k]){ state.site[k]={score:skew()}; ND.site.push(k); ratedKeys.push(['site',k]); siteN++;
-          perPark[p.id]=(perPark[p.id]||0)+1; }
-        pool.push(k); }); });
-    const wc=[0,1,1,2,2,3,4][Math.floor(Math.random()*7)];
-    shuffled(pool).slice(0,wc).forEach(k=>{ const e=state.site[k];
-      if(e&&ND.site.indexOf(k)>=0&&!e.want) e.want=true;
-      else if(!state.site[k]){ state.site[k]={want:true}; ND.site.push(k); } });
-  });
-  const ratedParks=Object.keys(perPark);
-  /* campground level ratings, 5-10 */
-  let cgN=0; shuffled(cgKeys).slice(0, 5+Math.floor(Math.random()*6)).forEach(k=>{
-    if(!state.campground[k]){ state.campground[k]={score:skew()}; ND.campground.push(k); ratedKeys.push(['campground',k]); cgN++; } });
-  /* trails, 5-20, from rated parks then outward */
-  const trailPool=[]; eligible.forEach(p=>{ if(ratedParks.indexOf(p.id)>=0||trailPool.length<40)
-    (p.trails||[]).forEach(t=>trailPool.push([p.id,p.id+'#'+t.name])); });
-  let trN=0; const trTarget=5+Math.floor(Math.random()*16);
-  shuffled(trailPool).slice(0,trTarget).forEach(pt=>{ const k=pt[1];
-    if(!state.trail[k]){ state.trail[k]={score:skew()}; ND.trail.push(k); ratedKeys.push(['trail',k]); trN++; perPark[pt[0]]=(perPark[pt[0]]||0)+1; } });
-  /* day use parks, 1-5 */
-  const dayers=PARKS.filter(p=>p.dayuse&&p.id!==EGG_ID).sort((a,b)=>distMK(a)-distMK(b));
-  let duN=0; dayers.slice(0, 1+Math.floor(Math.random()*5)).forEach(p=>{ const k=cidOf(p.id,p.name);
-    if(!state.campground[k]){ state.campground[k]={score:skew()}; ND.campground.push(k); ratedKeys.push(['campground',k]); duN++; perPark[p.id]=(perPark[p.id]||0)+1; } });
-  /* notes, 5-50, only on entries we planted */
-  let ntN=0; shuffled(ratedKeys).slice(0, 5+Math.floor(Math.random()*46)).forEach(bk=>{
-    const e=state[bk[0]][bk[1]]; if(e&&!e.note){ ntN++; e.note='dummytext'+ntN; } });
-  /* themes 5-50: rated parks first, then random fillers, never the egg */
-  const themeTarget=5+Math.floor(Math.random()*46);
-  const already=getUnlocks();
-  let themeIds=Object.keys(perPark).filter(id=>id!==EGG_ID&&THEME_BY_ID[id]);
-  shuffled(PARK_THEMES.map(t=>t.id)).forEach(id=>{ if(themeIds.length<themeTarget&&id!==EGG_ID&&themeIds.indexOf(id)<0) themeIds.push(id); });
-  themeIds=themeIds.slice(0,themeTarget);
-  const newlyUnlocked=themeIds.filter(id=>already.indexOf(id)<0);
-  try{ localStorage.setItem(UNLOCK_KEY,JSON.stringify(already.concat(newlyUnlocked))); }catch(e){}
-  ND.themes=newlyUnlocked;
-  /* pins: 3-5 of the most-rated parks */
-  if(!Array.isArray(state.pins)) state.pins=[];
-  const pinN=3+Math.floor(Math.random()*3);
-  Object.keys(perPark).sort((a,b)=>perPark[b]-perPark[a]).slice(0,pinN).forEach(pid=>{
-    if(state.pins.indexOf(pid)<0){ state.pins.push(pid); ND.pins.push(pid); } });
-  state.dummy=ND; persist(); renderParks();
-  showThemeToast('Dummy season planted.');
-  return siteN+' sites, '+cgN+' cgs, '+trN+' trails, '+duN+' dayuse, '+ntN+' notes, '+newlyUnlocked.length+' themes, '+ND.pins.length+' pins';
-}
-function makeDummyDataOld(){
-  const MK=[43.86,-79.34];
-  const skew=()=>{ const r=Math.random();
-    if(r<0.02) return 0; if(r<0.06) return 1; if(r<0.15) return 2; if(r<0.35) return 3; if(r<0.75) return 4; return 5; };
-  const shuffled=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-  const MUST=['grundy','mikisew','awenda','bonecho','silentlake','algonquincanisbay'];
-  const eligible=PARKS.filter(p=>!p.dayuse&&p.id!==EGG_ID&&p.campgrounds.some(c=>cgSites(c).length));
-  const byDist=eligible.slice().sort((a,b)=>{ const la=PARK_LL[a.id]||[0,0], lb=PARK_LL[b.id]||[0,0];
-    return havKm(MK[0],MK[1],la[0],la[1])-havKm(MK[0],MK[1],lb[0],lb[1]); });
-  const target=Math.ceil(PARKS.length*0.25);
-  const chosen=[]; MUST.forEach(id=>{ const p=PARK_BY_ID[id]; if(p) chosen.push(p); });
-  for(const p of byDist){ if(chosen.length>=target) break; if(chosen.indexOf(p)<0) chosen.push(p); }
-  let parksTouched=0, ratings=0, wishes=0;
-  chosen.forEach(p=>{
-    let cgs=p.campgrounds.filter(c=>cgSites(c).length&&!/backcountry/i.test(c.id));
-    if(p.id==='grundy') cgs=cgs.filter(c=>/hemlock|jack/i.test(c.id));
-    else if(p.id==='bonecho') cgs=cgs.filter(c=>/hardwood/i.test(c.id));
-    else if(p.id==='awenda') cgs=cgs.filter(c=>/bear/i.test(c.id));
-    else if(p.id==='silentlake') cgs=[shuffled(cgs)[0]];
-    else if(p.id==='algonquincanisbay'){ /* all */ }
-    else cgs=shuffled(cgs).slice(0, Math.min(cgs.length, 1+(Math.random()<0.45?1:0)));
-    if(!cgs.length) return;
-    let touched=false; const pool=[];
-    cgs.forEach(cg=>{ const sites=cgSites(cg); const frac=0.35+Math.random()*0.5;
-      shuffled(sites).slice(0, Math.max(2, Math.round(sites.length*frac))).forEach(sit=>{
-        const k=keyOf(p.id,cg.id,sit);
-        if(sc('site',k)==null){ state.site[k]=Object.assign(state.site[k]||{},{score:skew()}); ratings++; touched=true; }
-        pool.push(k); }); });
-    const wc=Math.random()<0.1?(3+(Math.random()<0.5?1:0)):(1+(Math.random()<0.4?1:0));
-    shuffled(pool).slice(0,wc).forEach(k=>{ const e=state.site[k]||(state.site[k]={});
-      if(!e.want){ e.want=true; wishes++; } });
-    if(touched) parksTouched++;
-  });
-  persist(); clearGSearch(); renderParks();
-  showThemeToast('Dummy data planted: '+ratings+' ratings, '+wishes+' wishlists, '+parksTouched+' parks.');
-  buzz(12);
 }
 function renderStats(){
   let sites=0,cgs=0,trails=0,dayuse=0,five=0,zero=0,notes=0,want=0,sum=0,n=0;
@@ -632,9 +462,7 @@ function renderStats(){
       sum+=sv; n++; if(sv===5) five++; if(sv===0) zero++; } });
   let topPid=null; for(const pid in perPark) if(topPid==null||perPark[pid]>perPark[topPid]) topPid=pid;
   const topName=topPid&&PARK_BY_ID[topPid]?PARK_BY_ID[topPid].name+' ('+perPark[topPid]+')':'none yet';
-  const unlocked=getUnlocks().length, totalThemes=PARK_THEMES.length;
   renderConsole('statsearch',[
-    ['themes_unlocked',(unlocked+1)+' / '+totalThemes],
     ['parks_rated',parks.size],
     ['campgrounds_rated',cgs],
     ['sites_rated',sites],
@@ -651,7 +479,7 @@ function renderStats(){
     ['most_scouted',topName]
   ]);
 }
-function gotoResult(r){ if(r.parkId===EGG_ID&&!eggFound()) revealEgg();
+function gotoResult(r){
   /* the park replaces the search screen and back returns to the tab the
      search began on (Parks when that was not a list of parks) */
   var hostTab=(LAST_TAB_BEFORE_SEARCH==='favs'||LAST_TAB_BEFORE_SEARCH==='journal')?LAST_TAB_BEFORE_SEARCH:'guide';
@@ -677,10 +505,6 @@ function parkTouchInfo(p){
 /* recency stamp so My parks and the Journal can lead with the latest park */
 function touchPark(pid){ if(!state.touched||typeof state.touched!=='object') state.touched={}; state.touched[pid]=Date.now(); }
 
-var PARK_LL={"aaron":[49.77,-92.62],"algonquinachray":[45.87,-77.72],"algonquinbrent":[46.03,-78.49],"algonquincanisbay":[45.57,-78.62],"algonquinkearney":[45.54,-78.45],"algonquinkiosk":[46.09,-78.88],"algonquinmew":[45.57,-78.52],"algonquinpog":[45.57,-78.44],"algonquinraccoon":[45.53,-78.42],"algonquinrock":[45.50,-78.40],"algonquintea":[45.53,-78.70],"algonquintworivers":[45.58,-78.48],"arrowhead":[45.39,-79.20],"awenda":[44.85,-79.99],"balsamlake":[44.65,-78.93],"basslake":[44.60,-79.47],"batchawanabay":[46.93,-84.61],"bluelake":[49.86,-93.42],"bonecho":[44.90,-77.20],"bonnechere":[45.68,-77.55],"boynevalley":[44.13,-80.13],"brontecreek":[43.41,-79.77],"caliperlake":[49.06,-93.91],"charlestonlake":[44.50,-76.03],"chutes":[46.22,-81.76],"craigleith":[44.54,-80.34],"darlington":[43.87,-78.77],"devilsglen":[44.36,-80.18],"driftwood":[46.20,-77.85],"earlrowe":[44.15,-79.90],"emily":[44.38,-78.53],"eskerlakes":[48.32,-79.88],"fairbank":[46.47,-81.45],"ferris":[44.28,-77.79],"finlaysonpoint":[47.31,-79.79],"fitzroy":[45.47,-76.21],"forksofthecredit":[43.80,-80.01],"frenchriver":[46.02,-80.58],"frontenac":[44.55,-76.53],"fushimilake":[49.83,-83.92],"grundy":[45.93,-80.55],"halfwaylake":[46.90,-81.63],"inverhuron":[44.29,-81.58],"ivanhoelake":[48.13,-82.53],"johnepearce":[42.63,-81.47],"kakabekafalls":[48.40,-89.62],"kawarthahighlands":[44.73,-78.18],"kettlelakes":[48.57,-80.87],"killarney":[46.02,-81.40],"killbear":[45.36,-80.21],"komoka":[42.96,-81.42],"lakestpeter":[45.32,-78.03],"lakesuperior":[47.35,-84.63],"longpoint":[42.58,-80.39],"macgregorpoint":[44.40,-81.44],"macleod":[49.72,-86.95],"makobegrays":[47.90,-80.50],"mara":[44.60,-79.28],"markburnham":[44.31,-78.26],"martenriver":[46.73,-79.79],"mcraepoint":[44.60,-79.30],"mikisew":[45.83,-79.38],"miserybay":[45.79,-82.75],"missinaibi":[48.35,-83.68],"mississagi":[46.72,-82.66],"monocliffs":[44.03,-80.06],"murphyspoint":[44.78,-76.43],"nagagamisis":[49.47,-84.68],"neys":[48.78,-86.60],"northbeach":[43.94,-77.55],"oastlerlake":[45.29,-80.04],"obabikariver":[47.05,-80.15],"ojibway":[49.97,-92.14],"ouimetcanyon":[48.77,-88.67],"oxtongueriver":[45.41,-78.89],"pakwash":[50.77,-93.43],"pancakebay":[46.97,-84.70],"petroglyphs":[44.62,-78.05],"pigeonriver":[48.00,-89.58],"pinery":[43.25,-81.83],"pointfarms":[43.81,-81.71],"portbruce":[42.65,-81.01],"portburwell":[42.65,-80.81],"potholes":[47.96,-84.27],"presquile":[44.00,-77.73],"queenelizabethii":[44.83,-78.72],"quetico":[48.68,-91.13],"rainbowfalls":[48.84,-87.40],"renebrunelle":[49.42,-82.18],"restoule":[46.06,-79.78],"rideauriver":[45.13,-75.65],"rockpoint":[42.85,-79.54],"rondeau":[42.29,-81.85],"rushingriver":[49.68,-94.22],"samueldechamplain":[46.28,-78.92],"sandbanks":[43.90,-77.24],"sandbarlake":[49.62,-91.55],"saublefalls":[44.68,-81.26],"selkirk":[42.83,-79.94],"sharbotlake":[44.77,-76.69],"shorthills":[43.10,-79.28],"sibbaldpoint":[44.32,-79.33],"silentlake":[44.91,-78.06],"silverfalls":[48.58,-89.62],"silverlake":[44.83,-76.58],"siouxnarrows":[49.40,-94.07],"sixmilelake":[44.90,-79.77],"sleepinggiant":[48.34,-88.90],"solace":[47.10,-80.30],"spanishriver":[46.85,-81.90],"springwater":[44.43,-79.73],"sturgeonbay":[45.59,-80.42],"sturgeonriver":[46.87,-80.05],"themassasauga":[45.19,-80.05],"tidewater":[51.26,-80.63],"turkeypoint":[42.71,-80.33],"voyageur":[45.59,-74.52],"wabakimi":[50.60,-89.80],"wakamilake":[47.65,-82.80],"wasagabeach":[44.52,-80.02],"wheatley":[42.09,-82.45],"whitelake":[48.76,-85.76],"windylake":[46.61,-81.45],"woodlandcaribou":[51.10,-94.80]};
-function havKm(a,b,c,d){ var R=6371,dl=(c-a)*Math.PI/180,dg=(d-b)*Math.PI/180;
-  var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dg/2)*Math.sin(dg/2);
-  return 2*R*Math.asin(Math.sqrt(x)); }
 function broadOf(p){ return (p.region||'').split(' \u00b7 ')[0].replace(' Park','').trim()||'Other'; }
 function regionOrder(){ const found=new Set(PARKS.map(broadOf));
   const order=['All','Algonquin','Central','Near North','Northern','Southeast','Southwest'].filter(r=>r==='All'||found.has(r));
@@ -794,7 +618,7 @@ function parkSubLine(p,st){
   const town=(p.region||'').split(' · ').slice(1).join(' · ');
   return TL(broadOf(p))+(town?' · '+town:''); }
 function renderFavs(){ const box=document.getElementById('favsBody'); if(!box) return;
-  const visible=PARKS.filter(parkVisible), info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
+  const visible=PARKS, info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
   const favParks=visible.filter(p=>isFav('parks',p.id)).sort((a,b)=>a.name.localeCompare(b.name));
   const vis=new Set(visitedParkIds()), visited=visible.filter(p=>vis.has(p.id))
@@ -826,8 +650,8 @@ function parkRowHtml(p,st,sub,value){
     (value?'<span class="ios-row-value tnum">'+value+'</span>':'')+CHEV_RIGHT+'</button>';
 }
 function renderParks(){ const box=document.getElementById('parkList'); if(!box) return; box.innerHTML='';
-  if(!PARKS.length){ box.innerHTML=`<div class="empty" style="border:1px solid var(--separator);border-radius:var(--r);background:var(--bg-elevated);padding:26px 18px">${TL('Park data could not be loaded.')}<br>${TL('Check your connection and reopen the app.')}</div>`; renderAzRail([]); return; }
-  const visible=PARKS.filter(parkVisible);
+  if(!PARKS.length){ box.innerHTML=`<div class="empty" style="border:1px solid var(--separator);border-radius:var(--r);background:var(--bg-elevated);padding:26px 18px">${TL('Park data could not be loaded.')}<br>${TL(IN_APP?'Reinstall the app from the App Store.':'Check your connection and reopen the app.')}</div>`; renderAzRail([]); return; }
+  const visible=PARKS;
   const info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
   let html='';
@@ -890,7 +714,7 @@ let curPark=null; var homeScrollY=0;
 var parkHost='view-parks';
 var PARK_HOST_LABEL={'view-parks':'All Parks','view-favs':'Favourites','view-journal':'Journal'};
 function renderParkHost(){ if(parkHost==='view-favs') renderFavs(); else if(parkHost==='view-journal') renderJournal(); else { clearGSearch(); renderParks(); } }
-function facilChip(name){ return `<span class="facil"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-10"/></svg>${name}</span>`; }
+function facilChip(name){ return `<span class="facil"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-10"/></svg>${TL(name)}</span>`; }
 function openPark(pid,host){
   const vpark=document.getElementById('view-park');
   if(host&&PARK_HOST_LABEL[host]) parkHost=host; else if(vpark.hidden) parkHost='view-parks';   /* a re-render keeps its host */
@@ -902,7 +726,7 @@ function openPark(pid,host){
         <div class="blurb">${p.blurb}</div>
         <div class="facils">${p.facilities.map(facilChip).join('')}</div>
         <div class="fishing"><b>${TL('Fishing')}:</b> ${p.fishing}</div>
-        ${(m=>m?`<a class="fmz" href="${FISHREG_BASE}#zone=${m[1]}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>FMZ ${m[1]} - ONfishingreg \u2197</a>`:`<div class="fmz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>${p.fmz}</div>`)((p.fmz||'').match(/FMZ\s*(\d+)/))}
+        ${(m=>m?`<a class="fmz" href="${FISHREG_BASE}#zone=${m[1]}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>${TL('Fishing zone')} ${m[1]} \u2197</a>`:`<div class="fmz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12c-4 4-8 4-14 0 6-4 10-4 14 0Zm0 0 3-3m-3 3 3 3"/><circle cx="8.5" cy="11.5" r=".5" fill="currentColor"/></svg>${p.fmz}</div>`)((p.fmz||'').match(/FMZ\s*(\d+)/))}
                 <a class="fmz" href="${p.url}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4 10 14"/><path d="M9 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg>${TL('Official park page')} \u2197</a>
       </div>
     </div>
@@ -961,6 +785,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   const pb=document.getElementById('resetBtnPark');
   if(pb){ let armed=false, t=null;
     window.parkResetSync=function(){ armed=false; clearTimeout(t); pb.classList.remove('armed');
+      pb.hidden=!(curPark&&parkHasData(curPark.id));
       pb.textContent=curPark?(LANG==='fr'?('Réinitialiser les données pour '+curPark.name):('Reset '+curPark.name+' data')):''; };
     pb.addEventListener('click',async function(){ if(!curPark) return;
       if(!armed){ armed=true; pb.classList.add('armed'); pb.textContent=TL('Tap again to erase this park');
@@ -982,7 +807,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
     var data={}; BK_KEYS.forEach(function(k){ try{ var v=localStorage.getItem(k); if(v!=null) data[k]=v; }catch(e){} });
     return {app:'site-journal',format:1,appVersion:APP_VERSION,exported:new Date().toISOString(),data:data,photos:photos}; }); }
   function backupName(){ var d=new Date(); function p(n){ return (n<10?'0':'')+n; }
-    return 'site-journal-backup-'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.json'; }
+    return 'on-site-backup-'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.json'; }
   function exportDone(){ showThemeToast(TL('Backup exported. Keep it somewhere safe.')); }
   function downloadFile(file){ if(window.Capacitor){ showThemeToast('Sharing is not available right now. Try again.'); return; }
     var url=URL.createObjectURL(file); var a=document.createElement('a'); a.href=url; a.download=file.name;
@@ -1009,7 +834,7 @@ document.getElementById('backBtn').addEventListener('click',function(){
   fi.addEventListener('change',function(){
     var f=fi.files&&fi.files[0]; if(!f) return;
     f.text().then(function(txt){ var p=null; try{ p=JSON.parse(txt); }catch(e){}
-      if(!p||p.app!=='site-journal'||!p.data||typeof p.data['ontario-scout-v2']!=='string'){ showThemeToast('That file is not a Site Journal backup.'); return; }
+      if(!p||p.app!=='site-journal'||!p.data||typeof p.data['ontario-scout-v2']!=='string'){ showThemeToast('That file is not an on-site backup.'); return; }
       var n=0; try{ var s=JSON.parse(p.data['ontario-scout-v2']), rv=!!(s&&s.gear==='rv');
         ['site','campground','trail'].forEach(function(t){ var m=s&&s[t]||{}; for(var k in m){ var e=m[k]; if(e&&typeof e.score==='number'&&(t!=='site'||rv||!e.trailer)) n++; } }); }catch(e){}
       pendingPayload=p; importRows.forEach(function(b){ b.classList.add('armed'); });
@@ -1154,6 +979,11 @@ function wireParkControls(){
     const lbl=fb.querySelector('.favpill-t'); if(lbl) lbl.textContent=on?TL('Favourited'):TL('Favourite');
     buzz(9); renderParks(); }); }
 }
+/* anything this park holds that Reset would erase: a rating, note or mark, or a photo */
+function parkHasData(pid){ var pre=pid+'#', hit=false;
+  ['site','campground','trail'].forEach(function(b){ var o=state[b]||{}; for(var k in o){ if(k.indexOf(pre)===0){ hit=true; break; } } });
+  if(!hit) photoKeys.forEach(function(k){ if(String(k).indexOf(pre)===0) hit=true; });
+  return hit; }
 async function wipeParkData(pid){
   ['site','campground','trail'].forEach(b=>{ if(!state[b]) return;
     Object.keys(state[b]).forEach(k=>{ if(k.indexOf(pid+'#')===0) delete state[b][k]; }); });
@@ -1211,7 +1041,7 @@ function sheetA11yOpen(sheetEl){ if(!sheetEl) return;
   setTimeout(function(){
     if(!sheetEl.classList.contains('on')) return;
     if(sheetEl.contains(document.activeElement)) return;
-    var f=sheetEl.querySelector('button:not([disabled]),input:not([type=hidden]):not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])');
+    var f=sheetEl.hasAttribute('data-focus-self')?null:sheetEl.querySelector('button:not([disabled]),input:not([type=hidden]):not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])');
     if(!f){ f=sheetEl; if(!f.hasAttribute('tabindex')) f.setAttribute('tabindex','-1'); }
     try{ f.focus({preventScroll:true}); }catch(e){ try{ f.focus(); }catch(e2){} }
   },60); }
@@ -1515,7 +1345,7 @@ document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e
   window.clearBtnSync=disarm;   // reset when the sheet reopens on another item
   cb.addEventListener('click',()=>{
     // Nothing saved for this item, so there is nothing to clear.
-    if(!state[cur.type] || !state[cur.type][cur.k]){ return; }
+    if(!state[cur.type] || !state[cur.type][cur.k]){ showThemeToast(TL('Nothing to clear yet.'),null,1800); return; }
     if(!armed){ armed=true; cb.classList.add('armed'); cb.textContent=TL('Tap again to clear');
       t=setTimeout(disarm,4000); return; }
     disarm();
@@ -1528,21 +1358,9 @@ document.getElementById('d-notes').addEventListener('input',e=>{ autoGrowNotes(e
 document.getElementById('doneBtn').addEventListener('click',closeSheet);
 backdrop.addEventListener('click',closeSheet);
 
-/* ---- share a review (park / campground / site / trail) ------------------
-   Builds a self-contained item so the whole review travels inside a
-   #/shared/<data> link. share.js renders the card and opens the share sheet;
-   the recipient sees the same card. No server, nothing tracked. */
+/* ---- a review someone shared from an older version (#/shared/<data>) ----
+   share.js draws the same card the sender saw. No server, nothing tracked. */
 function fmtMonthYear(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(LANG==='fr'?'fr-CA':undefined,{month:'long',year:'numeric'}); }
-function reviewShareItem(){
-  var type=cur.type, k=cur.k, score=sc(type,k), note=noteOf(type,k), kind, title, sub='';
-  if(type==='site'){ kind='site'; title=curPark.name; sub=TL('Site')+' '+cur.site+(cur.cg&&cur.cg!==curPark.name?(' · '+cur.cg):''); }
-  else if(type==='trail'){ kind='trail'; title=cur.cg; sub=curPark.name; }
-  else { var isPark=(cur.cg===curPark.name); kind=isPark?'park':'campground'; title=curPark.name;
-    sub=isPark?((curPark.region||'').split(' · ').slice(1).join(' · ')):cur.cg; }
-  return { t:'camp-review', kind:kind, title:title, sub:sub,
-    score:(score!=null?score:null), note:note?(Array.from(note).length>200?Array.from(note).slice(0,197).join('')+'…':note):'',
-    want:(type==='site'?wantOf(k):false), when:new Date().toISOString() };
-}
 function campCard(it){
   var kicker=it.kind==='site'?TL('Site review'):it.kind==='trail'?TL('Trail review'):it.kind==='park'?TL('Park review'):TL('Campground review');
   var emoji=it.kind==='trail'?'🥾':'🏕️';
@@ -1553,17 +1371,6 @@ function campCard(it){
   return { eyebrow:'on-site', kicker:kicker, emoji:emoji, title:it.title, subtitle:sub,
     chips:chips.slice(0,4), meta:(it.when?(TL('Reviewed')+' '+fmtMonthYear(it.when)):'') };
 }
-function shareReview(){
-  if(!cur.type||!cur.k) return;
-  var score=sc(cur.type,cur.k), note=noteOf(cur.type,cur.k), want=(cur.type==='site'&&wantOf(cur.k));
-  if(score==null && !note && !want){ if(typeof showThemeToast==='function') showThemeToast(TL('Add a rating or a note first')); return; }
-  if(!window.OnShare){ if(typeof showThemeToast==='function') showThemeToast('Sharing is not available'); return; }
-  var item=reviewShareItem();
-  OnShare.share({ card:campCard(item), item:item,
-    text:(LANG==='fr'?'Mon avis sur ':'My review of ')+item.title+((item.sub&&item.sub!==item.title)?(' ('+item.sub+')'):'')+(LANG==='fr'?' sur on-site.':' on on-site.') })
-    .then(function(r){ if(r==='fallback' && typeof showThemeToast==='function') showThemeToast('Link copied, card saved'); });
-}
-
 /* ---- receive a shared review (#/shared/<data>) ---- */
 function showShared(item){
   ['view-parks','view-park','view-favs','view-journal','view-more','view-account','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
@@ -1583,13 +1390,14 @@ function showShared(item){
   var ex=document.getElementById('sh-explore'); if(ex) ex.onclick=function(){ history.replaceState(null,'',location.pathname+location.search); showTab('guide'); };
   try{ window.scrollTo(0,0); }catch(e){}
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){
-  /* Escape must dismiss every overlay, not only the rate sheet, or a
-     keyboard user is trapped under an open legal or versions sheet */
+/* every overlay at once: the rate sheet, the photo viewer, legal, versions */
+function closeOverlays(){
   closeSheet(); document.getElementById('lightbox').classList.remove('on');
-  if(typeof closeLegal==='function'){ var ls=document.getElementById('legalSheet'); if(ls&&ls.classList.contains('on')) closeLegal(); }
-  if(typeof closeVersions==='function'){ var vs=document.getElementById('versionsSheet'); if(vs&&vs.classList.contains('on')) closeVersions(); }
-} });
+  var ls=document.getElementById('legalSheet'); if(ls&&ls.classList.contains('on')) closeLegal();
+  var vs=document.getElementById('versionsSheet'); if(vs&&vs.classList.contains('on')) closeVersions(); }
+/* Escape must dismiss every overlay, not only the rate sheet, or a keyboard
+   user is trapped under an open legal or versions sheet */
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeOverlays(); });
 /* the favourite heart is a role=button span, so Enter/Space do not fire a
    click on their own: wire them to the same toggle as the pointer path */
 document.addEventListener('keydown',function(ev){
@@ -1621,7 +1429,7 @@ function openLightbox(src){ var im=document.getElementById('lightboxImg'); im.sr
 document.getElementById('lightbox').addEventListener('click',()=>document.getElementById('lightbox').classList.remove('on'));
 
 /* ================= progress + glance ================= */
-function updatePark(){ renderParkStats(); renderParkProgress(); }
+function updatePark(){ renderParkStats(); renderParkProgress(); if(window.parkResetSync) parkResetSync(); }
 /* How much of this park you have actually walked and rated. A real fraction of a
    real number of sites, so the gap is honest, and the gap is what brings you back
    to finish the loop. Hidden until there is something to show: "0 of 212" on
@@ -1685,171 +1493,6 @@ async function renderGlance(){ const p=curPark; if(!p) return;
     : `<li class="empty">${TL('No sites rated yet.')}</li>`;
   ts.querySelectorAll('li[data-key]').forEach(li=>li.addEventListener('click',()=>{ const parts=li.dataset.key.split('#'); openSheet('site',li.dataset.key,parts[1],parts.slice(2).join('#')); })); }
 
-/* ================= unlockable park themes ================= */
-/* Universal token system: every theme fills the SAME variable slots, generated
-   from three seed colours (paper, ink, primary) so contrast stays consistent. */
-var THEME_KEY='site-journal-theme', VARS_KEY='site-journal-theme-vars', UNLOCK_KEY='site-journal-unlocks';
-var FOREST={id:'forest',name:'Default',paper:'#F1F6F1',ink:'#0F1F17',primary:'#00753A'};
-var PARK_THEMES=[ /* all light or medium and bold; the Wildlands alone keeps the dark */
-  {id:'aaron', name:'Aaron', paper:'#F1F6F1', ink:'#0F1F17', primary:'#2E6FB0'},
-  {id:'algonquinachray', name:'Achray', paper:'#F1F6F1', ink:'#0F1F17', primary:'#B2571A'},
-  {id:'arrowhead', name:'Arrowhead', paper:'#F1F6F1', ink:'#0F1F17', primary:'#7A4FB0'},
-  {id:'awenda', name:'Awenda', paper:'#F1F6F1', ink:'#0F1F17', primary:'#0E8A8A'},
-  {id:'balsamlake', name:'Balsam Lake', paper:'#F3F4F7', ink:'#191F2E', primary:'#344E98'},
-  {id:'basslake', name:'Bass Lake', paper:'#F3F4F7', ink:'#19222E', primary:'#345D98'},
-  {id:'batchawanabay', name:'Batchawana Bay', paper:'#EBF2F5', ink:'#17262B', primary:'#2C738C'},
-  {id:'bluelake', name:'Blue Lake', paper:'#EBF3F8', ink:'#1D2A33', primary:'#146EB8'},
-  {id:'bonecho', name:'Bon Echo', paper:'#EBF0F5', ink:'#17212B', primary:'#325D85'},
-  {id:'bonnechere', name:'Bonnechere', paper:'#F3F7F6', ink:'#192E29', primary:'#39937D'},
-  {id:'boynevalley', name:'Boyne Valley', paper:'#F3F7F3', ink:'#1C2E19', primary:'#479339'},
-  {id:'algonquinbrent', name:'Brent', paper:'#F7F5F3', ink:'#2E2519', primary:'#986B34'},
-  {id:'brontecreek', name:'Bronte Creek', paper:'#F2F0F7', ink:'#20192E', primary:'#513097'},
-  {id:'caliperlake', name:'Caliper Lake', paper:'#F0F2F7', ink:'#191F2E', primary:'#2448A3'},
-  {id:'algonquincanisbay', name:'Canisbay', paper:'#F0F5F7', ink:'#19272E', primary:'#1E7BA9'},
-  {id:'charlestonlake', name:'Charleston Lake', paper:'#F0F2F7', ink:'#19202E', primary:'#244CA3'},
-  {id:'chutes', name:'Chutes', paper:'#F5F7F0', ink:'#272E19', primary:'#79A324'},
-  {id:'craigleith', name:'Craigleith', paper:'#F7F0F6', ink:'#2E192C', primary:'#913686'},
-  {id:'darlington', name:'Darlington', paper:'#F7F0F0', ink:'#2E1919', primary:'#9D2A2B'},
-  {id:'devilsglen', name:'Devils Glen', paper:'#F6F7F0', ink:'#2D2E19', primary:'#99A324'},
-  {id:'driftwood', name:'Driftwood', paper:'#F0F0F7', ink:'#1A192E', primary:'#2E2A9D'},
-  {id:'earlrowe', name:'Earl Rowe', paper:'#F0F7F2', ink:'#192E1E', primary:'#1EA93B'},
-  {id:'emily', name:'Emily', paper:'#F0F7F5', ink:'#192E27', primary:'#2A9D76'},
-  {id:'eskerlakes', name:'Esker Lakes', paper:'#F2F0F6', ink:'#272334', primary:'#4C3E8E'},
-  {id:'fairbank', name:'Fairbank', paper:'#F1F7F0', ink:'#1B2E19', primary:'#379D2A'},
-  {id:'ferris', name:'Ferris', paper:'#F7F4F0', ink:'#2E2519', primary:'#A36E24'},
-  {id:'finlaysonpoint', name:'Finlayson Point', paper:'#ECF6F5', ink:'#192E2C', primary:'#1C9B8E'},
-  {id:'fitzroy', name:'Fitzroy', paper:'#EFEBF5', ink:'#21172B', primary:'#5A3285'},
-  {id:'forksofthecredit', name:'Forks of the Credit', paper:'#F2F6EC', ink:'#262E19', primary:'#6AA216'},
-  {id:'frenchriver', name:'French River', paper:'#EBF0F5', ink:'#17222B', primary:'#235E95'},
-  {id:'frontenac', name:'Frontenac', paper:'#F5EBF4', ink:'#2B172B', primary:'#853283'},
-  {id:'fushimilake', name:'Fushimi Lake', paper:'#EDEBF5', ink:'#1C172B', primary:'#422C8C'},
-  {id:'grundy', name:'Grundy Lake', paper:'#FBF3DF', ink:'#241A08', primary:'#B4700A'},
-  {id:'halfwaylake', name:'Halfway Lake', paper:'#EBEEF5', ink:'#171E2B', primary:'#294D8F'},
-  {id:'inverhuron', name:'Inverhuron', paper:'#F6ECEC', ink:'#2E1919', primary:'#9B1C1F'},
-  {id:'ivanhoelake', name:'Ivanhoe Lake', paper:'#ECF0F6', ink:'#19212E', primary:'#164CA2'},
-  {id:'johnepearce', name:'John E. Pearce', paper:'#F3F5EB', ink:'#272B17', primary:'#7A8F29'},
-  {id:'kakabekafalls', name:'Kakabeka Falls', paper:'#ECF3F6', ink:'#19292E', primary:'#1280A5'},
-  {id:'kawarthahighlands', name:'Kawartha Highlands', paper:'#EBF3F5', ink:'#17272B', primary:'#327685'},
-  {id:'algonquinkearney', name:'Kearney Lake', paper:'#EBEFF5', ink:'#17202B', primary:'#29568F'},
-  {id:'kettlelakes', name:'Kettle Lakes', paper:'#EBF5ED', ink:'#172B1B', primary:'#328542'},
-  {id:'killarney', name:'Killarney', paper:'#F6FAFA', ink:'#1D2B2E', primary:'#22A3B4'},
-  {id:'killbear', name:'Killbear', paper:'#EBEBF5', ink:'#17192B', primary:'#2E348A'},
-  {id:'algonquinkiosk', name:'Kiosk', paper:'#ECF6F0', ink:'#192E21', primary:'#12A54B'},
-  {id:'komoka', name:'Komoka', paper:'#ECF6F2', ink:'#192E25', primary:'#1C9B64'},
-  {id:'algonquintworivers', name:'Lake of Two Rivers', paper:'#EBF3F5', ink:'#17282B', primary:'#297F8F'},
-  {id:'lakestpeter', name:'Lake St. Peter', paper:'#ECF0F6', ink:'#19222E', primary:'#1652A2'},
-  {id:'lakesuperior', name:'Lake Superior', paper:'#EBF1F5', ink:'#17242B', primary:'#2D678B'},
-  {id:'longpoint', name:'Long Point', paper:'#EBF5F3', ink:'#172B27', primary:'#2E8A77'},
-  {id:'macgregorpoint', name:'MacGregor Point', paper:'#ECF6F5', ink:'#192E2D', primary:'#1C9B90'},
-  {id:'macleod', name:'MacLeod', paper:'#ECF6EC', ink:'#192E19', primary:'#1F9B1C'},
-  {id:'makobegrays', name:'Makobe-Grays', paper:'#F5F2EB', ink:'#2C2921', primary:'#A86224'},
-  {id:'mara', name:'Mara', paper:'#F6F1EC', ink:'#2E2419', primary:'#A26016'},
-  {id:'markburnham', name:'Mark S. Burnham', paper:'#EFECF6', ink:'#1F192E', primary:'#452494'},
-  {id:'martenriver', name:'Marten River', paper:'#EBF3F5', ink:'#17282B', primary:'#29818F'},
-  {id:'mcraepoint', name:'McRae Point', paper:'#ECF6F4', ink:'#192E2A', primary:'#1C9B84'},
-  {id:'algonquinmew', name:'Mew Lake', paper:'#ECEFF6', ink:'#19202E', primary:'#1644A2'},
-  {id:'mikisew', name:'Mikisew', paper:'#EFF5EB', ink:'#1F2B17', primary:'#538F29'},
-  {id:'miserybay', name:'Misery Bay', paper:'#ECF2F6', ink:'#19262E', primary:'#126BA5'},
-  {id:'missinaibi', name:'Missinaibi', paper:'#EBF3F5', ink:'#17282B', primary:'#2B7B8D'},
-  {id:'mississagi', name:'Mississagi', paper:'#F5EBF4', ink:'#2B172A', primary:'#85327F'},
-  {id:'monocliffs', name:'Mono Cliffs', paper:'#F6ECED', ink:'#2E191A', primary:'#9B1C25'},
-  {id:'murphyspoint', name:'Murphys Point', paper:'#ECF6F4', ink:'#192E2B', primary:'#1C9B86'},
-  {id:'nagagamisis', name:'Nagagamisis', paper:'#F3F5EB', ink:'#282B17', primary:'#7F8F29'},
-  {id:'neys', name:'Neys', paper:'#ECEEF6', ink:'#191D2E', primary:'#1C329B'},
-  {id:'northbeach', name:'North Beach', paper:'#F6F5EC', ink:'#2E2B19', primary:'#A48F14'},
-  {id:'oastlerlake', name:'Oastler Lake', paper:'#F5EFEB', ink:'#2B2117', primary:'#99591F'},
-  {id:'obabikariver', name:'Obabika River', paper:'#EBF5ED', ink:'#172B1C', primary:'#328547'},
-  {id:'ojibway', name:'Ojibway', paper:'#ECF6F0', ink:'#192E21', primary:'#12A549'},
-  {id:'ouimetcanyon', name:'Ouimet Canyon', paper:'#EBEFF5', ink:'#17212B', primary:'#325A85'},
-  {id:'pakwash', name:'Pakwash', paper:'#ECF6F3', ink:'#192E27', primary:'#1C9B71'},
-  {id:'pancakebay', name:'Pancake Bay', paper:'#F7F1E3', ink:'#33291A', primary:'#C08A2E'},
-  {id:'petroglyphs', name:'Petroglyphs', paper:'#F5F1EB', ink:'#2B2417', primary:'#8E682A'},
-  {id:'pigeonriver', name:'Pigeon River', paper:'#ECF4F6', ink:'#192A2E', primary:'#1683A2'},
-  {id:'pinery', name:'Pinery', paper:'#ECF3EB', ink:'#1F2F1E', primary:'#2E7A3D'},
-  {id:'algonquinpog', name:'Pog Lake', paper:'#EBEDF5', ink:'#171C2B', primary:'#29428F'},
-  {id:'pointfarms', name:'Point Farms', paper:'#ECF6F5', ink:'#192E2C', primary:'#1C9B8A'},
-  {id:'portbruce', name:'Port Bruce', paper:'#EDF6EC', ink:'#1A2E19', primary:'#259B1C'},
-  {id:'portburwell', name:'Port Burwell', paper:'#F5EEEB', ink:'#2B1E17', primary:'#8F4E29'},
-  {id:'potholes', name:'Potholes', paper:'#F0ECF6', ink:'#22192E', primary:'#502494'},
-  {id:'queenelizabethii', name:'QE II Wildlands', paper:'#0C120E', ink:'#DDE7DF', primary:'#2F6B4F', dark:true},
-  {id:'quetico', name:'Quetico', paper:'#F3F5EB', ink:'#292B17', primary:'#7A8532'},
-  {id:'algonquinraccoon', name:'Raccoon Lake', paper:'#ECEEF6', ink:'#191E2E', primary:'#1636A2'},
-  {id:'oxtongueriver', name:'Ragged Falls', paper:'#ECF3F6', ink:'#19282E', primary:'#127CA5'},
-  {id:'rainbowfalls', name:'Rainbow Falls', paper:'#F5F1F4', ink:'#2C242B', primary:'#923A79'},
-  {id:'renebrunelle', name:'Rene Brunelle', paper:'#F2F6EC', ink:'#262E19', primary:'#6CA216'},
-  {id:'restoule', name:'Restoule', paper:'#F6ECF4', ink:'#2E192B', primary:'#8D2A7E'},
-  {id:'rideauriver', name:'Rideau River', paper:'#EBF5F4', ink:'#172B2B', primary:'#298F8C'},
-  {id:'algonquinrock', name:'Rock Lake', paper:'#ECEFF6', ink:'#191F2E', primary:'#425175'},
-  {id:'rockpoint', name:'Rock Point', paper:'#F1F2F3', ink:'#26292C', primary:'#51647B'},
-  {id:'rondeau', name:'Rondeau', paper:'#F5EBEC', ink:'#2B171A', primary:'#8A2E3D'},
-  {id:'rushingriver', name:'Rushing River', paper:'#ECF4F6', ink:'#192A2E', primary:'#1688A2'},
-  {id:'samueldechamplain', name:'Samuel de Champlain', paper:'#F5F6EC', ink:'#2D2E19', primary:'#99A216'},
-  {id:'sandbanks', name:'Sandbanks', paper:'#F8F4E8', ink:'#2E2A1C', primary:'#C9A143'},
-  {id:'sandbarlake', name:'Sandbar Lake', paper:'#F7F3E6', ink:'#2D2A1C', primary:'#A88024'},
-  {id:'saublefalls', name:'Sauble Falls', paper:'#EBF2F5', ink:'#17252B', primary:'#2C718C'},
-  {id:'selkirk', name:'Selkirk', paper:'#EBECF5', ink:'#171B2B', primary:'#2E3E8A'},
-  {id:'sharbotlake', name:'Sharbot Lake', paper:'#ECEFF6', ink:'#19202E', primary:'#1646A2'},
-  {id:'shorthills', name:'Short Hills', paper:'#ECF6F0', ink:'#192E22', primary:'#12A54E'},
-  {id:'sibbaldpoint', name:'Sibbald Point', paper:'#EBF5F3', ink:'#172B29', primary:'#2E8A7F'},
-  {id:'silentlake', name:'Silent Lake', paper:'#ECEFF6', ink:'#191F2E', primary:'#163BA2'},
-  {id:'silverfalls', name:'Silver Falls', paper:'#F2F4F4', ink:'#26292B', primary:'#476985'},
-  {id:'silverlake', name:'Silver Lake', paper:'#F2F3F5', ink:'#272B31', primary:'#4E6C7E'},
-  {id:'siouxnarrows', name:'Sioux Narrows', paper:'#ECF6F1', ink:'#192E24', primary:'#1C9B5D'},
-  {id:'sixmilelake', name:'Six Mile Lake', paper:'#ECEDF6', ink:'#191C2E', primary:'#162BA2'},
-  {id:'sleepinggiant', name:'Sleeping Giant', paper:'#EBEDF5', ink:'#171C2B', primary:'#324785'},
-  {id:'solace', name:'Solace', paper:'#EBEEF5', ink:'#171D2B', primary:'#304A87'},
-  {id:'spanishriver', name:'Spanish River', paper:'#ECF2F6', ink:'#19272E', primary:'#166EA2'},
-  {id:'springwater', name:'Springwater', paper:'#EDF5EB', ink:'#1B2B17', primary:'#3F8A2E'},
-  {id:'sturgeonbay', name:'Sturgeon Bay', paper:'#ECF1F6', ink:'#19242E', primary:'#125FA5'},
-  {id:'sturgeonriver', name:'Sturgeon River', paper:'#ECF6F6', ink:'#192E2E', primary:'#16A2A2'},
-  {id:'algonquintea', name:'Tea Lake', paper:'#F5EFE5', ink:'#33271A', primary:'#8A5C33'},
-  {id:'themassasauga', name:'The Massasauga', paper:'#F6F1EE', ink:'#31261F', primary:'#A23D2A'},
-  {id:'tidewater', name:'Tidewater', paper:'#EBF2F5', ink:'#17272B', primary:'#287990'},
-  {id:'turkeypoint', name:'Turkey Point', paper:'#EBF4F5', ink:'#172A2B', primary:'#2E868A'},
-  {id:'voyageur', name:'Voyageur', paper:'#F7F1EA', ink:'#33241C', primary:'#B0562F'},
-  {id:'wabakimi', name:'Wabakimi', paper:'#EBF5F1', ink:'#172B24', primary:'#328568'},
-  {id:'wakamilake', name:'Wakami Lake', paper:'#EBEFF5', ink:'#171F2B', primary:'#29538F'},
-  {id:'wasagabeach', name:'Wasaga Beach', paper:'#F7F3E8', ink:'#2E2A1F', primary:'#D9A441'},
-  {id:'wheatley', name:'Wheatley', paper:'#F6EFEC', ink:'#2E2019', primary:'#A24616'},
-  {id:'whitelake', name:'White Lake', paper:'#EBEEF5', ink:'#171E2B', primary:'#294B8F'},
-  {id:'windylake', name:'Windy Lake', paper:'#ECEEF6', ink:'#191E2E', primary:'#1635A2'},
-  {id:'woodlandcaribou', name:'Woodland Caribou', paper:'#F5F0EB', ink:'#2B2217', primary:'#8F6229'}
-];
-var THEME_BY_ID={}; PARK_THEMES.forEach(function(t){THEME_BY_ID[t.id]=t;});
-var THEME_VAR_NAMES=['--paper','--card','--ink','--forest','--forest-2','--forest-press','--green-tint','--green-tint-2','--moss','--mist','--mist-2','--line','--amber','--amber-soft','--shadow-sm','--shadow','--shadow-btn'];
-function mixhex(a,b,t){ var A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);
-  var r=Math.round(((A>>16)&255)*(1-t)+((B>>16)&255)*t), g=Math.round(((A>>8)&255)*(1-t)+((B>>8)&255)*t), c=Math.round((A&255)*(1-t)+(B&255)*t);
-  return '#'+((1<<24)|(r<<16)|(g<<8)|c).toString(16).slice(1).toUpperCase(); }
-function buildVars(t){ var P=t.paper,I=t.ink,F=t.primary,dark=!!t.dark;
-  var amber=mixhex(dark?'#F5CE4A':'#F2C728', F, .15);
-  var v={'--paper':P,'--card':dark?mixhex(P,'#FFFFFF',.05):'#FFFFFF','--ink':I,
-    '--forest':F,'--forest-2':mixhex(F,'#FFFFFF',.16),'--forest-press':mixhex(F,'#000000',.22),
-    '--green-tint':mixhex(F,P,dark?.86:.88),'--green-tint-2':mixhex(F,P,dark?.74:.78),
-    '--moss':mixhex(I,P,dark?.35:.30),
-    '--mist':mixhex(I,P,.90),'--mist-2':mixhex(I,P,.78),'--line':mixhex(I,P,.85),
-    '--amber':amber,'--amber-soft':mixhex(amber,P,.82)};
-  if(dark){ v['--shadow-sm']='0 1px 2px rgba(0,0,0,.40)'; v['--shadow']='0 4px 16px rgba(0,0,0,.45)'; v['--shadow-btn']='0 3px 12px rgba(0,0,0,.5)'; }
-  else { v['--shadow-sm']='0 1px 2px rgba(15,31,23,.06)'; v['--shadow']='0 2px 12px rgba(15,31,23,.08)'; v['--shadow-btn']='0 3px 10px rgba(0,0,0,.22)'; }
-  return v; }
-function getUnlocks(){ try{ return JSON.parse(localStorage.getItem(UNLOCK_KEY)||'[]'); }catch(e){ return []; } }
-function isUnlocked(id){ return getUnlocks().indexOf(id)>=0; }
-function applyTheme(id){
-  var d=document.documentElement, meta=document.querySelector('meta[name="theme-color"]');
-  if(id!=='forest' && !THEME_BY_ID[id]) id='forest';
-  if(id==='forest'){
-    THEME_VAR_NAMES.forEach(function(n){ d.style.removeProperty(n); });
-    if(meta) meta.setAttribute('content','#F2F2F7');
-    try{ localStorage.setItem(THEME_KEY,'forest'); localStorage.removeItem(VARS_KEY); }catch(e){}
-  } else {
-    var t=THEME_BY_ID[id], v=buildVars(t), tc=t.dark?t.paper:mixhex(t.primary,'#000000',.35);
-    for(var k in v) d.style.setProperty(k,v[k]);
-    if(meta) meta.setAttribute('content',tc);
-    try{ localStorage.setItem(THEME_KEY,id); localStorage.setItem(VARS_KEY,JSON.stringify({vars:v,tc:tc,dark:!!t.dark})); }catch(e){}
-  }
-  document.querySelectorAll('.swatch').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.themeName===id)); });
-}
-function currentThemeId(){ var t='forest'; try{ t=localStorage.getItem(THEME_KEY)||'forest'; }catch(e){}
-  if(t!=='forest' && (!THEME_BY_ID[t] || !isUnlocked(t))) t='forest'; return t; }
 /* ---- appearance: one shared key for every outdoors app on this origin ----
    'outdoors-appearance' = { theme, glass, palette, face, size }. Theme, glass
    and text size land on <html> as data-theme / data-glass / data-textsize;
@@ -1892,7 +1535,14 @@ function applyAppearance(){
   d.removeAttribute('data-palette');
   d.removeAttribute('data-face');
   stamp('data-textsize',a.size,'m');
+  postAppearance();
 }
+/* in the iPhone app the shell follows the in-app theme (status bar, alerts,
+   the share sheet) and labels its own alert buttons in the app's language */
+function postAppearance(){
+  var h=null; try{ h=window.webkit.messageHandlers.appearance; }catch(e){}
+  if(!h) return;
+  try{ h.postMessage({theme:getAppearance().theme,lang:LANG}); }catch(e){} }
 function apSeg(key,opts,cur,label){
   return '<div class="segmented ap-seg" role="group" aria-label="'+label+'">'+opts.map(function(o){
     var on=o[0]===cur;
@@ -1989,8 +1639,10 @@ function fillAboutStats(){
   function row(k,v){ return '<div class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+k+'</span></span>'+
     '<span class="ios-row-value tnum">'+v+'</span></div>'; }
   el.innerHTML=row(TL('Parks in guide'),parks)+row(TL('Campgrounds'),cgs)+row(TL('Sites'),sites.toLocaleString())+
-    '<button class="ios-row ios-row--plain" id="aboutVerBtn" type="button"><span class="ios-row-body"><span class="ios-row-title">'+TL('Version')+'</span></span>'+
-    '<span class="ios-row-value tnum">v'+APP_VERSION+'</span></button>'+
+    (IN_APP?'<div class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+TL('Version')+'</span></span>'+
+      '<span class="ios-row-value tnum">'+APP_VERSION+'</span></div>'
+    :'<button class="ios-row ios-row--plain" id="aboutVerBtn" type="button"><span class="ios-row-body"><span class="ios-row-title">'+TL('Version')+'</span></span>'+
+      '<span class="ios-row-value tnum">v'+APP_VERSION+'</span>'+CHEV_RIGHT+'</button>')+
     '<a class="ios-row ios-row--plain" href="https://katsuma.ca/" target="_blank" rel="noopener">'+
     '<span class="ios-row-body"><span class="ios-row-title">katsuma.ca</span></span>'+CHEV_RIGHT+'</a>';
   var vb=document.getElementById('aboutVerBtn');
@@ -2032,7 +1684,7 @@ function renderAccount(){
   var e1=document.getElementById('stParks'); if(e1) e1.textContent=st.parks;
   var e2=document.getElementById('stSites'); if(e2) e2.textContent=st.sites;
   var av=document.getElementById('acctVersion');
-  if(av) av.textContent='v'+APP_VERSION;
+  if(av) av.textContent=(IN_APP?'':'v')+APP_VERSION;   /* the app shows it the way Settings does */
   countPhotosSaved().then(function(n){
     var e3=document.getElementById('stPhotos'); if(e3) e3.textContent=n;
     var pc=document.getElementById('acctPhotoCount'); if(pc) pc.textContent=n||''; });
@@ -2192,7 +1844,7 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
     +'</span> <button class="jf-clear" type="button" id="jfClear">'+TL('Clear filters')+'</button></div>';
   function rowHtml(en){ var col=(en.score!=null)?scoreColor(en.score):null, glyphs=(en.photo?PHOTO_G:'');
     return '<button class="ios-row ios-row--plain jrow" type="button" data-key="'+en.k.replace(/"/g,'&quot;')+'" data-type="'+en.type+'">'
-      +'<span class="ios-row-body"><span class="ios-row-title">'+(en.want?'<span class="wstar">★</span>':'')+en.title+'</span>'
+      +'<span class="ios-row-body"><span class="ios-row-title">'+(en.want?'<span class="wstar" aria-hidden="true">★</span><span class="sr-only">'+TL('Wishlist')+', </span>':'')+en.title+'</span>'
       +((en.sub||en.trailer)?'<span class="ios-row-sub">'+(en.sub||'')+(en.trailer?(en.sub?' · ':'')+TL('Trailer site'):'')+'</span>':'')+'</span>'
       +(glyphs?'<span class="j-glyphs">'+glyphs+'</span>':'')
       +(col?'<span class="tr-rate rated" style="background:'+col+'">'+en.score+'/5</span>':'')
@@ -2305,12 +1957,11 @@ function renderLearn(){
   var CHEV='<span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-down"/></svg></span>';
   var A=[
     {t:'Bear safety and food storage', b:`<p>Black bears live across cottage country and the north, and most trouble comes down to food. A bear that finds a meal at a campsite comes back, and a bear that keeps coming back usually ends up dead, so a clean site protects the bear as much as you.</p><p>Store all food, garbage, coolers, and anything scented in your vehicle or a bear locker, never in the tent. Cook and eat away from where you sleep, and pack out every scrap. If you meet a bear, do not run. Make yourself look big, speak firmly, back away slowly, and give it a clear exit. Report a bear hanging around a campground to park staff or Bear Wise at 1-866-514-2327.</p>`, bf:`<p>L’ours noir est présent dans toute la région des chalets et dans le nord, et la plupart des problèmes tiennent à la nourriture. Un ours qui trouve un repas sur un emplacement y revient, et un ours qui revient sans cesse finit généralement par être abattu, alors un site propre protège l’ours autant que vous.</p><p>Rangez toute la nourriture, les déchets, les glacières et tout ce qui dégage une odeur dans votre véhicule ou un casier à l’épreuve des ours, jamais dans la tente. Cuisinez et mangez loin de l’endroit où vous dormez, et rapportez le moindre reste. Si vous croisez un ours, ne courez pas. Faites-vous paraître grand, parlez d’une voix ferme, reculez lentement et laissez-lui une voie de sortie dégagée. Signalez un ours qui rôde autour d’un terrain de camping au personnel du parc ou à Bear Wise au 1-866-514-2327.</p>`},
-    {t:'Ticks and Lyme disease', b:`<p>Blacklegged ticks carry Lyme disease and are now common across much of southern and eastern Ontario. They wait in long grass and leaf litter and latch on as you brush past.</p><p>Wear light long sleeves and pants, tuck your pants into your socks on trails, and use a repellent with DEET or icaridin. Check yourself, kids, and dogs after every walk, especially the hairline, waist, and behind the knees. If you find one, pull it straight out with fine tweezers close to the skin and do not twist. See a doctor if you cannot remove it cleanly, if a spreading rash appears, or if you feel flu-like in the weeks after.</p>`, bf:`<p>La tique à pattes noires transmet la maladie de Lyme et est maintenant répandue dans une grande partie du sud et de l’est de l’Ontario. Elle attend dans les herbes hautes et la litière de feuilles et s’accroche quand vous la frôlez.</p><p>Portez des manches longues et un pantalon de couleur claire, rentrez votre pantalon dans vos chaussettes sur les sentiers, et utilisez un répulsif à base de DEET ou d’icaridine. Examinez-vous, ainsi que les enfants et les chiens, après chaque sortie, surtout la naissance des cheveux, la taille et l’arrière des genoux. Si vous en trouvez une, retirez-la tout droit avec une pince fine au ras de la peau, sans la tordre. Consultez un médecin si vous n’arrivez pas à la retirer proprement, si une rougeur qui s’étend apparaît, ou si vous ressentez des symptômes grippaux dans les semaines qui suivent.</p>`},
+    {t:'Ticks and Lyme disease', b:`<p>Blacklegged ticks carry Lyme disease and are now common across much of southern and eastern Ontario. They wait in long grass and leaf litter and latch on as you brush past.</p><p>Wear light long sleeves and pants, tuck your pants into your socks on trails, and use a repellent with DEET or icaridin. Check yourself, kids, and dogs after every walk, especially the hairline, waist, and behind the knees.</p>`, bf:`<p>La tique à pattes noires transmet la maladie de Lyme et est maintenant répandue dans une grande partie du sud et de l’est de l’Ontario. Elle attend dans les herbes hautes et la litière de feuilles et s’accroche quand vous la frôlez.</p><p>Portez des manches longues et un pantalon de couleur claire, rentrez votre pantalon dans vos chaussettes sur les sentiers, et utilisez un répulsif à base de DEET ou d’icaridine. Examinez-vous, ainsi que les enfants et les chiens, après chaque sortie, surtout la naissance des cheveux, la taille et l’arrière des genoux.</p>`},
     {t:'Campfire safety', b:`<p>Check for a fire ban before you light anything. Bans are common in dry spells and carry real fines.</p><p>Use the existing fire pit, keep the fire small, and never leave it unattended. Keep water and a shovel within reach. Burn only clean wood, and buy or gather it locally, since moving firewood spreads tree-killing insects like the emerald ash borer. Before you sleep or leave, drown the fire, stir the ashes, and drown it again until it is cold to the touch.</p>`, bf:`<p>Vérifiez s’il y a une interdiction de feu avant d’allumer quoi que ce soit. Les interdictions sont fréquentes en période de sécheresse et entraînent de vraies amendes.</p><p>Utilisez le foyer existant, gardez le feu petit et ne le laissez jamais sans surveillance. Gardez de l’eau et une pelle à portée de main. Ne brûlez que du bois propre, et achetez-le ou ramassez-le sur place, car déplacer du bois de chauffage propage des insectes qui tuent les arbres, comme l’agrile du frêne. Avant de dormir ou de partir, noyez le feu, remuez les cendres et noyez-le de nouveau jusqu’à ce qu’il soit froid au toucher.</p>`},
     {t:'Leave no trace', b:`<p>The idea is simple: leave the site the way you would want to find it. Pack out all your trash, including food scraps and dog waste. Use the outhouse, or bury human waste well away from water.</p><p>Keep to the trails and the tent pads so the ground around the site can recover. Do not feed wildlife, and do not carve or nail into trees. Keep the noise down after quiet hours, since sound carries a long way over water at night. A good campsite is one the next person cannot tell you used.</p>`, bf:`<p>L’idée est simple : laissez l’emplacement tel que vous voudriez le trouver. Rapportez tous vos déchets, y compris les restes de nourriture et les excréments de chien. Utilisez la latrine, ou enterrez les matières fécales humaines loin de l’eau.</p><p>Restez sur les sentiers et les plateformes de tente pour que le sol autour de l’emplacement puisse se rétablir. Ne nourrissez pas la faune, et ne gravez ni ne clouez rien dans les arbres. Baissez le ton après l’heure du silence, car le son porte loin au-dessus de l’eau la nuit. Un bon emplacement est un emplacement dont la personne suivante ne peut pas deviner que vous l’avez utilisé.</p>`},
     {t:'Wildlife on the roads', b:`<p>Moose and deer are most active at dawn and dusk, and a collision with a moose is dangerous because the body comes through the windshield. Slow down at night in wildlife areas and watch the shoulders for eye-shine.</p><p>If an animal is crossing, brake in a straight line rather than swerving. Turtles cross roads to nest in June, and you can move one across in the direction it was already headed, well clear of traffic. Never pick a snapping turtle up by the tail, which injures its spine.</p>`, bf:`<p>L’orignal et le cerf sont les plus actifs à l’aube et au crépuscule, et une collision avec un orignal est dangereuse parce que le corps traverse le pare-brise. Ralentissez la nuit dans les zones fauniques et surveillez les accotements pour repérer le reflet des yeux.</p><p>Si un animal traverse, freinez en ligne droite plutôt que de faire une embardée. Les tortues traversent les routes pour pondre en juin, et vous pouvez en faire traverser une dans la direction où elle allait déjà, bien à l’écart de la circulation. Ne saisissez jamais une tortue serpentine par la queue, ce qui blesse sa colonne vertébrale.</p>`},
     {t:'Cold water and weather', b:`<p>Cold water is the real risk on Ontario lakes, even in summer. It saps your strength fast, so wear a lifejacket in any boat or canoe and keep one on children at the shore.</p><p>Watch the sky. Afternoon thunderstorms build quickly, and open water is no place to be when one arrives. If you hear thunder, get off the water and away from tall lone trees. Tell someone your route and when you will be back before a longer paddle or hike.</p>`, bf:`<p>L’eau froide est le vrai danger sur les lacs de l’Ontario, même en été. Elle épuise vos forces rapidement, alors portez un gilet de sauvetage dans tout bateau ou canot et gardez-en un sur les enfants au bord de l’eau.</p><p>Surveillez le ciel. Les orages de l’après-midi se forment rapidement, et le large n’est pas un endroit où se trouver quand l’un d’eux arrive. Si vous entendez le tonnerre, sortez de l’eau et éloignez-vous des grands arbres isolés. Dites à quelqu’un votre itinéraire et l’heure de votre retour avant une longue sortie en canot ou en randonnée.</p>`},
-    {t:'Report a bear or a hazard', b:`<p>Seeing a bear, a road hazard, or wildlife on a road? on-wildlife has a quick report that drops it on a shared map for the area, with sensitive spots coarsened for privacy.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Open on-wildlife to report</a></p>`, bf:`<p>Vous voyez un ours, un danger sur la route ou de la faune sur une route ? on-wildlife propose un signalement rapide qui le place sur une carte partagée pour la région, avec les lieux sensibles rendus approximatifs pour protéger la vie privée.</p><p><a class="footlink" href="https://katsuma.ca/on-wildlife/#/more" target="_blank" rel="noopener">Ouvrir on-wildlife pour signaler</a></p>`}
   ];
   el.innerHTML='<div class="ios-group">'+A.map(function(a){
     return '<details class="cell-details"><summary class="ios-row ios-row--plain"><span class="ios-row-body"><span class="ios-row-title">'+TL(a.t)+'</span></span>'+CHEV+'</summary>'+
@@ -2355,53 +2006,68 @@ function makeSheetSwipe(el,closeFn){
    out to katsuma.ca, so they are readable offline and nobody is bounced to
    a browser mid-app. The full pages stay on the site; this is the same
    content, condensed to what a reader of this app needs. */
+/* the iPhone app and the web version share these pages; IN_APP picks the
+   sentences that differ (where the data lives, updates, links) */
+var MAIL='<a href="mailto:katsuma123@gmail.com">katsuma123@gmail.com</a>';
+function siteLink(path){ return '<a href="https://katsuma.ca/'+path+'" target="_blank" rel="noopener">katsuma.ca/'+path+'</a>'; }
+var ISSUES='<a href="https://github.com/katsuma0/on-site/issues" target="_blank" rel="noopener">github.com/katsuma0/on-site/issues</a>';
 var LEGAL_PAGES={
   privacy:{t:'Privacy policy',h:''
     +'<p><b>The short version.</b> There are no accounts, no advertising and no analytics. Nothing you write, rate or photograph is sent to me. It is stored on this device and it stays here. I cannot read it and I never see that it exists.</p>'
-    +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites, your display name and your settings. All of it lives in this browser\u2019s storage on this device. Your display name is used only to draw an initial in the corner of the app and is never transmitted.</p>'
-    +'<p><b>What leaves this device.</b> Nothing is sent to me. A review you share or a backup you export goes only where you send it. The web version is served from GitHub Pages, which keeps ordinary server logs; the iPhone app makes no requests of its own. A link to an official park page opens that site.</p>'
-    +'<p><b>Permissions.</b> The camera and photo library are used only when you attach a photo to a site. The app never asks for your location. If you decline, everything else still works.</p>'
-    +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and deleting the app does the same. Export a backup writes your whole journal to one readable file, and Import reads it back on any device. There is no server copy, so nothing can be recovered once it is gone.</p>'
+    +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites, your display name and your settings. All of it is kept on this device, '+(IN_APP?'inside the app':'in this browser’s storage')+'. Your display name is used only to draw an initial in the corner of the app and is never transmitted.</p>'
+    +'<p><b>What leaves this device.</b> Nothing is sent to me. A backup you export goes only where you send it. '
+      +(IN_APP?'The app makes no network requests of its own, and it works the same in airplane mode. A link to an official park page or to katsuma.ca opens in Safari.'
+              :'The web version is served from GitHub Pages, which keeps ordinary server logs. A link to an official park page opens that site.')+'</p>'
+    +(IN_APP?'<p><b>Home Screen search.</b> So you can find a park by searching from the Home Screen, the app adds the names of the parks in its guide to this device’s search index. Your own ratings, notes and photos are never added. You can turn this off for on-site in the Settings app.</p>':'')
+    +'<p><b>Permissions.</b> The camera and photo library are used only when you attach a photo to a site, and a photo is saved to your library only when you choose to save it. The app never asks for your location. If you decline, everything else still works'+(IN_APP?', and you can change your mind in the Settings app at any time':'')+'.</p>'
+    +'<p><b>Keeping and deleting.</b> Your data is kept until you delete it. More, then Your data, then Reset all data removes everything, and '+(IN_APP?'deleting the app':'clearing this site’s data')+' does the same. Export a backup writes your whole journal to one file, and Import a backup reads it back on any device, replacing what is there. There is no server copy, so nothing can be recovered once it is gone.</p>'
     +'<p><b>Children.</b> The app is safe for a child to use. Nothing in it collects personal information from anyone, of any age.</p>'
-    +'<p>The full policy is at katsuma.ca/privacy.html. Questions: katsuma123@gmail.com.</p>',
+    +'<p>The full policy is at '+siteLink('privacy.html')+'. Questions: '+MAIL+'.</p>',
     hFr:''
     +'<p><b>La version courte.</b> Il n’y a aucun compte, aucune publicité et aucune analyse d’audience. Rien de ce que vous écrivez, notez ou photographiez ne m’est envoyé. C’est stocké sur cet appareil et cela y reste. Je ne peux pas le lire et je ne vois jamais que cela existe.</p>'
-    +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela vit dans le stockage de ce navigateur, sur cet appareil. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
-    +'<p><b>Ce qui quitte cet appareil.</b> Rien ne m’est envoyé. Un avis que vous partagez ou une sauvegarde que vous exportez va seulement là où vous l’envoyez. La version Web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires; l’application iPhone ne fait aucune requête de son côté. Un lien vers une page officielle d’un parc ouvre ce site.</p>'
-    +'<p><b>Autorisations.</b> L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement. L’application ne demande jamais votre position. Si vous refusez, tout le reste fonctionne quand même.</p>'
-    +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et supprimer l’application fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier lisible, et Importer le relit sur n’importe quel appareil. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
+    +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela est conservé sur cet appareil, '+(IN_APP?'dans l’application':'dans le stockage de ce navigateur')+'. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
+    +'<p><b>Ce qui quitte cet appareil.</b> Rien ne m’est envoyé. Une sauvegarde que vous exportez va seulement là où vous l’envoyez. '
+      +(IN_APP?'L’application ne fait aucune requête réseau de son côté et fonctionne de la même façon en mode avion. Un lien vers une page officielle d’un parc ou vers katsuma.ca s’ouvre dans Safari.'
+              :'La version Web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires. Un lien vers une page officielle d’un parc ouvre ce site.')+'</p>'
+    +(IN_APP?'<p><b>Recherche de l’écran d’accueil.</b> Pour que vous puissiez trouver un parc en cherchant depuis l’écran d’accueil, l’application ajoute le nom des parcs de son guide à l’index de recherche de cet appareil. Vos propres évaluations, notes et photos n’y sont jamais ajoutées. Vous pouvez désactiver cette fonction pour on-site dans l’app Réglages.</p>':'')
+    +'<p><b>Autorisations.</b> L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement, et une photo n’est enregistrée dans votre photothèque que si vous choisissez de l’enregistrer. L’application ne demande jamais votre position. Si vous refusez, tout le reste fonctionne quand même'+(IN_APP?', et vous pouvez changer d’avis dans l’app Réglages à tout moment':'')+'.</p>'
+    +'<p><b>Conservation et suppression.</b> Vos données sont conservées jusqu’à ce que vous les supprimiez. Plus, puis Vos données, puis Réinitialiser toutes les données efface tout, et '+(IN_APP?'supprimer l’application':'effacer les données de ce site')+' fait de même. Exporter une sauvegarde écrit tout votre journal dans un seul fichier, et Importer une sauvegarde le relit sur n’importe quel appareil, en remplaçant ce qui s’y trouve. Il n’y a aucune copie sur un serveur, donc rien ne peut être récupéré une fois que c’est parti.</p>'
     +'<p><b>Enfants.</b> L’application peut être utilisée sans danger par un enfant. Rien en elle ne recueille de renseignements personnels de quiconque, à tout âge.</p>'
-    +'<p>La politique complète se trouve à katsuma.ca/privacy.html. Questions : katsuma123@gmail.com.</p>'},
+    +'<p>La politique complète se trouve à '+siteLink('privacy.html')+'. Questions : '+MAIL+'.</p>'},
   terms:{t:'Terms of use',h:''
     +'<p><b>Safety first.</b> This app is a reference, not safety equipment. It cannot call for help. Carry a way to reach emergency services where you are going, and tell someone your plan. Park and site details are approximate.</p>'
     +'<p><b>Your content is yours.</b> What you write, rate and photograph belongs to you. It is stored on your device and never sent to me, so I acquire no rights to it.</p>'
     +'<p><b>Acceptable use.</b> Do not use the app to break the law, to harass anyone, or to harm a park. Do not photograph occupied sites, and leave a site the way you would want to find it.</p>'
-    +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks\u2019 official site.</p>'
-    +'<p><b>Data loss.</b> Everything is stored on your device and nothing is backed up to a server, so your journal can be lost if you delete the app, clear site data or lose the device. Export regularly.</p>'
+    +'<p><b>No warranty.</b> The app is provided as it is, free of charge, with no warranty of any kind. Park information can be incomplete or out of date. Book through Ontario Parks’ official site.</p>'
+    +'<p><b>Data loss.</b> Everything is stored on your device and nothing is backed up to a server, so your journal can be lost if you '+(IN_APP?'delete the app or lose the device':'clear this site’s data or lose the device')+'. Export a backup regularly.</p>'
     +'<p><b>Not affiliated.</b> This is an independent app, not made by or endorsed by Ontario Parks, the Government of Ontario or Apple.</p>'
-    +'<p>The full terms are at katsuma.ca/terms.html. These terms are governed by the laws of Ontario, Canada.</p>',
+    +'<p>The full terms are at '+siteLink('terms.html')+'. These terms are governed by the laws of Ontario, Canada.</p>',
     hFr:''
     +'<p><b>La sécurité d’abord.</b> Cette application est une référence, pas un équipement de sécurité. Elle ne peut pas appeler à l’aide. Emportez un moyen de joindre les services d’urgence là où vous allez, et dites à quelqu’un votre plan. Les renseignements sur les parcs et les emplacements sont approximatifs.</p>'
     +'<p><b>Votre contenu vous appartient.</b> Ce que vous écrivez, notez et photographiez vous appartient. C’est stocké sur votre appareil et jamais envoyé à moi, donc je n’acquiers aucun droit dessus.</p>'
     +'<p><b>Utilisation acceptable.</b> N’utilisez pas l’application pour enfreindre la loi, pour harceler qui que ce soit, ou pour nuire à un parc. Ne photographiez pas les emplacements occupés, et laissez un emplacement tel que vous voudriez le trouver.</p>'
     +'<p><b>Aucune garantie.</b> L’application est fournie telle quelle, gratuitement, sans aucune garantie d’aucune sorte. Les renseignements sur les parcs peuvent être incomplets ou périmés. Réservez par le site officiel de Parcs Ontario.</p>'
-    +'<p><b>Perte de données.</b> Tout est stocké sur votre appareil et rien n’est sauvegardé sur un serveur, donc votre journal peut être perdu si vous supprimez l’application, effacez les données du site ou perdez l’appareil. Exportez régulièrement.</p>'
+    +'<p><b>Perte de données.</b> Tout est stocké sur votre appareil et rien n’est sauvegardé sur un serveur, donc votre journal peut être perdu si vous '+(IN_APP?'supprimez l’application ou perdez l’appareil':'effacez les données de ce site ou perdez l’appareil')+'. Exportez une sauvegarde régulièrement.</p>'
     +'<p><b>Sans affiliation.</b> Il s’agit d’une application indépendante, qui n’est ni conçue ni approuvée par Parcs Ontario, le gouvernement de l’Ontario ou Apple.</p>'
-    +'<p>Les conditions complètes se trouvent à katsuma.ca/terms.html. Ces conditions sont régies par les lois de l’Ontario, au Canada.</p>'},
+    +'<p>Les conditions complètes se trouvent à '+siteLink('terms.html')+'. Ces conditions sont régies par les lois de l’Ontario, au Canada.</p>'},
   support:{t:'Support',h:''
-    +'<p><b>Reach me.</b> Email katsuma123@gmail.com and I will reply. Problems can also be filed at github.com/katsuma0/on-site/issues.</p>'
-    +'<p><b>Moving to a new phone.</b> On the old phone: More, then Your data, then Export a backup. Send that file to yourself. On the new phone: Import a backup and pick the file. Importing the same file twice is safe.</p>'
-    +'<p><b>Deleted the app?</b> The journal went with it, because nothing is stored on a server. Export before you delete and before a phone upgrade. I have no copy and cannot recover anything.</p>'
-    +'<p><b>No signal?</b> Every park, site and rating works offline once the app has loaded.</p>'
-    +'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates on the next launch.</p>'
-    +'<p><b>Accessibility.</b> The app follows the system text size and works with VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>',
+    +'<p><b>Reach me.</b> Email '+MAIL+' and I will reply. Problems can also be filed at '+ISSUES+'.</p>'
+    +'<p><b>Moving to a new device.</b> On the old device: More, then Your data, then Export a backup. Send that file to yourself. On the new device: More, then Your data, then Import a backup, and pick the file. Importing replaces what is on that device, so do it before you start rating there.</p>'
+    +'<p><b>'+(IN_APP?'Deleted the app?':'Cleared your browser’s data?')+'</b> The journal went with it, because nothing is stored on a server. Export a backup before you '+(IN_APP?'delete the app':'clear your data')+' or change devices. I have no copy and cannot recover anything.</p>'
+    +'<p><b>No signal?</b> '+(IN_APP?'Everything works offline, in airplane mode too. Nothing in the app needs a connection.':'Every park, site and rating works offline once the app has loaded.')+'</p>'
+    +(IN_APP?'<p><b>Updates.</b> Updates come through the App Store, and your journal stays in place when the app updates.</p>'
+            :'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates the next time you open it.</p>')
+    +(IN_APP?'<p><b>Find a park fast.</b> Swipe down on the Home Screen and type a park’s name to open it straight in on-site.</p>':'')
+    +'<p><b>Accessibility.</b> Text size is set in the app: More, then Appearance, then Text size. Buttons and controls are labelled for VoiceOver. If something is hard to read, hit or hear announced, tell me. That is a bug, not a preference.</p>',
     hFr:''
-    +'<p><b>Me joindre.</b> Écrivez à katsuma123@gmail.com et je répondrai. Les problèmes peuvent aussi être signalés à github.com/katsuma0/on-site/issues.</p>'
-    +'<p><b>Passer à un nouveau téléphone.</b> Sur l’ancien téléphone : Plus, puis Vos données, puis Exporter une sauvegarde. Envoyez-vous ce fichier. Sur le nouveau téléphone : Importer une sauvegarde et choisissez le fichier. Importer deux fois le même fichier est sans risque.</p>'
-    +'<p><b>Vous avez supprimé l’application ?</b> Le journal est parti avec elle, car rien n’est stocké sur un serveur. Exportez avant de supprimer et avant de changer de téléphone. Je n’ai aucune copie et ne peux rien récupérer.</p>'
-    +'<p><b>Pas de signal ?</b> Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.</p>'
-    +'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour au prochain lancement.</p>'
-    +'<p><b>Accessibilité.</b> L’application suit la taille de texte du système et fonctionne avec VoiceOver. Si quelque chose est difficile à lire, à toucher ou à entendre annoncé, dites-le-moi. C’est un bogue, pas une préférence.</p>'},
+    +'<p><b>Me joindre.</b> Écrivez à '+MAIL+' et je répondrai. Les problèmes peuvent aussi être signalés à '+ISSUES+'.</p>'
+    +'<p><b>Passer à un nouvel appareil.</b> Sur l’ancien appareil : Plus, puis Vos données, puis Exporter une sauvegarde. Envoyez-vous ce fichier. Sur le nouvel appareil : Plus, puis Vos données, puis Importer une sauvegarde, et choisissez le fichier. L’importation remplace ce qui se trouve sur cet appareil, alors faites-la avant de commencer à noter.</p>'
+    +'<p><b>'+(IN_APP?'Vous avez supprimé l’application ?':'Vous avez effacé les données du navigateur ?')+'</b> Le journal est parti avec elle, car rien n’est stocké sur un serveur. Exportez une sauvegarde avant de '+(IN_APP?'supprimer l’application':'effacer vos données')+' ou de changer d’appareil. Je n’ai aucune copie et ne peux rien récupérer.</p>'
+    +'<p><b>Pas de signal ?</b> '+(IN_APP?'Tout fonctionne hors ligne, en mode avion aussi. Rien dans l’application n’a besoin d’une connexion.':'Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.')+'</p>'
+    +(IN_APP?'<p><b>Mises à jour.</b> Les mises à jour arrivent par l’App Store, et votre journal reste en place quand l’application se met à jour.</p>'
+            :'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour la prochaine fois que vous l’ouvrez.</p>')
+    +(IN_APP?'<p><b>Trouver un parc rapidement.</b> Glissez vers le bas sur l’écran d’accueil et tapez le nom d’un parc pour l’ouvrir directement dans on-site.</p>':'')
+    +'<p><b>Accessibilité.</b> La taille du texte se règle dans l’application : Plus, puis Apparence, puis Taille du texte. Les boutons et les commandes sont étiquetés pour VoiceOver. Si quelque chose est difficile à lire, à toucher ou à entendre annoncé, dites-le-moi. C’est un bogue, pas une préférence.</p>'},
 };
 function openLegal(key){
   var pg=LEGAL_PAGES[key]; if(!pg) return;
@@ -2444,13 +2110,44 @@ makeSheetSwipe(sheet,closeSheet);
   migrateAlgPhotos();
   renderParks();                 /* photos now count toward My parks */
   refreshParksFromNetwork();     /* background: pick up any hosted data update */
+  postSpotlight();               /* iPhone app: parks for the Home Screen search */
 })();
+/* the system hands the app a park: iPhone search, a #park= link or a sibling
+   app. Whatever is on screen gives way, and the park opens on the Parks tab
+   the way a tap on its row would. */
+function openParkFromOutside(pid){
+  if(!PARK_BY_ID[pid]) return false;
+  closeOverlays(); clearGSearch(); hideThemeToast();
+  showTab('guide'); openPark(pid,'view-parks');
+  try{ window.scrollTo(0,0); }catch(e){}
+  return true; }
+/* Search in App, from the iPhone's search: the query lands in this search */
+function searchFromOutside(q){
+  closeOverlays(); hideThemeToast(); showTab('search');
+  var gq=document.getElementById('gq'); if(!gq) return;
+  gq.value=String(q||'').slice(0,80); onGSearch(); }
+window.onsiteOpenPark=openParkFromOutside;
+window.onsiteSearch=searchFromOutside;
+/* iPhone search: the shell indexes what this sends, so a park can be found
+   from the Home Screen. Only the guide's own data goes in, never the
+   reader's ratings, notes or photos. */
+function postSpotlight(){
+  var h=null; try{ h=window.webkit.messageHandlers.spotlight; }catch(e){}
+  if(!h||!PARKS.length) return;
+  var extra=LANG==='fr'?['camping','terrain de camping','parc provincial','Ontario']:['camping','campground','campsite','provincial park','Ontario'];
+  var list=PARKS.map(function(p){
+    var cgs=p.campgrounds||[], sites=0; cgs.forEach(function(c){ sites+=cgSites(c).length; });
+    var alg=(p.region||'').indexOf('Algonquin')===0;
+    var bits=[(p.region||'').split(' \u00b7 ').join(', ')];
+    bits.push(cgs.length?cgs.length+' '+TL(cgs.length===1?'campground':'campgrounds')+', '+sites.toLocaleString(LANG==='fr'?'fr-CA':'en-CA')+' '+TL(sites===1?'site':'sites'):TL('Day-use park'));
+    var kw=[p.name].concat(alg?['Algonquin']:[],cgs.map(function(c){ return c.id; }),(p.trails||[]).slice(0,6).map(function(t){ return t.name; }),extra);
+    return {id:p.id,name:alg?p.name+', Algonquin':p.name,text:bits.join(' \u00b7 '),keywords:kw}; });
+  try{ h.postMessage({lang:LANG,version:APP_VERSION,parks:list}); }catch(e){} }
 (function(){ /* #park=<id> deep links, from the fishing app */
   function fromHash(){
     var m=(location.hash||'').match(/park=([a-z0-9]+)/); if(!m) return;
     var pid=m[1]; if(!PARK_BY_ID[pid]) return;
-    if(pid===EGG_ID&&!eggFound()) revealEgg();
-    openPark(pid);
+    openParkFromOutside(pid);
     history.replaceState(null,'',location.pathname+location.search); }
   window.addEventListener('hashchange',fromHash);
   fromHash();

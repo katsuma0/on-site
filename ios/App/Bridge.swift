@@ -1,12 +1,14 @@
 /* The script injected into every page load, before the app's own code runs.
    It gives the web app three native abilities:
-     1. navigator.share() backed by the iOS share sheet. The share card PNG
-        crosses the bridge as base64 and is rebuilt as a real file, so
-        iMessage receives the actual image plus the message text. Cancelling
-        the sheet rejects with AbortError, exactly like Safari, which the
-        web app's share code already handles.
-     2. Haptics through the Capacitor-style hook the apps already probe
-        (window.Capacitor.Plugins.Haptics), plus navigator.vibrate.
+     1. navigator.share() backed by the iOS share sheet. Each file crosses
+        the bridge and is rebuilt as a real file: text files (the journal
+        backup) as text, anything else as base64. Cancelling the sheet
+        rejects with AbortError, exactly like Safari; a file that could not
+        be read or written rejects with a different error, so the web app
+        tells the reader the export did not happen instead of staying quiet.
+     2. Haptics through the Capacitor-style hook the app already probes
+        (window.Capacitor.Plugins.Haptics), plus navigator.vibrate. The same
+        window.Capacitor object is how the web app knows it runs in the app.
      3. A "standalone" signal so the web app knows it is installed and
         hides its add-to-home-screen hints. */
 
@@ -20,10 +22,11 @@ enum NativeBridge {
       window.__onNativeBridge = true;
 
       function post(name, payload) {
-        try { window.webkit.messageHandlers[name].postMessage(payload); } catch (e) {}
+        try { window.webkit.messageHandlers[name].postMessage(payload); return true; }
+        catch (e) { return false; }
       }
 
-      /* 2. Haptics */
+      /* 2. Haptics, and the in-app signal */
       window.Capacitor = window.Capacitor || {
         isNativePlatform: function () { return true; },
         getPlatform: function () { return 'ios'; },
@@ -64,16 +67,20 @@ enum NativeBridge {
       var seq = 0;
       var runTag = 'p' + Math.random().toString(36).slice(2, 10);
       var pending = {};
+      function failure(message) {
+        var err = new Error(message);
+        err.name = 'DataError';
+        return err;
+      }
       window.__bridgeShareDone = function (id, status) {
         var p = pending[id];
         if (!p) { return; }
         delete pending[id];
-        if (status === 'shared') { p.resolve(); }
-        else {
-          var err = new Error('Share canceled');
-          err.name = 'AbortError';
-          p.reject(err);
-        }
+        if (status === 'shared') { p.resolve(); return; }
+        if (status === 'error') { p.reject(failure('Share failed')); return; }
+        var err = new Error('Share canceled');
+        err.name = 'AbortError';
+        p.reject(err);
       };
       navigator.canShare = function () { return true; };
       navigator.share = function (data) {
@@ -84,30 +91,36 @@ enum NativeBridge {
           var files = data.files || [];
           var out = [];
           var i = 0;
+          function fail() {
+            if (!pending[id]) { return; }
+            delete pending[id];
+            reject(failure('Share failed'));
+          }
           function send() {
-            post('share', {
+            var sent = post('share', {
               id: id,
               title: String(data.title || ''),
               text: String(data.text || ''),
               url: String(data.url || ''),
               files: out
             });
+            if (!sent) { fail(); }
           }
           function next() {
             if (i >= files.length) { send(); return; }
             var f = files[i++];
+            var type = f.type || 'application/octet-stream';
+            var asText = /^(text\/|application\/json)/.test(type);
             var reader = new FileReader();
             reader.onload = function () {
               var s = String(reader.result || '');
-              out.push({
-                name: f.name || 'file',
-                type: f.type || 'application/octet-stream',
-                data: s.slice(s.indexOf(',') + 1)
-              });
+              var entry = { name: f.name || 'file', type: type };
+              if (asText) { entry.text = s; } else { entry.data = s.slice(s.indexOf(',') + 1); }
+              out.push(entry);
               next();
             };
-            reader.onerror = function () { next(); };
-            reader.readAsDataURL(f);
+            reader.onerror = fail;
+            if (asText) { reader.readAsText(f); } else { reader.readAsDataURL(f); }
           }
           next();
         });

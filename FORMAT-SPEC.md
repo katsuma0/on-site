@@ -1,4 +1,7 @@
 # Exact Format Spec: Title Header and About Sheet
+
+> **History.** This spec describes Site Journal v0.17x and is kept for reference only. The app now uses the iOS design system in `assets/ios.css` (shown on `styleguide.html`); where the two disagree, the CSS wins.
+
 Measured from Site Journal v0.175. Every number is the real one. Paste the HTML and CSS blocks into the fishing regulation summary page and swap only the words.
 
 ---
