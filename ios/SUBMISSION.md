@@ -56,7 +56,7 @@ Connect, take screenshots, submit. The checklist at the end has every step.
 | Setting | Value |
 | --- | --- |
 | Display name | `ON site` |
-| Bundle ID | `io.github.katsuma0.oncamp` (fixed forever after the first upload) |
+| Bundle ID | `ca.katsuma.onsite` (fixed forever after the first upload) |
 | Version / build | `MARKETING_VERSION = 0.238`, `CURRENT_PROJECT_VERSION = 1` |
 | Minimum iOS | 17.0 |
 | Devices | iPhone and iPad (`TARGETED_DEVICE_FAMILY = 1,2`) |
@@ -73,12 +73,12 @@ screenshots (section 7).
 ## 3. Test in Xcode
 
 1. Clone https://github.com/katsuma0/on-site at the release commit and open
-   `ios/OnCamp.xcodeproj`.
+   `ios/ONsite.xcodeproj`.
 2. If Xcode offers **Update to recommended settings**, review the list and
    **untick User Script Sandboxing**. The Bundle Web App build phase copies
    the web files into the app and fails when that sandbox is on. Leave the
    Swift language version at Swift 5.
-3. Select the OnCamp target, open **Signing & Capabilities**, tick
+3. Select the ONsite target, open **Signing & Capabilities**, tick
    **Automatically manage signing** and choose your paid team, not
    "(Personal Team)". Keep the bundle ID above.
 4. Run it on a real iPhone (Developer Mode must be on: Settings, Privacy &
@@ -119,7 +119,7 @@ Then go through this list on the iPhone, and on an iPad if you have one:
 1. Choose **Any iOS Device (arm64)** as the destination, then Product,
    Archive.
 2. In the Organizer, right-click the archive, Show in Finder, then Show
-   Package Contents on the archive and on `Products/Applications/OnCamp.app`.
+   Package Contents on the archive and on `Products/Applications/ONsite.app`.
    `Web/index.html` must be there. Without it the app opens blank.
 3. **Validate App**, then **Distribute App**, App Store Connect, Upload.
 4. Wait for the email saying the build has finished processing, then install
@@ -140,7 +140,7 @@ Apps, then the plus button, then New App.
 | Platforms | iOS |
 | Name | `ON site` (if that name is taken: `ON site: Campsite Journal`) |
 | Primary language | English (Canada) |
-| Bundle ID | `io.github.katsuma0.oncamp` |
+| Bundle ID | `ca.katsuma.onsite` |
 | SKU | `onsite-ios` |
 | User access | Full access |
 
@@ -283,7 +283,7 @@ Not affiliated with Ontario Parks or the Government of Ontario. The app says so 
 
 ## 6. Permission prompts
 
-Set as `INFOPLIST_KEY_*` in `OnCamp.xcodeproj/project.pbxproj`, with the
+Set as `INFOPLIST_KEY_*` in `ONsite.xcodeproj/project.pbxproj`, with the
 English and French text in `App/en.lproj` and `App/fr.lproj`
 (`InfoPlist.strings`). `node tools/check.js` fails if the English copies
 disagree. Guideline 5.1.1(ii) asks that each one says exactly what the access

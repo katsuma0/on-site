@@ -37,7 +37,7 @@ before a big change.
   `export_to_app.py --all` writes `parks-data.json`.
 - `tools/check.js`: the zero-dependency check. Run `node tools/check.js`
   before every commit.
-- `ios/`: the Xcode project (`OnCamp.xcodeproj`), the Swift shell in `App/`
+- `ios/`: the Xcode project (`ONsite.xcodeproj`), the Swift shell in `App/`
   and the icon source `AppIcon.svg`.
 - `DESIGN.md`, `FORMAT-SPEC.md`, `SEARCH-SPEC.md`: historical specs from
   v0.17x. Where they disagree with `assets/ios.css`, the CSS wins.
@@ -46,7 +46,7 @@ before a big change.
 
 1. Bump `APP_VERSION` in `app.js` (`0.NNN`).
 2. Set `MARKETING_VERSION` to the same number in
-   `ios/OnCamp.xcodeproj/project.pbxproj` (Debug and Release).
+   `ios/ONsite.xcodeproj/project.pbxproj` (Debug and Release).
 3. Bump `CACHE` in `service-worker.js` to `scout-v` plus the minor number plus
    2 (0.236 goes with `scout-v238`).
 4. Add one `.verline` at the top of the Versions sheet in `index.html`: one

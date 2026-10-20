@@ -26,7 +26,7 @@
 		F00000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F00000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F00000000000000000000009 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		F00000000000000000000010 /* OnCamp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OnCamp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000010 /* ONsite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ONsite.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,7 +66,7 @@
 		700000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F00000000000000000000010 /* OnCamp.app */,
+				F00000000000000000000010 /* ONsite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,9 +74,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		900000000000000000000001 /* OnCamp */ = {
+		900000000000000000000001 /* ONsite */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C00000000000000000000006 /* Build configuration list for PBXNativeTarget "OnCamp" */;
+			buildConfigurationList = C00000000000000000000006 /* Build configuration list for PBXNativeTarget "ONsite" */;
 			buildPhases = (
 				800000000000000000000001 /* Sources */,
 				800000000000000000000002 /* Frameworks */,
@@ -87,9 +87,9 @@
 			);
 			dependencies = (
 			);
-			name = OnCamp;
-			productName = OnCamp;
-			productReference = F00000000000000000000010 /* OnCamp.app */;
+			name = ONsite;
+			productName = ONsite;
+			productReference = F00000000000000000000010 /* ONsite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -107,7 +107,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C00000000000000000000005 /* Build configuration list for PBXProject "OnCamp" */;
+			buildConfigurationList = C00000000000000000000005 /* Build configuration list for PBXProject "ONsite" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -121,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				900000000000000000000001 /* OnCamp */,
+				900000000000000000000001 /* ONsite */,
 			);
 		};
 /* End PBXProject section */
@@ -332,7 +332,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.238;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -364,7 +364,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.238;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.katsuma0.oncamp;
+				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -375,7 +375,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C00000000000000000000005 /* Build configuration list for PBXProject "OnCamp" */ = {
+		C00000000000000000000005 /* Build configuration list for PBXProject "ONsite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C00000000000000000000001 /* Debug */,
@@ -384,7 +384,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C00000000000000000000006 /* Build configuration list for PBXNativeTarget "OnCamp" */ = {
+		C00000000000000000000006 /* Build configuration list for PBXNativeTarget "ONsite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C00000000000000000000003 /* Debug */,
