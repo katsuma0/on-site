@@ -14,11 +14,11 @@ and a paid Apple Developer account:
 
        git clone https://github.com/katsuma0/on-site.git
        cd on-site
-       open ios/OnCamp.xcodeproj
+       open ios/ONsite.xcodeproj
 
-2. Click the blue project icon, pick the OnCamp target, open
+2. Click the blue project icon, pick the ONsite target, open
    **Signing & Capabilities**, tick **Automatically manage signing** and
-   choose your team. Keep the bundle ID `io.github.katsuma0.oncamp`: it is the
+   choose your team. Keep the bundle ID `ca.katsuma.onsite`: it is the
    App Store app's identity and cannot change after the first upload. (For a
    throwaway test on a free Personal Team you can change it, but never commit
    that.)
@@ -42,7 +42,7 @@ and a paid Apple Developer account:
   localStorage and IndexedDB live in the app's own container and nothing is
   loaded from the network.
 - The **Bundle Web App** build phase copies the web files from the repo root
-  into the app (`OnCamp.app/Web`) on every build. Edit the web app, press
+  into the app (`ONsite.app/Web`) on every build. Edit the web app, press
   Run, done. The service worker is not bundled; the app never needs it.
 - `Bridge.swift` is injected before the page's own code. It sets
   `window.Capacitor`, which is how the web app knows it is inside the app

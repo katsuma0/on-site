@@ -125,7 +125,7 @@ try {
 // ---- 7. iOS project ----
 console.log('\n[7] iOS project');
 try {
-  var pbx = fs.readFileSync(rel('ios/OnCamp.xcodeproj/project.pbxproj'), 'utf8');
+  var pbx = fs.readFileSync(rel('ios/ONsite.xcodeproj/project.pbxproj'), 'utf8');
   var appV = (fs.readFileSync(rel('app.js'), 'utf8').match(/var APP_VERSION='([^']+)'/) || [])[1];
   var mvs = (pbx.match(/MARKETING_VERSION = [^;]+;/g) || []).map(function (m) { return m.replace(/MARKETING_VERSION = |;/g, ''); });
   if (mvs.length && mvs.every(function (v) { return v === appV; })) ok('MARKETING_VERSION ' + mvs.join(', ') + ' matches APP_VERSION ' + appV);
