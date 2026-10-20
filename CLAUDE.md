@@ -38,7 +38,9 @@ before a big change.
 - `tools/check.js`: the zero-dependency check. Run `node tools/check.js`
   before every commit.
 - `ios/`: the Xcode project (`ONsite.xcodeproj`), the Swift shell in `App/`
-  and the icon source `AppIcon.svg`.
+  and the logo in `Logo/`: `ONsite-logo.png` (yellow on green) is the source
+  of the app icon and the web icons, `ONsite-logo-transparent.png` is the green
+  wordmark on a clear ground.
 - `DESIGN.md`, `FORMAT-SPEC.md`, `SEARCH-SPEC.md`: historical specs from
   v0.17x. Where they disagree with `assets/ios.css`, the CSS wins.
 

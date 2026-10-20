@@ -55,7 +55,7 @@ katsuma.ca/on-fishing. on-wildlife is not active.
   everything touchable, haptics on meaningful taps, and never enough bounce
   to show an edge behind a page.
 
-## 3. What is in the app (v0.238)
+## 3. What is in the app (v0.239)
 
 - **Parks:** every park A to Z with a letter rail, a region filter, and one
   search box that finds parks, campgrounds, sites ("Hemlock 112") and trails.
@@ -131,7 +131,7 @@ for history only.
 
 ## 7. Where things stand
 
-v0.238 is ready to be tested in Xcode and submitted. v0.237 renamed the app
+v0.239 is ready to be tested in Xcode and submitted. It carries the ON site logo as its icon. v0.237 renamed the app
 ON site, added the share button and the five-cell average, and lightened
 More; v0.238 lets a Journal park row's French count wrap like a Favourites
 row instead of trailing off.

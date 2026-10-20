@@ -60,8 +60,9 @@ and a paid Apple Developer account:
   (`InfoPlist.strings`), with the English copies also set as
   `INFOPLIST_KEY_*` build settings. `App/Info.plist` holds only what build
   settings cannot: one window on iPad, the launch colour and Search in App.
-- `AppIcon.svg` is the icon's source. The 1024 px PNG in `Assets.xcassets` is
-  rendered from it, with no transparency.
+- `Logo/ONsite-logo.png` is the icon's source. The 1024 px PNG in
+  `Assets.xcassets` and the web icons (`icon-192.png`, `icon-512.png`,
+  `apple-touch-icon.png`) are scaled from it, with no transparency.
 
 ## Debugging on a device
 

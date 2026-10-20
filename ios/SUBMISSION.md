@@ -1,7 +1,7 @@
 # Submitting ON site to the App Store
 
 Everything App Store Connect will ask for, with the answer already worked
-out and checked against the app as it is in this repo (v0.238).
+out and checked against the app as it is in this repo (v0.239).
 
 Checked against the App Review Guidelines last updated 16 October 2026 and the
 Program License Agreement revised 13 October 2026. On the day you submit,
@@ -15,7 +15,7 @@ paste it as it is.
 
 Done in the repo:
 
-- Version 0.238, build 1. `MARKETING_VERSION` matches the version the app
+- Version 0.239, build 1. `MARKETING_VERSION` matches the version the app
   shows in Profile (tap the avatar), and `node tools/check.js` fails if they
   ever drift.
 - Privacy, terms and support pages inside the app (More, then Legal),
@@ -25,7 +25,7 @@ Done in the repo:
 - Parks in the Home Screen search (Core Spotlight), with Search in App.
 - One window on iPad, iOS 17 or later, launch screen in the app's own colour
   for light and dark.
-- A crisp 1024 px icon with no transparency. Its source is `ios/AppIcon.svg`.
+- A crisp 1024 px icon with no transparency. Its source is the ON site logo in `ios/Logo/`.
 - Nothing hidden apart from the two read-only consoles, disclosed in the
   review notes below.
 
@@ -57,7 +57,7 @@ Connect, take screenshots, submit. The checklist at the end has every step.
 | --- | --- |
 | Display name | `ON site` |
 | Bundle ID | `ca.katsuma.onsite` (fixed forever after the first upload) |
-| Version / build | `MARKETING_VERSION = 0.238`, `CURRENT_PROJECT_VERSION = 1` |
+| Version / build | `MARKETING_VERSION = 0.239`, `CURRENT_PROJECT_VERSION = 1` |
 | Minimum iOS | 17.0 |
 | Devices | iPhone and iPad (`TARGETED_DEVICE_FAMILY = 1,2`) |
 | iPhone orientation | Portrait. iPad: all four. |
@@ -144,7 +144,7 @@ Apps, then the plus button, then New App.
 | SKU | `onsite-ios` |
 | User access | Full access |
 
-Rename the version on the record to **0.238**.
+Rename the version on the record to **0.239**.
 
 ### App Information
 
@@ -247,9 +247,9 @@ provincial,camping,campground,ratings,journal,offline,trails,tent,trailer,notes,
 | --- | --- |
 | Support URL | `https://katsuma.ca/support.html` |
 | Marketing URL | `https://katsuma.ca/projects/on-site/` (optional) |
-| Version | `0.238` |
+| Version | `0.239` |
 | Copyright | `2026 Katsuma Onishi` (no ©; Apple adds it. Use your legal name.) |
-| Build | The 0.238 build you tested through TestFlight |
+| Build | The 0.239 build you tested through TestFlight |
 | Sign-in required | Unticked |
 | Contact | Your name, an email you check, and a phone number as `+1 ...` |
 | Version release | **Manually release this version** |
@@ -354,7 +354,7 @@ the iOS 27.1 SDK or later.
 
 ## 10. Submit, then release
 
-1. On the version page, check the build is the 0.238 one you tested, the
+1. On the version page, check the build is the 0.239 one you tested, the
    contact details are current and the notes are pasted.
 2. Open https://katsuma.ca/privacy.html, https://katsuma.ca/support.html and
    the marketing page on your phone over cellular, to be sure they load.
