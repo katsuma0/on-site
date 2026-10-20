@@ -331,7 +331,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.238;
+				MARKETING_VERSION = 0.239;
 				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -363,7 +363,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.238;
+				MARKETING_VERSION = 0.239;
 				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
