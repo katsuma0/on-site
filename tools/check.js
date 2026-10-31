@@ -112,14 +112,17 @@ try {
     var esc = (frm[1].match(/\\'/g) || []).length;
     if (esc) bad('FR dictionary straight apostrophes', esc + ' escaped \\\' (use the typographic apostrophe)'); else ok('FR dictionary uses the typographic apostrophe');
   }
-  // the service worker cache number runs two ahead of the app version's minor (0.233 <-> scout-v235)
-  var vm = appSrc.match(/var APP_VERSION='0\.(\d+)'/), cmv = fs.readFileSync(rel('service-worker.js'), 'utf8').match(/const CACHE = 'scout-v(\d+)'/);
-  if (vm && cmv && parseInt(vm[1], 10) + 2 === parseInt(cmv[1], 10)) ok('version lockstep (0.' + vm[1] + ' <-> scout-v' + cmv[1] + ')');
-  else bad('version lockstep', 'APP_VERSION 0.' + (vm && vm[1]) + ' vs CACHE scout-v' + (cmv && cmv[1]));
+  // the service worker cache number is the app version as major * 1000 + minor, plus two
+  // (0.239 <-> scout-v241, 1.0 <-> scout-v1002), so every release gets a cache of its own
+  var vm = appSrc.match(/var APP_VERSION='(\d+)\.(\d+)'/), cmv = fs.readFileSync(rel('service-worker.js'), 'utf8').match(/const CACHE = 'scout-v(\d+)'/);
+  var vnum = vm ? parseInt(vm[1], 10) * 1000 + parseInt(vm[2], 10) : null, vstr = vm ? vm[1] + '.' + vm[2] : '?';
+  if (vm && cmv && vnum + 2 === parseInt(cmv[1], 10)) ok('version lockstep (' + vstr + ' <-> scout-v' + cmv[1] + ')');
+  else bad('version lockstep', 'APP_VERSION ' + vstr + ' vs CACHE scout-v' + (cmv && cmv[1]) + ' (want scout-v' + (vnum + 2) + ')');
   // a changelog line is written only for feature releases, so the newest one may trail the app version but never lead it
-  var idxSrc = fs.readFileSync(rel('index.html'), 'utf8'), firstVer = idxSrc.match(/class="vv">v0\.(\d+)</);
-  if (vm && firstVer && parseInt(firstVer[1], 10) <= parseInt(vm[1], 10)) ok('newest changelog line (v0.' + firstVer[1] + ') is not ahead of APP_VERSION 0.' + vm[1]);
-  else bad('changelog line', 'first verline is v0.' + (firstVer && firstVer[1]) + ', APP_VERSION is 0.' + (vm && vm[1]));
+  var idxSrc = fs.readFileSync(rel('index.html'), 'utf8'), firstVer = idxSrc.match(/class="vv">v(\d+)\.(\d+)</);
+  var fnum = firstVer ? parseInt(firstVer[1], 10) * 1000 + parseInt(firstVer[2], 10) : null;
+  if (vm && firstVer && fnum <= vnum) ok('newest changelog line (v' + firstVer[1] + '.' + firstVer[2] + ') is not ahead of APP_VERSION ' + vstr);
+  else bad('changelog line', 'first verline is v' + (firstVer && firstVer[1] + '.' + firstVer[2]) + ', APP_VERSION is ' + vstr);
 } catch (e) { bad('house style', e.message); }
 
 // ---- 7. iOS project ----

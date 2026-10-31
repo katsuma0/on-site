@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <script>
+/* the app's shell draws a native tab bar; the page's own bar stands down */
+if(window.__onNativeTabs) document.documentElement.classList.add('native-tabs');
 /* Appearance, stamped before first paint so there is no flash. One JSON key,
    'outdoors-appearance', shared by every outdoors app on this origin:
    { theme:'auto'|'light'|'dark', glass:'on'|'off', palette, face, size:'s'|'m'|'l'|'xl' }.
@@ -70,7 +72,6 @@
 
 <header class="ios-header" id="iosHeader">
   <div class="ios-header-row">
-    <button class="ios-avatar" id="avatarBtn" type="button" aria-label="Profile" data-i18n-aria="Profile"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></button>
     <span class="ios-brand">ON site</span>
     <div class="ios-header-actions">
       <button class="ios-glass-btn" id="searchBtn" type="button" aria-label="Search" data-i18n-aria="Search"><svg aria-hidden="true"><use href="assets/icons.svg#search"/></svg></button>
@@ -133,63 +134,9 @@
   <div class="wrap" id="sharedBody"></div>
 </section>
 
-<section id="view-account" class="tabscreen" hidden>
-  <div class="wrap">
-    <div class="acct-hero">
-      <div class="acct-avatar" id="acctAvatar" aria-hidden="true"><svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg></div>
-    </div>
-
-    <div class="ios-group">
-      <label class="ios-row ios-row--plain" for="displayName">
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Name">Name</span></span>
-        <input class="acct-input" id="displayName" type="text" placeholder="Your name" data-i18n-ph="Your name" autocomplete="name" enterkeyhint="done">
-      </label>
-    </div>
-
-    <div class="acct-stats">
-      <div class="acct-stat"><b id="stParks" class="tnum">0</b><span data-i18n="Parks visited">Parks visited</span></div>
-      <div class="acct-stat"><b id="stSites" class="tnum">0</b><span data-i18n="Ratings">Ratings</span></div>
-      <div class="acct-stat"><b id="stPhotos" class="tnum">0</b><span data-i18n="Photos">Photos</span></div>
-    </div>
-
-    <div class="ios-group">
-      <button class="ios-row" id="acctPhotosBtn" type="button">
-        <span class="ios-tile ios-tile--orange"><svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg></span>
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Photos">Photos</span></span>
-        <span class="ios-row-value tnum" id="acctPhotoCount"></span>
-        <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
-      </button>
-      <div class="ios-row">
-        <span class="ios-tile ios-tile--graphite"><svg aria-hidden="true"><use href="assets/icons.svg#lock"/></svg></span>
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Visibility">Visibility</span><span class="ios-row-sub" data-i18n="Everything stays on this device">Everything stays on this device</span></span>
-        <span class="ios-row-value" data-i18n="Private">Private</span>
-      </div>
-      <button class="ios-row" id="acctExportBtn" type="button">
-        <span class="ios-tile ios-tile--grey"><svg aria-hidden="true"><use href="assets/icons.svg#download"/></svg></span>
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Export a backup">Export a backup</span></span>
-        <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
-      </button>
-      <button class="ios-row" id="acctImportBtn" type="button">
-        <span class="ios-tile ios-tile--grey"><svg aria-hidden="true"><use href="assets/icons.svg#upload"/></svg></span>
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Import a backup">Import a backup</span></span>
-        <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
-      </button>
-      <div class="ios-row" id="acctVerRow">
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Version">Version</span></span>
-        <span class="ios-row-value tnum" id="acctVersion"></span>
-      </div>
-      <button class="ios-row" id="acctVerBtn" type="button" hidden>
-        <span class="ios-row-body"><span class="ios-row-title" data-i18n="Version">Version</span></span>
-        <span class="ios-row-value tnum" id="acctVersionWeb"></span>
-        <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
-      </button>
-    </div>
-  </div>
-</section>
-
 <section id="view-photos" class="tabscreen" hidden>
   <div class="wrap">
-    <button class="acct-back" id="photosBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg><span data-i18n="Profile">Profile</span></button>
+    <button class="acct-back" id="photosBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg><span data-i18n="More">More</span></button>
   </div>
   <h1 class="screen-title" data-i18n="Photos">Photos</h1>
   <p class="screen-sub" data-i18n="Tap a photo to open its site.">Tap a photo to open its site.</p>
@@ -252,6 +199,7 @@
 <div class="sheet" id="versionsSheet" role="dialog" aria-modal="true" aria-label="Versions" data-i18n-aria="Versions" data-focus-self>
   <div class="grabber"></div>
   <div class="kind" style="margin-bottom:12px">Versions</div>
+  <div class="verline"><span class="vv">v1.0</span>The first App Store release: a native Liquid Glass tab bar, Apple Maps with every park, and the look of iOS itself</div>
   <div class="verline"><span class="vv">v0.239</span>The new ON site icon</div>
   <div class="verline"><span class="vv">v0.238</span>A Journal park’s “sites rated” line wraps in French instead of trailing off</div>
   <div class="verline"><span class="vv">v0.237</span>ON site: a share button on the rating sheet, Journal rows that match the Parks list, a clearer average mark, and a lighter More tab</div>
@@ -339,6 +287,17 @@
 
   <h2 class="ios-section-title" data-i18n="Your data">Your data</h2>
   <div class="ios-group">
+    <button class="ios-row" id="photosRowBtn" type="button">
+      <span class="ios-tile ios-tile--orange"><svg aria-hidden="true"><use href="assets/icons.svg#image"/></svg></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Photos">Photos</span></span>
+      <span class="ios-row-value tnum" id="photoCountValue"></span>
+      <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
+    </button>
+    <div class="ios-row">
+      <span class="ios-tile ios-tile--graphite"><svg aria-hidden="true"><use href="assets/icons.svg#lock"/></svg></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="Visibility">Visibility</span><span class="ios-row-sub" data-i18n="Everything stays on this device">Everything stays on this device</span></span>
+      <span class="ios-row-value" data-i18n="Private">Private</span>
+    </div>
     <button class="ios-row" id="exportBtn" type="button">
       <span class="ios-tile ios-tile--blue"><svg aria-hidden="true"><use href="assets/icons.svg#download"/></svg></span>
       <span class="ios-row-body"><span class="ios-row-title" data-i18n="Export a backup">Export a backup</span></span>
@@ -355,7 +314,6 @@
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
   </div>
-  <p class="ios-group-foot" data-i18n="Export a backup to move your journal to another device. Importing a backup replaces what is on this device.">Export a backup to move your journal to another device. Importing a backup replaces what is on this device.</p>
   <input type="file" id="importInput" accept=".json,application/json" hidden>
 
   <h2 class="ios-section-title" data-i18n="About">About</h2>
@@ -381,7 +339,7 @@
       <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
     </button>
   </div>
-  <p class="ios-group-foot" data-i18n="Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.">Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.</p>
+  <p class="ios-group-foot" data-i18n="Not affiliated with Ontario Parks.">Not affiliated with Ontario Parks.</p>
   </div>
 </section>
 </main>

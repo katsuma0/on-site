@@ -44,6 +44,10 @@ and a paid Apple Developer account:
 - The **Bundle Web App** build phase copies the web files from the repo root
   into the app (`ONsite.app/Web`) on every build. Edit the web app, press
   Run, done. The service worker is not bundled; the app never needs it.
+- Over the page the shell draws the tab bar and the Map tab natively:
+  `GlassTabBar.swift` (Liquid Glass on iOS 26, the system material on 17 and
+  18), `ParkMapView.swift` (MapKit, a pin for each park in `MapParks.swift`)
+  and `ShellState.swift`, which keeps the bar and the page on the same tab.
 - `Bridge.swift` is injected before the page's own code. It sets
   `window.Capacitor`, which is how the web app knows it is inside the app
   (`IN_APP` in `app.js`), and connects `navigator.share` (the backup file goes
