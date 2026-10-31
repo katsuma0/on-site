@@ -17,8 +17,8 @@ Done in the repo:
 
 - Version 1.0, build 2. `MARKETING_VERSION` matches `APP_VERSION` in
   `app.js`, and `node tools/check.js` fails if they ever drift.
-- A native Liquid Glass tab bar (iOS 26; the system material on iOS 17 and
-  18) and a native Map tab: Apple Maps with all 116 visitable provincial
+- The system tab bar (UITabBarController: Liquid Glass on iOS 26, the
+  standard bar on iOS 17 and 18) and a native Map tab: Apple Maps with all 116 visitable provincial
   parks.
 - Privacy, terms and support pages inside the app (More, then Legal),
   written for the app: only the map's images use the network, and
@@ -90,9 +90,9 @@ screenshots (section 7).
 Then go through this list on the iPhone, and on an iPad if you have one:
 
 - [ ] Airplane mode on, Wi-Fi off, cold launch: the parks list appears.
-- [ ] The tab bar: five tabs in a glass capsule, the selected one on a
-      lighter pill. It slides away while a rating sheet or a photo is open
-      and comes back after, and the keyboard never pushes it up.
+- [ ] The tab bar is the system's: on iOS 26 a Liquid Glass bar with five
+      tabs, as in Find My. It slides away while a rating sheet or a photo
+      is open and comes back after.
 - [ ] Map: every park has a pin. Tap Grundy Lake, then **Open park**: the
       park opens on the Parks tab. Tap Algonquin: **Campgrounds** lists its
       campgrounds. Tap Arrow Lake: **Official page** opens Safari. A
@@ -278,7 +278,7 @@ licence agreement (EULA) in place.
 ```text
 ON site is a private campsite journal for Ontario's provincial parks. You rate each campsite out of five, add notes and photos, and mark the sites worth booking again.
 
-How it is built: a SwiftUI app. The journal screens are HTML and JavaScript bundled inside the app and rendered locally by WKWebView from a custom app:// scheme; the tab bar (Liquid Glass) and the Map tab (MapKit) are native SwiftUI. The park guide (124 parks, 372 campgrounds, about 20,000 campsites, 211 trails) is bundled in the binary. The only network use is Apple Maps loading map images on the Map tab; everything else works in airplane mode. There is no account, no server, no analytics and no advertising.
+How it is built: a SwiftUI app. The journal screens are HTML and JavaScript bundled inside the app and rendered locally by WKWebView from a custom app:// scheme; the tab bar is the system UITabBarController (Liquid Glass on iOS 26) and the Map tab is native MapKit in SwiftUI. The park guide (124 parks, 372 campgrounds, about 20,000 campsites, 211 trails) is bundled in the binary. The only network use is Apple Maps loading map images on the Map tab; everything else works in airplane mode. There is no account, no server, no analytics and no advertising.
 
 Native features: a native tab bar, and a MapKit map with a pin for each of Ontario's 116 visitable provincial parks that opens the park in the app. Parks are indexed for Home Screen search with Core Spotlight, and Search in App continues a query inside the app. The camera and photo library attach site photos, Save to Photos keeps one, the share sheet exports a backup file and sends a rating as a message, taps have haptics, and the app follows the system language (English or French) and appearance. A free web version also exists; the app adds these features and works offline from the first launch.
 

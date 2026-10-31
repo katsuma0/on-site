@@ -91,8 +91,8 @@ The iOS design system lives in `assets/ios.css` and is shown on
 `styleguide.html`. Since 1.0 the app wears iOS itself: the system font, the
 system blue tint, system greys and black in dark, and the metrics of iOS 26
 Settings (16pt margins, 24pt corners, 48pt rows, 17pt semibold section
-names, glass circle buttons). In the app the tab bar is native Liquid Glass,
-modelled on Find My, and the Map tab is native MapKit. Light and dark follow
+names, glass circle buttons). In the app the tab bar is the system's own
+UITabBarController, Liquid Glass on iOS 26 as in Find My, and the Map tab is native MapKit. Light and dark follow
 the system unless the person picks one under Appearance. Text sizes run S to
 XL, and controls grow with them, never below 44pt. The older `DESIGN.md`,
 `FORMAT-SPEC.md` and `SEARCH-SPEC.md` describe the v0.17x look and are kept

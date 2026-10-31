@@ -11,14 +11,14 @@ import MapKit
 
 struct ParkMapView: View {
     @ObservedObject var shell = ShellState.shared
-    /// Room kept clear above the bottom safe area for the tab bar.
+    /// Extra room above the bottom safe area (the tab bar is already in it).
     var barClearance: CGFloat
 
     @State private var position: MapCameraPosition = .region(ParkMapView.ontario)
     @State private var selection: String?
     @Environment(\.openURL) private var openURL
 
-    init(barClearance: CGFloat) {
+    init(barClearance: CGFloat = 0) {
         self.barClearance = barClearance
     }
 
@@ -202,6 +202,22 @@ private struct SecondaryButton: ViewModifier {
             content.buttonStyle(.glass)
         } else {
             content.buttonStyle(.bordered).buttonBorderShape(.capsule)
+        }
+    }
+}
+
+/// The same glass on a rounded card (the map's park card).
+struct GlassCard: ViewModifier {
+    var radius: CGFloat = 28
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        } else {
+            content
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .shadow(color: .black.opacity(0.18), radius: 16, y: 6)
         }
     }
 }

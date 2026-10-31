@@ -102,8 +102,8 @@ Parks.
     search), `appearance` (`postAppearance()`, theme and language) and
     `chrome` (`nativeChrome()`: the tab the page shows and whether a sheet
     or the photo viewer covers it).
-  - The tab bar is native (`ios/App/GlassTabBar.swift`, Liquid Glass on iOS
-    26): the bridge sets `window.__onNativeTabs`, the page stamps
+  - The tab bar is the system UITabBarController (`ios/App/TabShell.swift`,
+    Liquid Glass on iOS 26, never a custom imitation): the bridge sets `window.__onNativeTabs`, the page stamps
     `html.native-tabs` and hides its own `#tabbar`, and the shell calls
     `window.onsiteShowTab`, `onsiteOpenPark`, `onsiteShowRegion` and
     `onsiteMapState`. The web version keeps its own bar and has no Map tab.

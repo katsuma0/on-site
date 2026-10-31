@@ -15,7 +15,7 @@
 		B00000000000000000000006 /* Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* Spotlight.swift */; };
 		B00000000000000000000007 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* InfoPlist.strings */; };
 		B00000000000000000000008 /* ShellState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000011 /* ShellState.swift */; };
-		B00000000000000000000009 /* GlassTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000012 /* GlassTabBar.swift */; };
+		B00000000000000000000009 /* TabShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000012 /* TabShell.swift */; };
 		B00000000000000000000010 /* ParkMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000013 /* ParkMapView.swift */; };
 		B00000000000000000000011 /* MapParks.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000014 /* MapParks.swift */; };
 /* End PBXBuildFile section */
@@ -32,7 +32,7 @@
 		F00000000000000000000009 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F00000000000000000000010 /* ONsite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ONsite.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F00000000000000000000011 /* ShellState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellState.swift; sourceTree = "<group>"; };
-		F00000000000000000000012 /* GlassTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassTabBar.swift; sourceTree = "<group>"; };
+		F00000000000000000000012 /* TabShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabShell.swift; sourceTree = "<group>"; };
 		F00000000000000000000013 /* ParkMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkMapView.swift; sourceTree = "<group>"; };
 		F00000000000000000000014 /* MapParks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapParks.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -65,7 +65,7 @@
 				F00000000000000000000004 /* Bridge.swift */,
 				F00000000000000000000006 /* Spotlight.swift */,
 				F00000000000000000000011 /* ShellState.swift */,
-				F00000000000000000000012 /* GlassTabBar.swift */,
+				F00000000000000000000012 /* TabShell.swift */,
 				F00000000000000000000013 /* ParkMapView.swift */,
 				F00000000000000000000014 /* MapParks.swift */,
 				F00000000000000000000005 /* Assets.xcassets */,
@@ -183,7 +183,7 @@
 				B00000000000000000000004 /* Bridge.swift in Sources */,
 				B00000000000000000000006 /* Spotlight.swift in Sources */,
 				B00000000000000000000008 /* ShellState.swift in Sources */,
-				B00000000000000000000009 /* GlassTabBar.swift in Sources */,
+				B00000000000000000000009 /* TabShell.swift in Sources */,
 				B00000000000000000000010 /* ParkMapView.swift in Sources */,
 				B00000000000000000000011 /* MapParks.swift in Sources */,
 			);

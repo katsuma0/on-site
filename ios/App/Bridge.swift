@@ -22,7 +22,7 @@ enum NativeBridge {
       'use strict';
       if (window.__onNativeBridge) { return; }
       window.__onNativeBridge = true;
-      /* 4. The shell draws the tab bar natively (GlassTabBar.swift) */
+      /* 4. The tab bar is the system one (TabShell.swift) */
       window.__onNativeTabs = true;
 
       function post(name, payload) {
