@@ -22,12 +22,17 @@ import SwiftUI
 import WebKit
 import UIKit
 
-struct WebScreen: UIViewRepresentable {
-    func makeCoordinator() -> WebCoordinator { WebCoordinator() }
+/// The page's web view. The tab bar's screens take turns holding it (see
+/// TabShell.swift); its safe area is the window's, so the page lays itself
+/// out for the screen and not for whichever tab is holding it.
+final class ShellWebView: WKWebView {
+    override var safeAreaInsets: UIEdgeInsets {
+        window?.safeAreaInsets ?? super.safeAreaInsets
+    }
+}
 
-    func makeUIView(context: Context) -> WKWebView {
-        let coordinator = context.coordinator
-
+enum WebScreen {
+    static func makeWebView(coordinator: WebCoordinator) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(LocalSchemeHandler(), forURLScheme: "app")
         config.allowsInlineMediaPlayback = true
@@ -41,7 +46,7 @@ struct WebScreen: UIViewRepresentable {
                                               injectionTime: .atDocumentStart,
                                               forMainFrameOnly: true))
 
-        let webView = WKWebView(frame: .zero, configuration: config)
+        let webView = ShellWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = coordinator
         webView.uiDelegate = coordinator
         // The page's own background (light #F2F2F7, dark #000000), so the
@@ -61,8 +66,6 @@ struct WebScreen: UIViewRepresentable {
         webView.load(URLRequest(url: WebCoordinator.startURL))
         return webView
     }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
 /* Requests from the system (a park picked in iPhone search, Search in App)

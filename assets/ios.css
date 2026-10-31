@@ -2067,3 +2067,9 @@ h1, h2, h3, h4, .btn { font-family: var(--font-display); }
   }
 }
 :root .cell-details + .cell-details > .ios-row::before { left: var(--row-pad); right: var(--row-pad); }
+/* the system tab bar in the app sits a little taller than the page's own
+   bar, so the last row of every screen scrolls clear of it */
+html.native-tabs body,
+html.native-tabs body:has(> .ios-tabbar) {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+}

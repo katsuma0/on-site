@@ -1,5 +1,5 @@
-/* What the native shell draws over the web view: the Liquid Glass tab bar
-   and the Map tab. The page reports which tab it is on and when a sheet
+/* The state shared by the system tab bar (TabShell.swift), the page and
+   the Map tab. The page reports which tab it is on and when a sheet
    covers it (the "chrome" message); the shell switches the page's tab by
    calling window.onsiteShowTab. The Map tab is native and never reaches
    the page, except to open a park picked on the map. */
@@ -67,7 +67,6 @@ final class ShellState: ObservableObject {
     @Published var favourites: Set<String> = []
     @Published var visited: Set<String> = []
 
-    var barHidden: Bool { modalOpen && tab != .map }
 
     // MARK: from the page
 
