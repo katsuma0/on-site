@@ -23,8 +23,8 @@ before a big change.
   Learn notes and the legal pages (`LEGAL_PAGES`).
 - `assets/ios.css`: the iOS design system (part 1), the app's own styles
   (part 2) and the faces and text sizes (part 3). `styleguide.html` shows it.
-- `assets/icons.svg` (the symbol sprite) and `assets/fonts/` (Lato under the
-  OFL, Noto Sans 1.04 under Apache 2.0, licences beside them).
+- `assets/icons.svg`, the symbol sprite. The type is the system font (San
+  Francisco on Apple devices); no fonts are bundled.
 - `data/parks.js`: the park data as `window.PARKS_DATA`, loaded first so the
   app starts instantly and offline. `parks-data.json` is the same data as
   plain JSON, for the pipeline and the web version's background refresh.
@@ -46,11 +46,12 @@ before a big change.
 
 ## Every release
 
-1. Bump `APP_VERSION` in `app.js` (`0.NNN`).
+1. Bump `APP_VERSION` in `app.js` (`1.N` since the App Store release).
 2. Set `MARKETING_VERSION` to the same number in
    `ios/ONsite.xcodeproj/project.pbxproj` (Debug and Release).
-3. Bump `CACHE` in `service-worker.js` to `scout-v` plus the minor number plus
-   2 (0.236 goes with `scout-v238`).
+3. Bump `CACHE` in `service-worker.js` to `scout-v` plus the version as
+   major × 1000 + minor, plus 2 (0.239 went with `scout-v241`, 1.0 goes with
+   `scout-v1002`, 1.1 with `scout-v1003`).
 4. Add one `.verline` at the top of the Versions sheet in `index.html`: one
    line, plain words, milestones only.
 5. `node tools/check.js` must print ALL CHECKS PASSED. It enforces 1 to 3,
@@ -94,10 +95,22 @@ Parks.
   object comes from `ios/App/Bridge.swift`):
   - the service worker never registers, and any old one is removed;
   - `refreshParksFromNetwork` returns at once, the bundled data is the truth;
-  - the app makes no network requests of its own. Links open in Safari.
-  - The page talks to the shell through four message handlers: `share`,
+  - the only network use is the native Map tab (Apple Maps images). Links
+    open in Safari.
+  - The page talks to the shell through five message handlers: `share`,
     `haptic`, `spotlight` (`postSpotlight()`, the parks for the Home Screen
-    search) and `appearance` (`postAppearance()`, theme and language).
+    search), `appearance` (`postAppearance()`, theme and language) and
+    `chrome` (`nativeChrome()`: the tab the page shows and whether a sheet
+    or the photo viewer covers it).
+  - The tab bar is native (`ios/App/GlassTabBar.swift`, Liquid Glass on iOS
+    26): the bridge sets `window.__onNativeTabs`, the page stamps
+    `html.native-tabs` and hides its own `#tabbar`, and the shell calls
+    `window.onsiteShowTab`, `onsiteOpenPark`, `onsiteShowRegion` and
+    `onsiteMapState`. The web version keeps its own bar and has no Map tab.
+  - The Map tab is native MapKit (`ios/App/ParkMapView.swift`); its pins are
+    `ios/App/MapParks.swift`, generated from the owner's
+    ontario-parks-visitable.csv (116 parks, `guideID` links a pin to a park
+    in the guide). Regenerate it from the CSV, never by hand.
     `window.onsiteOpenPark` and `window.onsiteSearch` are how the shell opens
     a search result.
 - **Nothing hidden.** The only hidden features are the read-only consoles,
@@ -130,11 +143,17 @@ Parks.
 
 ## App behaviour to preserve
 
-- Four tabs: Parks (search, region filter, A to Z rail), Favourites
-  (favourite parks, parks you have rated, favourite sites), Journal
-  (everything rated, with filters and sorting), More (Learn, Appearance, Your
-  data, About, Legal). The avatar opens Profile, which holds only a display
-  name and the version.
+- Tabs: Parks (region chips, then A to Z with a letter rail; search is the
+  header button), Map (in the app only), Favourites (favourite parks, sites
+  you hearted, and parks you have visited that are not already favourites),
+  Journal (everything rated, with filters and sorting), More (Learn,
+  Appearance, Your data with Photos and Visibility first, About, Legal, and
+  one closing line: "Not affiliated with Ontario Parks."). There is no
+  Profile; the old display name key is kept untouched.
+- The look is iOS itself: system blue tint, system greys and black in dark,
+  the system font, and Settings' metrics (16pt margins, 24pt card corners,
+  48pt rows with 16pt insets, 17pt semibold section names, glass circle back
+  buttons). The tokens are at the end of `assets/ios.css`.
 - One row shape for a park everywhere (`parkRowHtml`): the name over a
   footnote line. Parks shows the region, with "N rated" at the right at the
   footnote size; Favourites and the Journal show "N sites rated". A Journal

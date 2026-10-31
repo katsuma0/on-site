@@ -1,5 +1,5 @@
 /* The script injected into every page load, before the app's own code runs.
-   It gives the web app three native abilities:
+   It gives the web app four native abilities:
      1. navigator.share() backed by the iOS share sheet. Each file crosses
         the bridge and is rebuilt as a real file: text files (the journal
         backup) as text, anything else as base64. Cancelling the sheet
@@ -10,7 +10,9 @@
         (window.Capacitor.Plugins.Haptics), plus navigator.vibrate. The same
         window.Capacitor object is how the web app knows it runs in the app.
      3. A "standalone" signal so the web app knows it is installed and
-        hides its add-to-home-screen hints. */
+        hides its add-to-home-screen hints.
+     4. A native tab bar signal, so the page hides its own bar and reports
+        its tab and sheets to the shell instead. */
 
 import Foundation
 
@@ -20,6 +22,8 @@ enum NativeBridge {
       'use strict';
       if (window.__onNativeBridge) { return; }
       window.__onNativeBridge = true;
+      /* 4. The shell draws the tab bar natively (GlassTabBar.swift) */
+      window.__onNativeTabs = true;
 
       function post(name, payload) {
         try { window.webkit.messageHandlers[name].postMessage(payload); return true; }

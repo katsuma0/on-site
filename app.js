@@ -51,7 +51,7 @@ function sitesOf(pid,cg){
 /* ================= state ================= */
 let state={site:{},campground:{},trail:{}};
 const KEY='ontario-scout-v2';
-var APP_VERSION='0.239';
+var APP_VERSION='1.0';
 /* true inside the iPhone app: Bridge.swift sets window.Capacitor before this file runs */
 var IN_APP=!!window.Capacitor;
 
@@ -117,7 +117,7 @@ var FR={
   'Parks you rate or write in show up here.':'Les parcs que vous notez ou commentez apparaissent ici.',
   'Legal':'Mentions légales','Privacy policy':'Politique de confidentialité',
   'Terms of use':'Conditions d’utilisation','Support':'Assistance',
-  'Not affiliated with Ontario Parks or the Government of Ontario. Book through their official site.':'Sans lien avec Parcs Ontario ni avec le gouvernement de l’Ontario. Réservez par leur site officiel.',
+  'Not affiliated with Ontario Parks.':'Sans lien avec Parcs Ontario.',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
   /* settings */
@@ -242,7 +242,7 @@ function setLang(v){
   applyLang();
   renderAppearancePanel();
   /* redraw whatever is on screen, in place */
-  try{ if(typeof renderAccount==='function') renderAccount(); }catch(e){}
+  try{ if(typeof renderPhotoCount==='function') renderPhotoCount(); }catch(e){}
   try{ if(typeof renderJournal==='function') renderJournal(); }catch(e){}
   try{ if(typeof fillAboutStats==='function') fillAboutStats(); }catch(e){}
   try{ if(learnRendered&&typeof renderLearn==='function') renderLearn(); }catch(e){}
@@ -605,8 +605,8 @@ function openFavSite(pid,cgId,site,host){
 
 /* ---- Favourites tab: the parks and sites you keep coming back to ----
    Favourite parks A to Z, the campsites you hearted, and every park you have
-   rated or written in, most recent first. A park can sit in both lists: one
-   says you chose it, the other that you have been. */
+   rated or written in, most recent first. A favourite park is listed once,
+   under Favourite parks, even when you have been there too. */
 function parkSubLine(p,st){
   if(st.rated>0) return st.rated+' '+TL(st.rated===1?'site rated':'sites rated');
   if(st.aside>0) return st.aside+' '+TL(st.aside===1?'trailer site set aside':'trailer sites set aside');
@@ -617,7 +617,7 @@ function renderFavs(){ const box=document.getElementById('favsBody'); if(!box) r
   const visible=PARKS, info={}; visible.forEach(p=>{ info[p.id]=parkTouchInfo(p); });
   const ts=state.touched||{};
   const favParks=visible.filter(p=>isFav('parks',p.id)).sort((a,b)=>a.name.localeCompare(b.name));
-  const vis=new Set(visitedParkIds()), visited=visible.filter(p=>vis.has(p.id))
+  const vis=new Set(visitedParkIds()), visited=visible.filter(p=>vis.has(p.id)&&!isFav('parks',p.id))
     .sort((a,b)=>((ts[b.id]||0)-(ts[a.id]||0))||a.name.localeCompare(b.name));
   const favSites=favSiteRows(visible);
   if(!favParks.length&&!visited.length&&!favSites){
@@ -654,7 +654,7 @@ function renderParks(){ const box=document.getElementById('parkList'); if(!box) 
   /* Favourites and the parks you have rated live in their own tab now, so
      the Parks list is the guide itself: every park, A to Z. */
   /* all parks, one flat alphabetical list split by first letter */
-  html+='<div class="seclabel">'+TL('All parks A to Z')+'</div>'+regionChipsHtml();
+  html+=regionChipsHtml();
   const shown=((regionFilter==='All')?visible:visible.filter(p=>broadOf(p)===regionFilter))
     .slice().sort((a,b)=>a.name.localeCompare(b.name));
   const letters=[], byLetter={};
@@ -794,8 +794,8 @@ document.getElementById('backBtn').addEventListener('click',function(){
   var eb=document.getElementById('exportBtn'), ib=document.getElementById('importBtn'), fi=document.getElementById('importInput');
   if(!eb||!ib||!fi) return;
   /* the Account view carries a second pair of rows wired to the same actions */
-  var exportRows=[eb,document.getElementById('acctExportBtn')].filter(Boolean);
-  var importRows=[ib,document.getElementById('acctImportBtn')].filter(Boolean);
+  var exportRows=[eb].filter(Boolean);
+  var importRows=[ib].filter(Boolean);
   function allPhotos(){ return openDB().then(function(db){ return new Promise(function(res){ var tx=db.transaction(STORE,'readonly');
     var rq=tx.objectStore(STORE).getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ res([]); }; }); }).catch(function(){ return []; }); }
   function buildBackup(){ return allPhotos().then(function(rows){
@@ -1414,7 +1414,7 @@ function campCard(it){
 }
 /* ---- receive a shared review (#/shared/<data>) ---- */
 function showShared(item){
-  ['view-parks','view-park','view-favs','view-journal','view-more','view-account','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
+  ['view-parks','view-park','view-favs','view-journal','view-more','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
   var sec=document.getElementById('view-shared'); if(!sec) return;
   sec.hidden=false;
   var tb=document.getElementById('tabbar');
@@ -1683,52 +1683,17 @@ function fillAboutStats(){
     '<a class="ios-row ios-row--plain" href="https://katsuma.ca/" target="_blank" rel="noopener">'+
     '<span class="ios-row-body"><span class="ios-row-title">katsuma.ca</span></span>'+CHEV_RIGHT+'</a>';
 }
-/* ---- account + saved photos ---- */
-/* One shared profile for the three outdoors apps on this origin: the display
-   name lives under the JSON key 'outdoors-profile' ({name}), with a silent
-   one time migration from the old per app key oncamp-name. */
+/* ---- saved photos (More, Your data, Photos) ---- */
+/* 'outdoors-profile' once held a display name for an avatar the app no
+   longer has. The key is left alone (backups still carry it); nothing reads it. */
 var PROFILE_KEY='outdoors-profile';
-(function(){ try{
-  if(localStorage.getItem(PROFILE_KEY)==null){
-    var old=(localStorage.getItem('oncamp-name')||'').trim();
-    if(old){ localStorage.setItem(PROFILE_KEY,JSON.stringify({name:old})); localStorage.removeItem('oncamp-name'); }
-  }
-}catch(e){} })();
-function displayName(){ try{ var p=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null'); return ((p&&p.name)||'').trim(); }catch(e){ return ''; } }
-function setDisplayName(v){ v=String(v==null?'':v).trim();
-  try{ if(v) localStorage.setItem(PROFILE_KEY,JSON.stringify({name:v})); else localStorage.removeItem(PROFILE_KEY); }catch(e){} }
-function avatarGlyph(){ var n=displayName();
-  return n?esc(Array.from(n)[0].toUpperCase()):'<svg aria-hidden="true"><use href="assets/icons.svg#user"/></svg>'; }
-function renderAvatar(){
-  var el=document.getElementById('avatarBtn'); if(el) el.innerHTML=avatarGlyph();
-  var big=document.getElementById('acctAvatar'); if(big) big.innerHTML=avatarGlyph();
-}
-(function(){ var b=document.getElementById('acctVerBtn'); if(b) b.addEventListener('click',function(){ buzz(6); openVersions(); }); })();
-(function(){ var inp=document.getElementById('displayName'); if(!inp) return;
-  inp.value=displayName();
-  inp.addEventListener('input',function(){ setDisplayName(inp.value); renderAvatar(); });
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') inp.blur(); });
-})();
 function accountStats(){ var s=journalStats(); return {parks:visitedParkIds().length,sites:s.n}; }
 function countPhotosSaved(){ return openDB().then(function(db){ return new Promise(function(res){
     var tx=db.transaction(STORE,'readonly'); var rq=tx.objectStore(STORE).getAll();
     rq.onsuccess=function(){ var n=0; (rq.result||[]).forEach(function(r){ if(r&&Array.isArray(r.list)) n+=r.list.length; }); res(n); };
     rq.onerror=function(){ res(0); }; }); }).catch(function(){ return 0; }); }
-function renderAccount(){
-  renderAvatar();
-  var st=accountStats();
-  var e1=document.getElementById('stParks'); if(e1) e1.textContent=st.parks;
-  var e2=document.getElementById('stSites'); if(e2) e2.textContent=st.sites;
-  /* the app shows the version the way Settings does, a plain row; the web
-     version's row is a button that opens the change log */
-  var row=document.getElementById('acctVerRow'), btn=document.getElementById('acctVerBtn');
-  if(row) row.hidden=!IN_APP; if(btn) btn.hidden=IN_APP;
-  var av=document.getElementById('acctVersion'); if(av) av.textContent=APP_VERSION;
-  var aw=document.getElementById('acctVersionWeb'); if(aw) aw.textContent='v'+APP_VERSION;
-  countPhotosSaved().then(function(n){
-    var e3=document.getElementById('stPhotos'); if(e3) e3.textContent=n;
-    var pc=document.getElementById('acctPhotoCount'); if(pc) pc.textContent=n||''; });
-}
+function renderPhotoCount(){
+  countPhotosSaved().then(function(n){ var pc=document.getElementById('photoCountValue'); if(pc) pc.textContent=n||''; }); }
 function photoLabel(k){ var parts=k.split('#'), p=PARK_BY_ID[parts[0]];
   if(parts.length>=3) return TL('Site')+' '+parts.slice(2).join('#')+', '+(p?p.name:parts[0]);
   var name=parts.slice(1).join('#');
@@ -1754,18 +1719,16 @@ async function renderPhotosScreen(){
       b.addEventListener('click',function(){ buzz(6); openPhotoTarget(k); });
       box.appendChild(b); }); } }
 (function(){
-  var ab=document.getElementById('avatarBtn'), sb=document.getElementById('searchBtn');
+  var sb=document.getElementById('searchBtn');
   /* its own screen, the way iOS Settings does it: the field is there but
      focus stays manual, because autofocusing pans the page on iOS Safari */
-  function toSearch(){ showTab('search'); }
-  if(ab) ab.addEventListener('click',function(){ buzz(6); showTab('account'); });
-  if(sb) sb.addEventListener('click',function(){ buzz(6); toSearch(); });
+  if(sb) sb.addEventListener('click',function(){ buzz(6); showTab('search'); });
   var sc=document.getElementById('searchCancel');
   if(sc) sc.addEventListener('click',function(){ buzz(6); clearGSearch(); showTab(LAST_TAB_BEFORE_SEARCH||'guide'); });
-  var pb=document.getElementById('acctPhotosBtn');
+  var pb=document.getElementById('photosRowBtn');
   if(pb) pb.addEventListener('click',function(){ buzz(6); showTab('photos'); });
   var bk=document.getElementById('photosBack');
-  if(bk) bk.addEventListener('click',function(){ buzz(6); showTab('account'); });
+  if(bk) bk.addEventListener('click',function(){ buzz(6); showTab('more'); });
 })();
 
 /* ---- journal tab: everything rated, grouped by park ---- */
@@ -1947,8 +1910,8 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
 
 /* ---- shared footer tab bar ---- */
 var LAST_TAB_BEFORE_SEARCH='guide';
-var TAB_SECTIONS={guide:'view-parks',favs:'view-favs',journal:'view-journal',more:'view-more',account:'view-account',photos:'view-photos',search:'view-search'};
-var ALL_VIEWS=['view-parks','view-park','view-favs','view-journal','view-more','view-shared','view-account','view-photos','view-search'];
+var TAB_SECTIONS={guide:'view-parks',favs:'view-favs',journal:'view-journal',more:'view-more',photos:'view-photos',search:'view-search'};
+var ALL_VIEWS=['view-parks','view-park','view-favs','view-journal','view-more','view-shared','view-photos','view-search'];
 var learnRendered=false;
 function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el) el.hidden=!!h; }
 /* blended headers: transparent at rest, frosted only once content actually runs
@@ -1982,15 +1945,15 @@ function showTab(tab){
   }
   setHeaderHidden(false);
   setTabActive(tab);
+  nativeChrome({tab:tab});
   /* always land at the top; the second call catches a browser that scrolls late */
   try{ window.scrollTo(0,0); }catch(e){}
   requestAnimationFrame(function(){ try{ window.scrollTo(0,0); }catch(e){} });
   if(tab==='guide'){ renderParks(); }
   if(tab==='favs'){ renderFavs(); }
-  if(tab==='more'){ if(typeof renderAppearancePanel==='function') renderAppearancePanel(); if(typeof fillAboutStats==='function') fillAboutStats();
+  if(tab==='more'){ if(typeof renderAppearancePanel==='function') renderAppearancePanel(); if(typeof fillAboutStats==='function') fillAboutStats(); renderPhotoCount();
     if(!learnRendered){ renderLearn(); learnRendered=true; } }
   if(tab==='journal'){ renderJournal(); }
-  if(tab==='account'){ renderAccount(); }
   if(tab==='photos'){ renderPhotosScreen(); }
 }
 function openSettings(){ showTab('more'); }
@@ -2062,9 +2025,9 @@ var ISSUES='<a href="https://github.com/katsuma0/on-site/issues" target="_blank"
 var LEGAL_PAGES={
   privacy:{t:'Privacy policy',h:''
     +'<p><b>The short version.</b> There are no accounts, no advertising and no analytics. Nothing you write, rate or photograph is sent to me. It is stored on this device and it stays here. I cannot read it and I never see that it exists.</p>'
-    +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites, your display name and your settings. All of it is kept on this device, '+(IN_APP?'inside the app':'in this browser’s storage')+'. Your display name is used only to draw an initial in the corner of the app and is never transmitted.</p>'
+    +'<p><b>What the app stores.</b> Your ratings, notes, wishlist marks and photos, your favourites and your settings. All of it is kept on this device, '+(IN_APP?'inside the app':'in this browser’s storage')+'.</p>'
     +'<p><b>What leaves this device.</b> Nothing is sent to me. A backup you export goes only where you send it. '
-      +(IN_APP?'The app makes no network requests of its own, and it works the same in airplane mode. A link to an official park page or to katsuma.ca opens in Safari.'
+      +(IN_APP?'The Map tab is Apple Maps: when you are online it loads map images from Apple, under Apple’s privacy policy, and it never sends Apple your journal. Everything else makes no network requests and works the same in airplane mode. A link to an official park page or to katsuma.ca opens in Safari.'
               :'The web version is served from GitHub Pages, which keeps ordinary server logs. A link to an official park page opens that site.')+'</p>'
     +(IN_APP?'<p><b>Home Screen search.</b> So you can find a park by searching from the Home Screen, the app adds the names of the parks in its guide to this device’s search index. Your own ratings, notes and photos are never added. You can turn this off for ON site in the Settings app.</p>':'')
     +'<p><b>Permissions.</b> The camera and photo library are used only when you attach a photo to a site, and a photo is saved to your library only when you choose to save it. The app never asks for your location. If you decline, everything else still works'+(IN_APP?', and you can change your mind in the Settings app at any time':'')+'.</p>'
@@ -2073,9 +2036,9 @@ var LEGAL_PAGES={
     +'<p>The full policy is at '+siteLink('privacy.html')+'. Questions: '+MAIL+'.</p>',
     hFr:''
     +'<p><b>La version courte.</b> Il n’y a aucun compte, aucune publicité et aucune analyse d’audience. Rien de ce que vous écrivez, notez ou photographiez ne m’est envoyé. C’est stocké sur cet appareil et cela y reste. Je ne peux pas le lire et je ne vois jamais que cela existe.</p>'
-    +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris, votre nom d’affichage et vos réglages. Tout cela est conservé sur cet appareil, '+(IN_APP?'dans l’application':'dans le stockage de ce navigateur')+'. Votre nom d’affichage sert uniquement à dessiner une initiale dans le coin de l’application et n’est jamais transmis.</p>'
+    +'<p><b>Ce que l’application stocke.</b> Vos évaluations, vos notes, vos marques de liste de souhaits et vos photos, vos favoris et vos réglages. Tout cela est conservé sur cet appareil, '+(IN_APP?'dans l’application':'dans le stockage de ce navigateur')+'.</p>'
     +'<p><b>Ce qui quitte cet appareil.</b> Rien ne m’est envoyé. Une sauvegarde que vous exportez va seulement là où vous l’envoyez. '
-      +(IN_APP?'L’application ne fait aucune requête réseau de son côté et fonctionne de la même façon en mode avion. Un lien vers une page officielle d’un parc ou vers katsuma.ca s’ouvre dans Safari.'
+      +(IN_APP?'L’onglet Carte est Plans d’Apple : quand vous êtes en ligne, il charge les images de la carte depuis Apple, selon la politique de confidentialité d’Apple, et il n’envoie jamais votre journal à Apple. Tout le reste ne fait aucune requête réseau et fonctionne de la même façon en mode avion. Un lien vers une page officielle d’un parc ou vers katsuma.ca s’ouvre dans Safari.'
               :'La version Web est servie par GitHub Pages, qui conserve des journaux de serveur ordinaires. Un lien vers une page officielle d’un parc ouvre ce site.')+'</p>'
     +(IN_APP?'<p><b>Recherche de l’écran d’accueil.</b> Pour que vous puissiez trouver un parc en cherchant depuis l’écran d’accueil, l’application ajoute le nom des parcs de son guide à l’index de recherche de cet appareil. Vos propres évaluations, notes et photos n’y sont jamais ajoutées. Vous pouvez désactiver cette fonction pour ON site dans l’app Réglages.</p>':'')
     +'<p><b>Autorisations.</b> L’appareil photo et la photothèque ne sont utilisés que lorsque vous joignez une photo à un emplacement, et une photo n’est enregistrée dans votre photothèque que si vous choisissez de l’enregistrer. L’application ne demande jamais votre position. Si vous refusez, tout le reste fonctionne quand même'+(IN_APP?', et vous pouvez changer d’avis dans l’app Réglages à tout moment':'')+'.</p>'
@@ -2102,7 +2065,7 @@ var LEGAL_PAGES={
     +'<p><b>Reach me.</b> Email '+MAIL+' and I will reply. Problems can also be filed at '+ISSUES+'.</p>'
     +'<p><b>Moving to a new device.</b> On the old device: More, then Your data, then Export a backup. Send that file to yourself. On the new device: More, then Your data, then Import a backup, and pick the file. Importing replaces what is on that device, so do it before you start rating there.</p>'
     +'<p><b>'+(IN_APP?'Deleted the app?':'Cleared your browser’s data?')+'</b> The journal went with it, because nothing is stored on a server. Export a backup before you '+(IN_APP?'delete the app':'clear your data')+' or change devices. I have no copy and cannot recover anything.</p>'
-    +'<p><b>No signal?</b> '+(IN_APP?'Everything works offline, in airplane mode too. Nothing in the app needs a connection.':'Every park, site and rating works offline once the app has loaded.')+'</p>'
+    +'<p><b>No signal?</b> '+(IN_APP?'Everything works offline, in airplane mode too. Only the map images need a connection; the park pins show either way.':'Every park, site and rating works offline once the app has loaded.')+'</p>'
     +(IN_APP?'<p><b>Updates.</b> Updates come through the App Store, and your journal stays in place when the app updates.</p>'
             :'<p><b>Looks like the old version?</b> Close the app completely and open it again. It keeps its files on your device so it works offline, and swaps in updates the next time you open it.</p>')
     +(IN_APP?'<p><b>Find a park fast.</b> Swipe down on the Home Screen and type a park’s name to open it straight in ON site.</p>':'')
@@ -2111,7 +2074,7 @@ var LEGAL_PAGES={
     +'<p><b>Me joindre.</b> Écrivez à '+MAIL+' et je répondrai. Les problèmes peuvent aussi être signalés à '+ISSUES+'.</p>'
     +'<p><b>Passer à un nouvel appareil.</b> Sur l’ancien appareil : Plus, puis Vos données, puis Exporter une sauvegarde. Envoyez-vous ce fichier. Sur le nouvel appareil : Plus, puis Vos données, puis Importer une sauvegarde, et choisissez le fichier. L’importation remplace ce qui se trouve sur cet appareil, alors faites-la avant de commencer à noter.</p>'
     +'<p><b>'+(IN_APP?'Vous avez supprimé l’application ?':'Vous avez effacé les données du navigateur ?')+'</b> Le journal est parti avec elle, car rien n’est stocké sur un serveur. Exportez une sauvegarde avant de '+(IN_APP?'supprimer l’application':'effacer vos données')+' ou de changer d’appareil. Je n’ai aucune copie et ne peux rien récupérer.</p>'
-    +'<p><b>Pas de signal ?</b> '+(IN_APP?'Tout fonctionne hors ligne, en mode avion aussi. Rien dans l’application n’a besoin d’une connexion.':'Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.')+'</p>'
+    +'<p><b>Pas de signal ?</b> '+(IN_APP?'Tout fonctionne hors ligne, en mode avion aussi. Seules les images de la carte ont besoin d’une connexion ; les repères des parcs s’affichent dans tous les cas.':'Chaque parc, emplacement et évaluation fonctionne hors ligne une fois l’application chargée.')+'</p>'
     +(IN_APP?'<p><b>Mises à jour.</b> Les mises à jour arrivent par l’App Store, et votre journal reste en place quand l’application se met à jour.</p>'
             :'<p><b>On dirait l’ancienne version ?</b> Fermez complètement l’application et rouvrez-la. Elle conserve ses fichiers sur votre appareil pour fonctionner hors ligne, et intègre les mises à jour la prochaine fois que vous l’ouvrez.</p>')
     +(IN_APP?'<p><b>Trouver un parc rapidement.</b> Glissez vers le bas sur l’écran d’accueil et tapez le nom d’un parc pour l’ouvrir directement dans ON site.</p>':'')
@@ -2152,7 +2115,7 @@ makeSheetSwipe(sheet,closeSheet);
 (async function(){
   applyAppearance(); applyLang();
   buildDots(); load(); migrateAlgonquin(); migrateScale5(); migratePinsToFavs();
-  loadParksEmbedded(); buildSearchIndex(); wireGlobalSearch(); renderAppearancePanel(); renderAvatar();
+  loadParksEmbedded(); buildSearchIndex(); wireGlobalSearch(); renderAppearancePanel();
   renderParks();                 /* instant first paint, no network wait */
   await loadPhotoIndex();        /* fast local IndexedDB */
   migrateAlgPhotos();
@@ -2176,6 +2139,29 @@ function searchFromOutside(q){
   gq.value=String(q||'').slice(0,80); onGSearch(); }
 window.onsiteOpenPark=openParkFromOutside;
 window.onsiteSearch=searchFromOutside;
+/* ---- the iPhone and iPad app's native tab bar and map ----
+   In the app the tab bar is native (Liquid Glass) and the Map tab is Apple
+   Maps, both drawn by the shell over this page; the page's own bar is
+   hidden (html.native-tabs). The page tells the shell which tab it is on
+   and when a sheet or the photo viewer covers it (the bar steps aside),
+   and the shell calls the functions below. */
+var NATIVE_TABS=!!window.__onNativeTabs;
+function nativeChrome(msg){ if(!window.__onNativeTabs) return;
+  try{ window.webkit.messageHandlers.chrome.postMessage(msg); }catch(e){} }
+var _lastModal=null;
+function postModalState(){ var on=!!document.querySelector('.sheet.on, #lightbox.on');
+  if(on===_lastModal) return; _lastModal=on; nativeChrome({modal:on}); }
+if(NATIVE_TABS){
+  try{ var mo=new MutationObserver(postModalState);
+    document.querySelectorAll('.sheet, #lightbox').forEach(function(el){ mo.observe(el,{attributes:true,attributeFilter:['class']}); });
+  }catch(e){}
+  postModalState(); }
+window.onsiteShowTab=function(tab){ closeOverlays(); hideThemeToast(); if(tab!=='search') clearGSearch(); showTab(tab); return true; };
+window.onsiteShowRegion=function(region){ closeOverlays(); clearGSearch(); regionFilter=region; showTab('guide'); return true; };
+/* what the map needs to colour its pins: favourite and visited parks */
+window.onsiteMapState=function(){
+  return JSON.stringify({ fav:PARKS.filter(function(p){ return isFav('parks',p.id); }).map(function(p){ return p.id; }),
+    visited:visitedParkIds(), lang:LANG }); };
 /* iPhone search: the shell indexes what this sends, so a park can be found
    from the Home Screen. Only the guide's own data goes in, never the
    reader's ratings, notes or photos. */
@@ -2208,7 +2194,7 @@ var SW_PLACE='site-sw-place';
   if(pl.park&&PARK_BY_ID[pl.park]) openPark(pl.park,ALL_VIEWS.indexOf(pl.host)>=0?pl.host:'view-parks');
   if(pl.y>0) requestAnimationFrame(function(){ window.scrollTo(0,pl.y); });
 })();
-if(window.OnShare) OnShare.config({ app:'on-site', base:'https://katsuma.ca/on-site/', accent:'#284162' });
+if(window.OnShare) OnShare.config({ app:'on-site', base:'https://katsuma.ca/on-site/', accent:'#007AFF' });
 (function(){ /* #/shared/<data> receive route */
   function fromSharedHash(){
     var m=(location.hash||'').match(/^#\/shared\/(.+)$/); if(!m) return;

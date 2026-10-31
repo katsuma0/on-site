@@ -14,6 +14,10 @@
 		B00000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* Assets.xcassets */; };
 		B00000000000000000000006 /* Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* Spotlight.swift */; };
 		B00000000000000000000007 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* InfoPlist.strings */; };
+		B00000000000000000000008 /* ShellState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000011 /* ShellState.swift */; };
+		B00000000000000000000009 /* GlassTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000012 /* GlassTabBar.swift */; };
+		B00000000000000000000010 /* ParkMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000013 /* ParkMapView.swift */; };
+		B00000000000000000000011 /* MapParks.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000014 /* MapParks.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +31,10 @@
 		F00000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F00000000000000000000009 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F00000000000000000000010 /* ONsite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ONsite.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000011 /* ShellState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellState.swift; sourceTree = "<group>"; };
+		F00000000000000000000012 /* GlassTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassTabBar.swift; sourceTree = "<group>"; };
+		F00000000000000000000013 /* ParkMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkMapView.swift; sourceTree = "<group>"; };
+		F00000000000000000000014 /* MapParks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapParks.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +64,10 @@
 				F00000000000000000000003 /* SchemeHandler.swift */,
 				F00000000000000000000004 /* Bridge.swift */,
 				F00000000000000000000006 /* Spotlight.swift */,
+				F00000000000000000000011 /* ShellState.swift */,
+				F00000000000000000000012 /* GlassTabBar.swift */,
+				F00000000000000000000013 /* ParkMapView.swift */,
+				F00000000000000000000014 /* MapParks.swift */,
 				F00000000000000000000005 /* Assets.xcassets */,
 				A00000000000000000000001 /* InfoPlist.strings */,
 				F00000000000000000000007 /* Info.plist */,
@@ -170,6 +182,10 @@
 				B00000000000000000000003 /* SchemeHandler.swift in Sources */,
 				B00000000000000000000004 /* Bridge.swift in Sources */,
 				B00000000000000000000006 /* Spotlight.swift in Sources */,
+				B00000000000000000000008 /* ShellState.swift in Sources */,
+				B00000000000000000000009 /* GlassTabBar.swift in Sources */,
+				B00000000000000000000010 /* ParkMapView.swift in Sources */,
+				B00000000000000000000011 /* MapParks.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,7 +330,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
@@ -331,7 +347,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.239;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -346,7 +362,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
@@ -363,7 +379,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.239;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ca.katsuma.onsite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

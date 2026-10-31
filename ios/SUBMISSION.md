@@ -1,7 +1,7 @@
 # Submitting ON site to the App Store
 
 Everything App Store Connect will ask for, with the answer already worked
-out and checked against the app as it is in this repo (v0.239).
+out and checked against the app as it is in this repo (v1.0).
 
 Checked against the App Review Guidelines last updated 16 October 2026 and the
 Program License Agreement revised 13 October 2026. On the day you submit,
@@ -15,11 +15,14 @@ paste it as it is.
 
 Done in the repo:
 
-- Version 0.239, build 1. `MARKETING_VERSION` matches the version the app
-  shows in Profile (tap the avatar), and `node tools/check.js` fails if they
-  ever drift.
+- Version 1.0, build 2. `MARKETING_VERSION` matches `APP_VERSION` in
+  `app.js`, and `node tools/check.js` fails if they ever drift.
+- A native Liquid Glass tab bar (iOS 26; the system material on iOS 17 and
+  18) and a native Map tab: Apple Maps with all 116 visitable provincial
+  parks.
 - Privacy, terms and support pages inside the app (More, then Legal),
-  written for the app: no network requests, works in airplane mode.
+  written for the app: only the map's images use the network, and
+  everything else works in airplane mode.
 - Permission prompts in English and French, including the one for Save to
   Photos.
 - Parks in the Home Screen search (Core Spotlight), with Search in App.
@@ -57,7 +60,7 @@ Connect, take screenshots, submit. The checklist at the end has every step.
 | --- | --- |
 | Display name | `ON site` |
 | Bundle ID | `ca.katsuma.onsite` (fixed forever after the first upload) |
-| Version / build | `MARKETING_VERSION = 0.239`, `CURRENT_PROJECT_VERSION = 1` |
+| Version / build | `MARKETING_VERSION = 1.0`, `CURRENT_PROJECT_VERSION = 2` |
 | Minimum iOS | 17.0 |
 | Devices | iPhone and iPad (`TARGETED_DEVICE_FAMILY = 1,2`) |
 | iPhone orientation | Portrait. iPad: all four. |
@@ -87,6 +90,15 @@ screenshots (section 7).
 Then go through this list on the iPhone, and on an iPad if you have one:
 
 - [ ] Airplane mode on, Wi-Fi off, cold launch: the parks list appears.
+- [ ] The tab bar: five tabs in a glass capsule, the selected one on a
+      lighter pill. It slides away while a rating sheet or a photo is open
+      and comes back after, and the keyboard never pushes it up.
+- [ ] Map: every park has a pin. Tap Grundy Lake, then **Open park**: the
+      park opens on the Parks tab. Tap Algonquin: **Campgrounds** lists its
+      campgrounds. Tap Arrow Lake: **Official page** opens Safari. A
+      favourite shows a red heart and a park you rated a blue check.
+- [ ] Map in airplane mode: the pins still show, only the map images are
+      missing.
 - [ ] Rate a site, add a note, take a photo with **Camera** and add one with
       **Add photos**. Each permission prompt reads as in section 6.
 - [ ] Delete the app, reinstall, and tap **Don't Allow** on the camera:
@@ -144,7 +156,9 @@ Apps, then the plus button, then New App.
 | SKU | `onsite-ios` |
 | User access | Full access |
 
-Rename the version on the record to **0.239**.
+Rename the version on the record to **1.0**. If you already added an earlier
+build (0.239) to this version or submitted it, remove it from review first
+(App Review, then the submission, then Remove), then attach the 1.0 build.
 
 ### App Information
 
@@ -189,9 +203,10 @@ Age rating questionnaire. Answer **None** or **No** to every question:
 Why that answer is true:
 
 - No account, no analytics, no advertising and no third-party code of any
-  kind. The app makes no network requests of its own.
-- Ratings, notes, photos, favourites and the optional display name are stored
-  inside the app's container and are never transmitted.
+  kind. The only network use is Apple Maps (MapKit) on the Map tab loading
+  map images from Apple; the app sends nothing of its own.
+- Ratings, notes, photos and favourites are stored inside the app's
+  container and are never transmitted.
 - The Home Screen search index lives on the device. Only the guide's own park
   names and regions go into it, never anything the person wrote.
 - A backup file goes only where the person sends it, through the share sheet.
@@ -211,7 +226,7 @@ text sizes stop well short of the 200% Apple asks for.
 Walk the campground, rate each site out of five, and next year you will know which one to book.
 ```
 
-**Description** (1,499 of 4,000):
+**Description** (1,641 of 4,000):
 
 ```text
 Choosing a campsite you have never seen is a gamble. Some are lovely, some back onto the road, and a year later you cannot remember which was which. ON site is the notebook for that.
@@ -220,11 +235,12 @@ Walk a campground and rate each site out of five. Add a note or a photo, and mar
 
 The guide covers Ontario's provincial parks: 124 parks, 372 campgrounds and about 20,000 individual campsites, including backcountry sites at parks like Killarney, French River and The Massasauga, plus 211 trails. Algonquin's interior is not in the app yet.
 
-It works with no signal, which is the point, because campground loops are where service runs out.
+It works with no signal, which is the point, because campground loops are where service runs out. Only the map's images need a connection.
 
 Your journal is yours. Everything stays on your device. There is no account, no advertising and no tracking. Export a backup to a file whenever you like, and load it on another device.
 
 Also in the app:
+• A map of every visitable provincial park, with your favourites and the parks you have rated marked
 • Favourites, for the parks you keep going back to
 • A journal of everything you have rated, with filters and sorting for finding the sites worth booking
 • Trailer sites marked as such, counted or set aside to suit how you camp
@@ -247,9 +263,9 @@ provincial,camping,campground,ratings,journal,offline,trails,tent,trailer,notes,
 | --- | --- |
 | Support URL | `https://katsuma.ca/support.html` |
 | Marketing URL | `https://katsuma.ca/projects/on-site/` (optional) |
-| Version | `0.239` |
+| Version | `1.0` |
 | Copyright | `2026 Katsuma Onishi` (no ©; Apple adds it. Use your legal name.) |
-| Build | The 0.239 build you tested through TestFlight |
+| Build | The 1.0 build you tested through TestFlight |
 | Sign-in required | Unticked |
 | Contact | Your name, an email you check, and a phone number as `+1 ...` |
 | Version release | **Manually release this version** |
@@ -257,14 +273,14 @@ provincial,camping,campground,ratings,journal,offline,trails,tent,trailer,notes,
 What's New is not shown for a first version. Leave the standard Apple
 licence agreement (EULA) in place.
 
-**App Review notes** (2,534 of 4,000 bytes):
+**App Review notes** (2,797 of 4,000 bytes):
 
 ```text
 ON site is a private campsite journal for Ontario's provincial parks. You rate each campsite out of five, add notes and photos, and mark the sites worth booking again.
 
-How it is built: the interface is HTML and JavaScript bundled inside the app and rendered locally by WKWebView from a custom app:// scheme. Nothing is loaded from the internet. The park guide (124 parks, 372 campgrounds, about 20,000 campsites, 211 trails) is bundled in the binary, and the app works fully in airplane mode. There is no account, no server, no analytics and no advertising. The Profile screen holds only an optional display name, kept on the device.
+How it is built: a SwiftUI app. The journal screens are HTML and JavaScript bundled inside the app and rendered locally by WKWebView from a custom app:// scheme; the tab bar (Liquid Glass) and the Map tab (MapKit) are native SwiftUI. The park guide (124 parks, 372 campgrounds, about 20,000 campsites, 211 trails) is bundled in the binary. The only network use is Apple Maps loading map images on the Map tab; everything else works in airplane mode. There is no account, no server, no analytics and no advertising.
 
-Native features: parks are indexed for Home Screen search with Core Spotlight, and Search in App continues a query inside the app. The camera and photo library attach site photos, Save to Photos keeps one, the share sheet exports a backup file and sends a rating as a message, taps have haptics, and the app follows the system language (English or French) and appearance. A free web version also exists; the app adds these features and works offline from the first launch.
+Native features: a native tab bar, and a MapKit map with a pin for each of Ontario's 116 visitable provincial parks that opens the park in the app. Parks are indexed for Home Screen search with Core Spotlight, and Search in App continues a query inside the app. The camera and photo library attach site photos, Save to Photos keeps one, the share sheet exports a backup file and sends a rating as a message, taps have haptics, and the app follows the system language (English or French) and appearance. A free web version also exists; the app adds these features and works offline from the first launch.
 
 To test (airplane mode is fine, and is the main use case):
 1. Parks tab: open Grundy Lake, then the Hemlock campground, and tap site 101.
@@ -273,6 +289,7 @@ To test (airplane mode is fine, and is the main use case):
 4. On the Grundy Lake page, tap Favourite. The park now appears in the Favourites tab.
 5. Leave the app, swipe down on the Home Screen and type Killbear. Tap the ON site result: the app opens on Killbear.
 6. More, Your data, Export a backup: the share sheet offers a .json file.
+7. Map tab: tap the Killbear pin, then Open park: the park opens on the Parks tab.
 
 Hidden diagnostics (guideline 2.5.19): typing the single word debugsearch or statsearch in the Parks search field shows a read-only text card. debugsearch lists diagnostics (parks loaded, a search self-test, recent script errors); statsearch lists counts of the user's own ratings. Neither changes data, unlocks anything or contacts a server. There are no other hidden features.
 
@@ -310,23 +327,25 @@ transparency (check with `sips -g hasAlpha file.png`).
 | iPhone, Dynamic Island, large | iPhone 17 Pro Max | 1320 × 2868 | Recommended |
 | iPad 13-inch | iPad Pro 13-inch | 2064 × 2752 | Required while iPad is supported |
 
-A good set: the parks list, a campground's site grid with scores, the rating
-sheet with a note and a photo, the Journal with its filters, and a park page.
+A good set: the Map tab with its pins, the parks list, a campground's site
+grid with scores, the rating sheet with a note and a photo, the Journal with
+its filters, and a park page.
 iPhone Duo screenshots become required in April 2027, for builds made with
 the iOS 27.1 SDK or later.
 
 ## 8. Guidelines that come up for an app like this
 
-- **4.2, minimum functionality.** The notes above say plainly that it is a
-  WKWebView app, and list what it does that a website cannot: a full offline
-  guide in the binary, Home Screen search, camera, Save to Photos, the share
-  sheet, haptics, system language and appearance.
+- **4.2, minimum functionality.** The notes above say plainly which parts
+  are a WKWebView and which are native (the tab bar and the MapKit map), and
+  list what the app does that a website cannot: a full offline guide in the
+  binary, Apple Maps with every park, Home Screen search, camera, Save to
+  Photos, the share sheet, haptics, system language and appearance.
 - **2.5.19 and 2.3.1, hidden features.** The only ones are `debugsearch` and
   `statsearch`, read-only, disclosed in the notes. Nothing else is hidden,
   dormant or switched on remotely. Keep it that way, or add any new one to the
   notes before submitting.
 - **2.5.2, self-contained.** All code ships in the bundle. The app downloads
-  no code and loads nothing from the network.
+  no code; the only thing it loads is Apple Maps' own map images.
 - **1.2, user-generated content.** Does not apply: there is no service and no
   other users. The only things that leave the device are a backup file and a
   rating shared as plain text, both sent by the person themselves through the
@@ -337,7 +356,7 @@ the iOS 27.1 SDK or later.
   everything anyway.
 - **5.2 and 2.3, other people's names.** "Ontario Parks" appears only to
   describe what the app covers, and the listing, the app and its terms all
-  say it is not affiliated. The icon is a generic tree. Never use their logo
+  say it is not affiliated. The icon is the ON site wordmark. Never use their logo
   or photos in screenshots.
 
 ## 9. Third-party material, for Content Rights
@@ -348,13 +367,16 @@ the iOS 27.1 SDK or later.
   No Ontario Parks text, photos or logos are included.
 - **Descriptions.** Every park, campground and trail description is the
   developer's own writing.
-- **Fonts.** Lato 1.104 under the SIL Open Font License
-  (`assets/fonts/OFL.txt`), and Noto Sans 1.04 under the Apache License 2.0
-  (`assets/fonts/LICENSE-Apache-2.0.txt`). Both licences ship inside the app.
+- **Map.** Apple Maps through MapKit. The map, its data and its attribution
+  are Apple's, shown with the legal link MapKit draws on the map.
+- **Park locations.** The 116 pins come from the developer's own list of
+  visitable provincial parks (name, location, official page), compiled from
+  public information. No Ontario Parks text, photos or logos are included.
+- **Type and icons.** The system font and SF Symbols, which ship with iOS.
 
 ## 10. Submit, then release
 
-1. On the version page, check the build is the 0.239 one you tested, the
+1. On the version page, check the build is the 1.0 one you tested, the
    contact details are current and the notes are pasted.
 2. Open https://katsuma.ca/privacy.html, https://katsuma.ca/support.html and
    the marketing page on your phone over cellular, to be sure they load.

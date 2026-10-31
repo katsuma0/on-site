@@ -55,7 +55,7 @@ katsuma.ca/on-fishing. on-wildlife is not active.
   everything touchable, haptics on meaningful taps, and never enough bounce
   to show an edge behind a page.
 
-## 3. What is in the app (v0.239)
+## 3. What is in the app (v1.0)
 
 - **Parks:** every park A to Z with a letter rail, a region filter, and one
   search box that finds parks, campgrounds, sites ("Hemlock 112") and trails.
@@ -68,7 +68,11 @@ katsuma.ca/on-fishing. on-wildlife is not active.
   photo" with the camera or the photo library. Typing stays above the
   keyboard. A share button at the bottom left sends the rating as a line of
   text (park, campground, site, score) through the iOS share sheet.
-- **Favourites:** favourite parks, parks you have rated, favourite sites.
+- **Map (app only):** Apple Maps with a pin for each of the 116 visitable
+  provincial parks; a tapped pin opens the park in the app or its official
+  page.
+- **Favourites:** favourite parks, favourite sites, and visited parks that
+  are not already favourites.
 - **Journal:** everything rated, with filters (score, wishlist, notes,
   photos) and sorting, built for deciding what to book. Each park is a row
   like the Parks list, "N sites rated" under the name, with its average as a
@@ -77,8 +81,6 @@ katsuma.ca/on-fishing. on-wildlife is not active.
   the roads, cold water), Appearance (theme, text size S to XL, language,
   Car/tent or RV/trailer), Your data (export, import, reset), About, and
   Legal (privacy, terms, support).
-- **Profile:** a display name, used only for the initial on the avatar, and
-  the version number.
 - **Read-only consoles:** `debugsearch` and `statsearch`, typed into the
   Parks search. They are disclosed to App Review and are the only hidden
   things in the app.
@@ -86,11 +88,13 @@ katsuma.ca/on-fishing. on-wildlife is not active.
 ## 4. Design
 
 The iOS design system lives in `assets/ios.css` and is shown on
-`styleguide.html`. The app wears the "parks" face: Lato for headings and
-buttons, Noto Sans for text, a navy accent (`#284162`, `#4493F8` in dark), a
-light grey ground and a GitHub-style dark theme. Light and dark follow the
-system unless the person picks one under Appearance. Text sizes run S to XL,
-and controls grow with them, never below 44pt. The older `DESIGN.md`,
+`styleguide.html`. Since 1.0 the app wears iOS itself: the system font, the
+system blue tint, system greys and black in dark, and the metrics of iOS 26
+Settings (16pt margins, 24pt corners, 48pt rows, 17pt semibold section
+names, glass circle buttons). In the app the tab bar is native Liquid Glass,
+modelled on Find My, and the Map tab is native MapKit. Light and dark follow
+the system unless the person picks one under Appearance. Text sizes run S to
+XL, and controls grow with them, never below 44pt. The older `DESIGN.md`,
 `FORMAT-SPEC.md` and `SEARCH-SPEC.md` describe the v0.17x look and are kept
 for history only.
 
@@ -131,10 +135,9 @@ for history only.
 
 ## 7. Where things stand
 
-v0.239 is ready to be tested in Xcode and submitted. It carries the ON site logo as its icon. v0.237 renamed the app
-ON site, added the share button and the five-cell average, and lightened
-More; v0.238 lets a Journal park row's French count wrap like a Favourites
-row instead of trailing off.
+1.0 is the first App Store release, ready to be built in Xcode and
+submitted: a native Liquid Glass tab bar, Apple Maps with every park, the
+look of iOS, no Profile, and the ON site logo as its icon.
 Everything that can be done in the repo is done: Home Screen search, French
 throughout (permission prompts included), accurate privacy, terms and
 support pages inside the app, one window on iPad, iOS 17 or later, the

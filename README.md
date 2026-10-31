@@ -19,8 +19,7 @@ out to the styles, the logic and the data. No framework, no build step.
 
 - `index.html`: markup only (the screens, the sheets, the Versions list)
 - `assets/ios.css`: the shared iOS design system and the app's styles
-- `assets/icons.svg`, `assets/fonts/`: the symbol sprite, and Lato and Noto
-  Sans with their licences
+- `assets/icons.svg`: the symbol sprite (the type is the system font)
 - `app.js`: all app logic, the French dictionary and the in-app legal pages
 - `data/parks.js`: park, campground, site and trail data as
   `window.PARKS_DATA`, loaded first for an instant offline start

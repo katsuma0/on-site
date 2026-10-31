@@ -14,7 +14,9 @@
      - appearance: the in-app theme (Auto, Light, Dark) also sets the status
        bar, alerts and the share sheet.
      - iPhone search: the page sends its parks to ParkIndexer, and WebRouter
-       opens the one picked in search. */
+       opens the one picked in search.
+     - the native tab bar: the page reports its tab and its sheets
+       ("chrome"), and ShellState draws the bar to match. */
 
 import SwiftUI
 import WebKit
@@ -42,7 +44,7 @@ struct WebScreen: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = coordinator
         webView.uiDelegate = coordinator
-        // The page's own background (light #F2F2F7, dark #010409), so the
+        // The page's own background (light #F2F2F7, dark #000000), so the
         // launch, the first paint and a bounce past the edge are one colour.
         let background = UIColor(named: "LaunchBackground") ?? .systemBackground
         webView.isOpaque = false
@@ -111,7 +113,7 @@ final class WebRouter {
 
 final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
                             WKScriptMessageHandler, WKDownloadDelegate {
-    static let messageNames = ["share", "haptic", "spotlight", "appearance"]
+    static let messageNames = ["share", "haptic", "spotlight", "appearance", "chrome"]
     static let startURL = URL(string: "app://localhost/index.html")!
 
     weak var webView: WKWebView?
@@ -126,6 +128,14 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         guard let webView = webView else { ran?(false); return }
         webView.evaluateJavaScript(script) { result, error in
             ran?(error == nil && (result as? Bool) == true)
+        }
+    }
+
+    // The script's answer itself (nil when it failed), for the map's pins.
+    func evaluateValue(_ script: String, value: @escaping (Any?) -> Void) {
+        guard let webView = webView, isPageReady else { value(nil); return }
+        webView.evaluateJavaScript(script) { result, error in
+            value(error == nil ? result : nil)
         }
     }
 
@@ -273,6 +283,9 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
             ParkIndexer.update(from: message.body)
         case "appearance":
             if let body = message.body as? [String: Any] { handleAppearance(body) }
+        case "chrome":
+            // the page's tab and whether a sheet covers it, for the tab bar
+            if let body = message.body as? [String: Any] { ShellState.shared.apply(chrome: body) }
         default:
             break
         }
@@ -332,6 +345,7 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
 
     private func handleAppearance(_ body: [String: Any]) {
         if let lang = body["lang"] as? String { language = (lang == "fr") ? "fr" : "en" }
+        if ShellState.shared.language != language { ShellState.shared.language = language }
         switch body["theme"] as? String {
         case "light": interfaceStyle = .light
         case "dark": interfaceStyle = .dark

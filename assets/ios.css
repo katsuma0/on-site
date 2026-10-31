@@ -1198,45 +1198,11 @@ button {
    component follows without knowing palettes exist.
    ===================================================================== */
 
-/* the Parks face ships its own type: Lato for headings and buttons,
-   Noto Sans for text, the same files the Canada.ca theme loads.
-   Lato is under the SIL OFL (assets/fonts/OFL.txt) and Noto Sans 1.04
-   under Apache 2.0 (assets/fonts/LICENSE-Apache-2.0.txt). */
-@font-face { font-family: "Lato"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/lato-400.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Lato"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/lato-700.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Noto Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/noto-400.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Noto Sans"; font-style: italic; font-weight: 400; font-display: swap; src: url("fonts/noto-400i.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Noto Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/noto-700.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-
 /* ------------------------------------------------ three tone palettes */
-/* parks is the default: the palette the Parks Canada site wears.
-   tone 1 #284162 carries links and controls with #26374A on filled
-   buttons, tone 2 #355688 supports, tone 3 is the #A62A1E rule red,
-   fills and bars only. */
-:root {
-  --tint: #284162; --tint-press: #243850; --tint-text: #284162; --tint-fill: #26374A;
-  --tint-soft: rgba(40, 65, 98, .12);
-  --tone2: #355688; --tone3: #A62A1E;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --tint: #8FB0DC; --tint-press: #A3C2EA; --tint-text: #8FB0DC; --tint-fill: #3A5A8C;
-    --tint-soft: rgba(143, 176, 220, .16);
-    --tone2: #4C76B0; --tone3: #E8604C;
-  }
-}
-:root[data-theme="dark"] {
-  --tint: #8FB0DC; --tint-press: #A3C2EA; --tint-text: #8FB0DC; --tint-fill: #3A5A8C;
-  --tint-soft: rgba(143, 176, 220, .16);
-  --tone2: #4C76B0; --tone3: #E8604C;
-}
-/* the explicit Light choice re-lists the tint family above at higher
-   specificity, so parks re-asserts its light values for that case.
-   field and granite still win: their blocks sit later in the file. */
-:root[data-theme="light"] {
-  --tint: #284162; --tint-press: #243850; --tint-text: #284162; --tint-fill: #26374A;
-  --tint-soft: rgba(40, 65, 98, .12);
-}
+/* the default is iOS itself: the system blue tint from part 1, system
+   blue for supporting accents and system red for the favourite heart and
+   bars. field and granite remain for the styleguide only. */
+:root { --tone2: var(--blue); --tone3: var(--red); }
 
 :root[data-palette="field"] {
   --tint: #2E7D4F; --tint-press: #256B42; --tint-text: #256B42; --tint-fill: #256B42;
@@ -1275,17 +1241,13 @@ button {
 }
 
 /* -------------------------------------------------------- six faces */
-/* parks is the default face: Lato heads it, Noto Sans carries it, as on
-   the Parks Canada site. the five alternates are faces iOS ships
-   natively; elsewhere they fall back gracefully. */
+/* the system face is the default; the alternates are faces iOS ships
+   natively and stay for the styleguide. */
 :root {
-  --font-sys: "Noto Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Lato", "Noto Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-  /* web faces carry their own fitted metrics; SF tracking returns with
-     the SF-family faces below */
-  --ls-large-title: 0; --ls-title1: 0; --ls-title2: 0; --ls-title3: 0;
-  --ls-headline: 0; --ls-body: 0; --ls-callout: 0; --ls-subhead: 0;
-  --ls-footnote: 0; --ls-caption1: 0; --ls-caption2: 0;
+  /* San Francisco on Apple devices, the system face elsewhere, with the
+     HIG tracking from part 1 */
+  --font-sys: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-sys);
 }
 h1, h2, h3, h4, .btn { font-family: var(--font-display); }
 :root[data-face] { --font-display: var(--font-sys); }
@@ -1875,57 +1837,6 @@ h1, h2, h3, h4, .btn { font-family: var(--font-display); }
   }
 }
 
-/* --------------------------------------- github's dark room, default */
-/* the untouched default wears github's own dark: their canvas, their
-   blue, their system type. this app is locked to the parks look, so a
-   palette or face stored by a sibling app is read but never worn. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-palette]) {
-    --bg: #010409;
-    --card: #151B23;
-    --chrome: rgba(1, 4, 9, .78);
-    --fill: rgba(101, 108, 118, .24);
-    --press-pill: rgba(101, 108, 118, .28);
-    --sep: rgba(61, 68, 77, .72);
-    --label: #F0F6FC;
-    --label-2: #9198A1;
-    --label-3: rgba(145, 152, 161, .5);
-    --label-aa: #B7BDC8;
-    --tint: #4493F8; --tint-press: #316DCA; --tint-text: #58A6FF; --tint-fill: #1F6FEB;
-    --tint-soft: rgba(68, 147, 248, .15);
-    --tone2: #316DCA; --tone3: #F85149;
-  }
-  :root:not([data-theme="light"]):not([data-face]) {
-    --font-sys: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-    --font-display: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-    --ls-large-title: 0.37px; --ls-title1: 0.36px; --ls-title2: 0.35px; --ls-title3: 0.38px;
-    --ls-headline: -0.41px; --ls-body: -0.41px; --ls-callout: -0.32px; --ls-subhead: -0.24px;
-    --ls-footnote: -0.08px; --ls-caption1: 0; --ls-caption2: 0.07px;
-  }
-}
-:root[data-theme="dark"]:not([data-palette]) {
-  --bg: #010409;
-  --card: #151B23;
-  --chrome: rgba(1, 4, 9, .78);
-  --fill: rgba(101, 108, 118, .24);
-  --press-pill: rgba(101, 108, 118, .28);
-  --sep: rgba(61, 68, 77, .72);
-  --label: #F0F6FC;
-  --label-2: #9198A1;
-  --label-3: rgba(145, 152, 161, .5);
-  --label-aa: #B7BDC8;
-  --tint: #4493F8; --tint-press: #316DCA; --tint-text: #58A6FF; --tint-fill: #1F6FEB;
-  --tint-soft: rgba(68, 147, 248, .15);
-  --tone2: #316DCA; --tone3: #F85149;
-}
-:root[data-theme="dark"]:not([data-face]) {
-  --font-sys: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-  --ls-large-title: 0.37px; --ls-title1: 0.36px; --ls-title2: 0.35px; --ls-title3: 0.38px;
-  --ls-headline: -0.41px; --ls-body: -0.41px; --ls-callout: -0.32px; --ls-subhead: -0.24px;
-  --ls-footnote: -0.08px; --ls-caption1: 0; --ls-caption2: 0.07px;
-}
-
 /* =====================================================================
    ios.css polish round, ported from on-wildlife: settings taps that
    re-render in place must never replay the entry animation.
@@ -2051,3 +1962,108 @@ h1, h2, h3, h4, .btn { font-family: var(--font-display); }
   #view-parks .wrap { padding-right: 56px; }
   .azrail { right: max(10px, calc((100vw - 1280px) / 2 + 10px)); }
 }
+
+/* =====================================================================
+   v1.0: iOS 26 Settings metrics and Liquid Glass chrome.
+   Measured from Settings on an iPhone 17 Pro: cards sit 16pt from the
+   edges with 24pt corners, rows are 48pt with text 16pt inside the card,
+   and a section's name is 17pt semibold in the secondary label colour,
+   aligned with the row text, 30pt below the card above it and 11pt above
+   its own card. Chrome buttons are 44pt glass circles; a pushed screen's
+   back button is a glass circle with a chevron, as in Settings.
+   ===================================================================== */
+:root {
+  --r-group: 24px;
+  --r-card: 24px;
+  --row-pad: 16px;
+  --glass-fill: rgba(255, 255, 255, .62);
+  --glass-edge: rgba(255, 255, 255, .85);
+  --glass-shade: 0 2px 14px rgba(0, 0, 0, .10), 0 0 0 .5px rgba(0, 0, 0, .06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass-fill: rgba(58, 58, 60, .52);
+    --glass-edge: rgba(255, 255, 255, .16);
+    --glass-shade: 0 2px 14px rgba(0, 0, 0, .40), 0 0 0 .5px rgba(255, 255, 255, .06);
+  }
+}
+:root[data-theme="dark"] {
+  --glass-fill: rgba(58, 58, 60, .52);
+  --glass-edge: rgba(255, 255, 255, .16);
+  --glass-shade: 0 2px 14px rgba(0, 0, 0, .40), 0 0 0 .5px rgba(255, 255, 255, .06);
+}
+
+/* section names: Settings style, not the small caps of older iOS */
+:root .ios-section-title,
+:root .wrap .ios-section-title,
+:root .seclabel {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 600;
+  text-transform: none;
+  color: var(--label-2);
+  margin: 25px 0 10px;
+  padding-left: var(--row-pad);
+}
+:root .wrap > .ios-section-title:first-child,
+:root .wrap > .seclabel:first-child { margin-top: 8px; }
+
+/* cards */
+:root .ios-group { border-radius: var(--r-group); margin-bottom: 25px; }
+:root .ios-group-foot,
+:root .wrap .ios-group-foot { margin-top: -17px; margin-bottom: 25px; padding: 0 var(--row-pad); }
+:root .pprog, :root .about-toggle, :root .list, :root .stat, :root .want-item,
+:root .rank, :root .dbg, :root .jpark-head, :root .acct-stat { border-radius: var(--r-card); }
+:root .about-toggle[aria-expanded="true"] { border-radius: var(--r-card) var(--r-card) 0 0; }
+:root .about-body { border-radius: 0 0 var(--r-card) var(--r-card); }
+
+/* rows: 16pt inside the card, separators from the text to 16pt short of
+   the right edge (iOS 26 insets both ends) */
+:root .ios-row { padding-left: var(--row-pad); padding-right: var(--row-pad); }
+:root .ios-row + .ios-row::before,
+:root .ios-row + details > .ios-row::before { left: calc(var(--row-pad) + 32px + 12px); right: var(--row-pad); }
+:root .ios-row--plain + .ios-row--plain::before { left: var(--row-pad); }
+
+/* glass chrome: the header's search button and every back button */
+:root .ios-glass-btn,
+:root .backbtn,
+:root .acct-back {
+  width: var(--ctl);
+  height: var(--ctl);
+  min-height: var(--ctl);
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--label);
+  background: var(--glass-fill);
+  border: 0;
+  box-shadow: inset 0 0 0 .5px var(--glass-edge), var(--glass-shade);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background .15s;
+}
+:root .ios-glass-btn:active, :root .backbtn:active, :root .acct-back:active { transform: scale(.92); opacity: 1; }
+:root .backbtn svg, :root .acct-back svg { width: 22px; height: 22px; }
+/* the back label stays for VoiceOver; the circle shows only the chevron */
+:root .backbtn > span, :root .acct-back > span {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+:root .acct-back { margin: 4px 0 6px; }
+
+/* in the app the tab bar is native Liquid Glass, drawn by the shell; the
+   page keeps the room it reserves for a bar so nothing scrolls under it */
+.native-tabs #tabbar { display: none; }
+/* the wide layout's sidebar is the page's tab bar; in the app the native
+   bar floats at the bottom instead, so the page keeps its bottom room */
+@media (min-width: 1100px) {
+  .native-tabs body:has(> .ios-tabbar) {
+    padding-left: 0;
+    padding-bottom: calc(var(--tab-bottom, 10px) + var(--tab-bar-h, 64px) + 16px);
+  }
+}
+:root .cell-details + .cell-details > .ios-row::before { left: var(--row-pad); right: var(--row-pad); }
