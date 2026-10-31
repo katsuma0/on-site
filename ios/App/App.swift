@@ -52,13 +52,14 @@ struct RootView: View {
                         .accessibilityHidden(shell.tab != .map)
                 }
 
+                // the stack ends at the safe area line; the bar is placed
+                // from the screen edge instead, `gap` above it (21pt with a
+                // home indicator, as in Find My)
                 GlassTabBar()
-                    .padding(.bottom, gap)
-                    .offset(y: shell.barHidden ? 120 : 0)
+                    .offset(y: (safeBottom - gap) + (shell.barHidden ? 120 : 0))
                     .opacity(shell.barHidden ? 0 : 1)
                     .allowsHitTesting(!shell.barHidden)
                     .accessibilityHidden(shell.barHidden)
-                    .ignoresSafeArea(.container, edges: .bottom)
             }
             .animation(.spring(response: 0.38, dampingFraction: 0.86), value: shell.barHidden)
             .animation(.easeInOut(duration: 0.2), value: shell.tab)
