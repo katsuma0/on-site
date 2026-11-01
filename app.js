@@ -118,6 +118,7 @@ var FR={
   'Legal':'Mentions légales','Privacy policy':'Politique de confidentialité',
   'Terms of use':'Conditions d’utilisation','Support':'Assistance',
   'Not affiliated with Ontario Parks.':'Sans lien avec Parcs Ontario.',
+  'About ON site':'À propos de ON site',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
   /* settings */
@@ -1414,7 +1415,7 @@ function campCard(it){
 }
 /* ---- receive a shared review (#/shared/<data>) ---- */
 function showShared(item){
-  ['view-parks','view-park','view-favs','view-journal','view-more','view-photos','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
+  ['view-parks','view-park','view-favs','view-journal','view-more','view-photos','view-about','view-search'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
   var sec=document.getElementById('view-shared'); if(!sec) return;
   sec.hidden=false;
   var tb=document.getElementById('tabbar');
@@ -1729,6 +1730,10 @@ async function renderPhotosScreen(){
   if(pb) pb.addEventListener('click',function(){ buzz(6); showTab('photos'); });
   var bk=document.getElementById('photosBack');
   if(bk) bk.addEventListener('click',function(){ buzz(6); showTab('more'); });
+  var ab=document.getElementById('aboutRowBtn');
+  if(ab) ab.addEventListener('click',function(){ buzz(6); showTab('about'); });
+  var abk=document.getElementById('aboutBack');
+  if(abk) abk.addEventListener('click',function(){ buzz(6); showTab('more'); });
 })();
 
 /* ---- journal tab: everything rated, grouped by park ---- */
@@ -1910,8 +1915,8 @@ function renderJournal(){ var box=document.getElementById('journalBody'); if(!bo
 
 /* ---- shared footer tab bar ---- */
 var LAST_TAB_BEFORE_SEARCH='guide';
-var TAB_SECTIONS={guide:'view-parks',favs:'view-favs',journal:'view-journal',more:'view-more',photos:'view-photos',search:'view-search'};
-var ALL_VIEWS=['view-parks','view-park','view-favs','view-journal','view-more','view-shared','view-photos','view-search'];
+var TAB_SECTIONS={guide:'view-parks',favs:'view-favs',journal:'view-journal',more:'view-more',photos:'view-photos',about:'view-about',search:'view-search'};
+var ALL_VIEWS=['view-parks','view-park','view-favs','view-journal','view-more','view-shared','view-photos','view-about','view-search'];
 var learnRendered=false;
 function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el) el.hidden=!!h; }
 /* blended headers: transparent at rest, frosted only once content actually runs
@@ -1951,10 +1956,11 @@ function showTab(tab){
   requestAnimationFrame(function(){ try{ window.scrollTo(0,0); }catch(e){} });
   if(tab==='guide'){ renderParks(); }
   if(tab==='favs'){ renderFavs(); }
-  if(tab==='more'){ if(typeof renderAppearancePanel==='function') renderAppearancePanel(); if(typeof fillAboutStats==='function') fillAboutStats(); renderPhotoCount();
+  if(tab==='more'){ if(typeof renderAppearancePanel==='function') renderAppearancePanel(); renderPhotoCount();
     if(!learnRendered){ renderLearn(); learnRendered=true; } }
   if(tab==='journal'){ renderJournal(); }
   if(tab==='photos'){ renderPhotosScreen(); }
+  if(tab==='about'){ fillAboutStats(); }
 }
 function openSettings(){ showTab('more'); }
 function closeSettings(){}

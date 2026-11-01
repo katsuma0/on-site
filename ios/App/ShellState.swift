@@ -51,7 +51,7 @@ enum AppTab: String, CaseIterable, Identifiable {
         case "guide": self = .parks
         case "favs": self = .favs
         case "journal": self = .journal
-        case "more", "photos": self = .more
+        case "more", "photos", "about": self = .more
         default: return nil
         }
     }

@@ -134,6 +134,21 @@ if(window.__onNativeTabs) document.documentElement.classList.add('native-tabs');
   <div class="wrap" id="sharedBody"></div>
 </section>
 
+<section id="view-about" class="tabscreen" hidden>
+  <div class="wrap">
+    <button class="acct-back" id="aboutBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg><span data-i18n="More">More</span></button>
+  </div>
+  <h1 class="screen-title" data-i18n="About">About</h1>
+  <div class="wrap">
+    <div class="aboutbody">
+      <p data-i18n="Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.">Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.</p>
+      <p data-i18n="ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.">ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.</p>
+      <p data-i18n="Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.">Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.</p>
+    </div>
+    <div class="ios-group" id="aboutStats"></div>
+  </div>
+</section>
+
 <section id="view-photos" class="tabscreen" hidden>
   <div class="wrap">
     <button class="acct-back" id="photosBack" type="button"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-left"/></svg><span data-i18n="More">More</span></button>
@@ -317,12 +332,13 @@ if(window.__onNativeTabs) document.documentElement.classList.add('native-tabs');
   <input type="file" id="importInput" accept=".json,application/json" hidden>
 
   <h2 class="ios-section-title" data-i18n="About">About</h2>
-  <div class="aboutbody">
-    <p data-i18n="Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.">Ever since I was young, my parents took me camping often. Lately I have been sharing that love with my friends and showing them the beauty of being outdoors. With that comes the responsibility of booking the campsites, and choosing a site you have never seen is a gamble.</p>
-    <p data-i18n="ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.">ON site is a private journal for Ontario park campgrounds. For the low, low price of a nice walk around the campground, you can rate each site out of five, add a note or a photo, and mark the ones worth booking again. It covers every reservable campground in Ontario’s provincial parks, down to the individual sites, and the trails around them.</p>
-    <p data-i18n="Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.">Ratings, notes and photos are stored on this device, and you can export a backup to a file and load it on another device. Please do not photograph occupied sites, and leave a site the way you would want to find it.</p>
+  <div class="ios-group">
+    <button class="ios-row" id="aboutRowBtn" type="button">
+      <span class="ios-tile ios-tile--blue"><svg aria-hidden="true"><use href="assets/icons.svg#info"/></svg></span>
+      <span class="ios-row-body"><span class="ios-row-title" data-i18n="About ON site">About ON site</span></span>
+      <span class="ios-chevron"><svg aria-hidden="true"><use href="assets/icons.svg#chevron-right"/></svg></span>
+    </button>
   </div>
-  <div class="ios-group" id="aboutStats" style="margin-top:16px"></div>
 
   <h2 class="ios-section-title" data-i18n="Legal">Legal</h2>
   <div class="ios-group">

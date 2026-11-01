@@ -147,7 +147,8 @@ Parks.
   header button), Map (in the app only), Favourites (favourite parks, sites
   you hearted, and parks you have visited that are not already favourites),
   Journal (everything rated, with filters and sorting), More (Learn,
-  Appearance, Your data with Photos and Visibility first, About, Legal, and
+  Appearance, Your data with Photos and Visibility first, About as a row
+  that opens its own screen (the story and the guide's counts), Legal, and
   one closing line: "Not affiliated with Ontario Parks."). There is no
   Profile; the old display name key is kept untouched.
 - The look is iOS itself: system blue tint, system greys and black in dark,
