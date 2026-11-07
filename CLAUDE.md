@@ -143,7 +143,8 @@ Parks.
 
 ## App behaviour to preserve
 
-- Tabs: Parks (region chips, then A to Z with a letter rail; search is the
+- Tabs: Parks (region chips, then A to Z with a letter rail; the letter names
+  scroll with the list, never pinned under the floating top bar; search is the
   header button), Map (in the app only), Favourites (favourite parks, sites
   you hearted, and parks you have visited that are not already favourites),
   Journal (everything rated, with filters and sorting), More (Learn,
