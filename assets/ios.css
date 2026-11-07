@@ -2180,3 +2180,48 @@ html.native-tabs body:has(> .ios-tabbar) {
 /* a screen sliding in never makes the page scroll sideways (clip, not
    hidden, so sticky headers keep working) */
 #views { overflow-x: clip; }
+
+/* =====================================================================
+   App feel: nothing selects on a long press, and the top bar floats.
+   In the app, a long press never selects text, never shows the copy
+   menu and never tints a control blue: only fields take text. The top
+   bar has no frosted panel; its buttons float as glass circles and the
+   content fades softly under the status bar, as iOS 26 does (the scroll
+   edge effect). Tab switches are instant, as in UIKit.
+   ===================================================================== */
+html.native-tabs, html.native-tabs body {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+html.native-tabs :is(input, textarea, [contenteditable="true"]) {
+  -webkit-user-select: text; user-select: text;
+  -webkit-touch-callout: default;
+}
+html.native-tabs *:focus:not(:focus-visible) { outline: none; }
+
+:root body > .ios-header::before, :root .backbar::before {
+  inset: 0 0 -22px 0;
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 55%, transparent 100%);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: none;
+}
+:root body > .ios-header, :root .backbar { pointer-events: none; }
+:root body > .ios-header :is(button, a, input), :root .backbar :is(button, a) { pointer-events: auto; }
+:root .ios-glass-btn, :root .backbtn, :root .acct-back { position: relative; z-index: 1; }
+
+:root:not([data-glass="off"]) #views > section:not(.view-anim):not(.view-out):not(.dragback) { animation: none; }
+/* every glass state of the bars themselves stays clear; only the fade
+   layer above draws */
+body > .ios-header, body > .ios-header.scrolled, body > .ios-header.is-scrolled,
+.backbar, .backbar.scrolled, .backbar.is-scrolled {
+  background: transparent !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-bottom: 0 !important;
+}
+@media (min-width: 1100px) {
+  /* the wide layout keeps a plain top bar, without frost */
+  body > .ios-header, body > .ios-header.scrolled, body > .ios-header.is-scrolled { background: var(--bg) !important; }
+}

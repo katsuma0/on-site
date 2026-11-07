@@ -2025,7 +2025,7 @@ document.addEventListener('pointerdown',function(e){ _hold.fired=false;
   if(e.button>0||document.querySelector('.ctx-layer')) return;
   var el=e.target.closest&&e.target.closest(CTX_SEL); if(!el) return;
   ctxCancelHold(); _hold.el=el; _hold.x=e.clientX; _hold.y=e.clientY; el.classList.add('ctx-holding');
-  _hold.t=setTimeout(function(){ var h=_hold.el; ctxCancelHold(); if(!h) return; _hold.fired=true; openCtx(h); },420); },{passive:true});
+  _hold.t=setTimeout(function(){ var h=_hold.el; ctxCancelHold(); if(!h) return; _hold.fired=true; openCtx(h,true); },420); },{passive:true});
 document.addEventListener('pointermove',function(e){ if(_hold.el&&Math.hypot(e.clientX-_hold.x,e.clientY-_hold.y)>9) ctxCancelHold(); },{passive:true});
 ['pointerup','pointercancel'].forEach(function(t){ document.addEventListener(t,ctxCancelHold,{passive:true}); });
 window.addEventListener('scroll',ctxCancelHold,{passive:true});
@@ -2034,7 +2034,8 @@ document.addEventListener('click',function(e){ if(_hold.fired){ _hold.fired=fals
 document.addEventListener('contextmenu',function(e){ var el=e.target.closest&&e.target.closest(CTX_SEL); if(!el) return;
   e.preventDefault(); ctxCancelHold(); if(!document.querySelector('.ctx-layer')) openCtx(el); });
 function ctxSvg(n){ return '<svg aria-hidden="true"><use href="assets/icons.svg#'+(CTX_ICON[n]||n)+'"/></svg>'; }
-function openCtx(el){ var spec=ctxSpec(el); if(!spec) return;
+function openCtx(el,byTouch){ var spec=ctxSpec(el); if(!spec) return; _ctxTouch=!!byTouch;
+  try{ var sel=window.getSelection&&window.getSelection(); if(sel) sel.removeAllRanges(); }catch(e){}
   haptic('medium');
   var r=el.getBoundingClientRect(), W=innerWidth, H=innerHeight;
   var layer=document.createElement('div'); layer.className='ctx-layer';
@@ -2064,11 +2065,11 @@ function openCtx(el){ var spec=ctxSpec(el); if(!spec) return;
     if(!ev.target.closest('.ctx-menu')) closeCtx(); });
   layer.addEventListener('keydown',function(ev){ if(ev.key==='Escape'){ ev.stopPropagation(); closeCtx(); } });
   _ctxReturn=el; postModalState();
-  requestAnimationFrame(function(){ layer.classList.add('on'); var f=menu.querySelector('button'); if(f) try{ f.focus({preventScroll:true}); }catch(e){} }); }
-var _ctxReturn=null;
+  requestAnimationFrame(function(){ layer.classList.add('on'); if(_ctxTouch) return; var f=menu.querySelector('button'); if(f) try{ f.focus({preventScroll:true}); }catch(e){} }); }
+var _ctxReturn=null, _ctxTouch=false;
 function closeCtx(then){ var layer=document.querySelector('.ctx-layer'); if(!layer){ if(then) then(); return; }
   layer.classList.remove('on'); layer.classList.add('out');
-  var done=false, fin=function(){ if(done) return; done=true; layer.remove(); postModalState(); if(_ctxReturn&&document.contains(_ctxReturn)) try{ _ctxReturn.focus({preventScroll:true}); }catch(e){} _ctxReturn=null; };
+  var done=false, fin=function(){ if(done) return; done=true; layer.remove(); postModalState(); if(!_ctxTouch&&_ctxReturn&&document.contains(_ctxReturn)) try{ _ctxReturn.focus({preventScroll:true}); }catch(e){} _ctxReturn=null; };
   setTimeout(fin,reduceMotion()?0:230); if(then) setTimeout(then,reduceMotion()?0:120); }
 
 /* ---- native motion: segmented controls slide, Learn opens smoothly ---- */

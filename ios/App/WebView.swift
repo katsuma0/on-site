@@ -57,6 +57,8 @@ enum WebScreen {
         webView.scrollView.backgroundColor = background
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.keyboardDismissMode = .interactive
+        // no link previews or press-and-hold callouts: the page has its own
+        webView.allowsLinkPreview = false
         #if DEBUG
         webView.isInspectable = true   // Safari's Develop menu, Web Inspector
         #endif
