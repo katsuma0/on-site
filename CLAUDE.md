@@ -157,6 +157,11 @@ Parks.
   buttons get a 0 to 5 strip for a quick rating; park rows get Open, Add to
   or Remove from favourites, and Official page. The page asks the shell for
   a named haptic (`haptic('medium')` on lift, `'select'` on a choice).
+- In the app nothing selects on a long press (only fields take text). The
+  top bar has no frosted panel: its buttons float as glass circles and the
+  content fades under the status bar.
+- The map's park card has Open in Maps: Apple Maps or Google Maps (the app,
+  else the web page).
 - Motion follows UIKit: rows flash and fade, buttons spring, segmented
   thumbs glide, More's Photos and About push in and pop back, Learn rows
   ease open. All of it stands down under Reduce Motion.

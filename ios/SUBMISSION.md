@@ -97,6 +97,11 @@ Then go through this list on the iPhone, and on an iPad if you have one:
       park opens on the Parks tab. Tap Algonquin: **Campgrounds** lists its
       campgrounds. Tap Arrow Lake: **Official page** opens Safari. A
       favourite shows a red heart and a park you rated a blue check.
+- [ ] Map: tap a pin, then **Open in Maps**: choose Apple Maps or Google
+      Maps and the park opens there (Google Maps in Safari when the app is
+      not installed).
+- [ ] Press and hold a site: a menu with 0 to 5 appears, and no text gets
+      selected and no copy menu shows.
 - [ ] Map in airplane mode: the pins still show, only the map images are
       missing.
 - [ ] Rate a site, add a note, take a photo with **Camera** and add one with

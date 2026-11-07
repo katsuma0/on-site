@@ -105,6 +105,43 @@ private struct ParkCard: View {
     let onOfficial: () -> Void
     let onClose: () -> Void
 
+    // not private: the card is built from ParkMapView with its memberwise
+    // initializer, which a private stored property would hide
+    @State var choosingMaps = false
+    @Environment(\.openURL) var openURL
+
+    /// What a maps app searches for: the park's full name, in Ontario.
+    private var mapsQuery: String { "\(park.name) Provincial Park, Ontario" }
+
+    /// Apple Maps: the park by name, near its pin.
+    private var appleMapsURL: URL? {
+        var c = URLComponents(string: "https://maps.apple.com/")
+        c?.queryItems = [URLQueryItem(name: "q", value: mapsQuery),
+                         URLQueryItem(name: "ll", value: "\(park.latitude),\(park.longitude)")]
+        return c?.url
+    }
+
+    /// Google Maps: the app when it is installed, else the web page (which
+    /// itself hands over to the app where it can).
+    private var googleAppURL: URL? {
+        var c = URLComponents(string: "comgooglemaps://")
+        c?.queryItems = [URLQueryItem(name: "q", value: mapsQuery),
+                         URLQueryItem(name: "center", value: "\(park.latitude),\(park.longitude)")]
+        return c?.url
+    }
+    private var googleWebURL: URL? {
+        var c = URLComponents(string: "https://www.google.com/maps/search/")
+        c?.queryItems = [URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "query", value: mapsQuery)]
+        return c?.url
+    }
+
+    private func openGoogle() {
+        guard let app = googleAppURL else { if let web = googleWebURL { openURL(web) }; return }
+        openURL(app) { opened in
+            if !opened, let web = googleWebURL { openURL(web) }
+        }
+    }
+
     private var fr: Bool { lang == "fr" }
 
     private var kindsLine: String {
@@ -176,6 +213,20 @@ private struct ParkCard: View {
                     }
                     .modifier(SecondaryButton())
                 }
+            }
+            Button { choosingMaps = true } label: {
+                Label(fr ? "Ouvrir dans Plans" : "Open in Maps", systemImage: "map")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 34)
+            }
+            .modifier(SecondaryButton())
+            .confirmationDialog(fr ? "Ouvrir \(park.name) dans" : "Open \(park.name) in",
+                                isPresented: $choosingMaps, titleVisibility: .visible) {
+                Button(fr ? "Plans d’Apple" : "Apple Maps") {
+                    if let url = appleMapsURL { openURL(url) }
+                }
+                Button("Google Maps") { openGoogle() }
+                Button(fr ? "Annuler" : "Cancel", role: .cancel) {}
             }
         }
         .padding(18)
