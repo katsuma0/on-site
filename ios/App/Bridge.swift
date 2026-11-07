@@ -34,7 +34,7 @@ enum NativeBridge {
       window.Capacitor = window.Capacitor || {
         isNativePlatform: function () { return true; },
         getPlatform: function () { return 'ios'; },
-        Plugins: { Haptics: { impact: function () { post('haptic', 1); } } }
+        Plugins: { Haptics: { impact: function (o) { post('haptic', String((o && o.style) || 'light').toLowerCase()); } } }
       };
       try {
         Object.defineProperty(navigator, 'vibrate', {

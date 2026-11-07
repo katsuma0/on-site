@@ -151,6 +151,15 @@ Parks.
   that opens its own screen (the story and the guide's counts), Legal, and
   one closing line: "Not affiliated with Ontario Parks."). There is no
   Profile; the old display name key is kept untouched.
+- Press and hold (Haptic Touch, `openCtx` in `app.js`): a site, Rate
+  campground, Rate this park, or a park row in Parks, Favourites or the
+  Journal lifts out of a blurred screen with a glass menu. Sites and rating
+  buttons get a 0 to 5 strip for a quick rating; park rows get Open, Add to
+  or Remove from favourites, and Official page. The page asks the shell for
+  a named haptic (`haptic('medium')` on lift, `'select'` on a choice).
+- Motion follows UIKit: rows flash and fade, buttons spring, segmented
+  thumbs glide, More's Photos and About push in and pop back, Learn rows
+  ease open. All of it stands down under Reduce Motion.
 - The look is iOS itself: system blue tint, system greys and black in dark,
   the system font, and Settings' metrics (16pt margins, 24pt card corners,
   48pt rows with 16pt insets, 17pt semibold section names, glass circle back

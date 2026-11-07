@@ -119,6 +119,9 @@ var FR={
   'Terms of use':'Conditions d’utilisation','Support':'Assistance',
   'Not affiliated with Ontario Parks.':'Sans lien avec Parcs Ontario.',
   'About ON site':'À propos de ON site',
+  'Add to wishlist':'Ajouter à la liste de souhaits','Remove from wishlist':'Retirer de la liste de souhaits',
+  'Mark as trailer site':'Marquer pour roulottes','Not a trailer site':'Pas pour roulottes',
+  'Add to favourites':'Ajouter aux favoris','Official page':'Page officielle','Share rating':'Partager l’évaluation',
   'Parks in guide':'Parcs dans le guide','Version':'Version',
   'Browse the parks':'Parcourir les parcs',
   /* settings */
@@ -1937,16 +1940,22 @@ function setHeaderHidden(h){ var el=document.getElementById('iosHeader'); if(el)
 function setTabActive(tab){ var tb=document.getElementById('tabbar');
   if(tb) tb.querySelectorAll('.tab').forEach(function(b){ var on=b.dataset.tab===tab; b.classList.toggle('active',on);
     if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
+var CUR_TAB='guide';
 function showTab(tab){
   if(!TAB_SECTIONS[tab]) tab='guide';
+  var fromTab=CUR_TAB; CUR_TAB=tab;
   if(tab!=='search') LAST_TAB_BEFORE_SEARCH=tab;
   ALL_VIEWS.forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
   var target=document.getElementById(tab==='guide'?'view-parks':TAB_SECTIONS[tab]);
   if(target){
     /* a tab switch is a fresh mount: shed any push, pop or no-anim class a
        previous visit left behind so the glass-in entry can play */
-    target.classList.remove('view-anim','view-out','no-anim');
+    target.classList.remove('view-anim','view-out','no-anim','push','pop');
     target.hidden=false;
+    /* More's own screens push in from the right and back out to it, as in Settings */
+    if(!reduceMotion()){
+      if((tab==='photos'||tab==='about')&&fromTab==='more'){ void target.offsetWidth; target.classList.add('view-anim','push'); }
+      else if(tab==='more'&&(fromTab==='photos'||fromTab==='about')){ void target.offsetWidth; target.classList.add('view-anim','pop'); } }
   }
   setHeaderHidden(false);
   setTabActive(tab);
@@ -1967,6 +1976,121 @@ function closeSettings(){}
 (function(){ var tb=document.getElementById('tabbar');
   if(tb) tb.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.tab'); if(b){ showTab(b.dataset.tab); if(typeof buzz==='function') buzz(6); } }); })();
 settingsBackdrop.addEventListener('click',closeSettings);
+
+/* ---- Haptic Touch: press and hold for quick actions ----
+   As on iOS: hold a site, a rating button or a park row and it eases down a
+   touch, then lifts out of a blurred screen with a glass menu beside it and
+   a firm tap. A site or a rating button offers the 0 to 5 scores in a strip
+   above the menu, so a site can be rated without opening its sheet. A tap
+   anywhere else, or Escape, puts it back. A right click does the same on a
+   computer. */
+function haptic(kind){
+  try{ if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.haptic){ window.webkit.messageHandlers.haptic.postMessage(kind||'light'); return; } }catch(e){}
+  buzz(kind==='medium'?14:8); }
+function reduceMotion(){ try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+var CTX_SEL='.site[data-key]:not(.add-site), [data-cgrate], #parkRate, #parkList [data-park], #favsBody [data-park]:not([data-site]), #journalBody .jpark[data-pid] > .jpark-head';
+var CTX_ICON={ open:'chevron-right', star:'star', tent:'tent', heart:'heart', link:'link-out', share:'share', trash:'trash' };
+function ctxTarget(type,k,cg,site){ return {type:type,k:k,cg:cg,site:site,trailName:null}; }
+/* run a change as the rating sheet would, against a target that is not open */
+function ctxApply(t,fn){ cur=ctxTarget(t.type,t.k,t.cg,t.site); var e=ensure(); fn(e);
+  if(emptyShell(e)&&!photoKeys.has(t.k)) delete state[t.type][t.k]; afterChange(); }
+function ctxSpec(el){
+  if(el.matches('.site[data-key]')&&curPark){
+    var k=el.dataset.key, cg=k.split('#')[1], s=el.dataset.site, t=ctxTarget('site',k,cg,s), v=sc('site',k), w=wantOf(k), tr=trailerOf(k);
+    var items=[{label:TL('Open'),icon:'open',run:function(){ openSheet('site',k,cg,s); }},
+      {label:TL(w?'Remove from wishlist':'Add to wishlist'),icon:'star',run:function(){ ctxApply(t,function(e){ e.want=!w; }); if(!w&&v==null) showThemeToast(TL('Added to your wishlist.')); }},
+      {label:TL(tr?'Not a trailer site':'Mark as trailer site'),icon:'tent',run:function(){ ctxApply(t,function(e){ if(tr) delete e.trailer; else e.trailer=true; }); if(typeof updateFootAll==='function') updateFootAll(); }}];
+    if(v!=null) items.push({label:TL('Share rating'),icon:'share',run:function(){ cur=ctxTarget('site',k,cg,s); shareRating(); }});
+    if(v!=null) items.push({label:TL('Clear rating'),icon:'trash',destructive:true,run:function(){ ctxApply(t,function(e){ e.score=null; }); }});
+    return {title:TL('Site')+' '+s,rate:{t:t,v:v},items:items}; }
+  if((el.matches('[data-cgrate]')||el.id==='parkRate')&&curPark){
+    var park=el.id==='parkRate', cgId=park?curPark.name:(el.closest('.cg')||{}).dataset&&el.closest('.cg').dataset.cg;
+    if(!cgId) return null;
+    var kk=cidOf(curPark.id,cgId), tt=ctxTarget('campground',kk,cgId,null), vv=sc('campground',kk);
+    var it=[{label:TL('Open'),icon:'open',run:function(){ openSheet('campground',kk,cgId,null); }}];
+    if(vv!=null) it.push({label:TL('Clear rating'),icon:'trash',destructive:true,run:function(){ ctxApply(tt,function(e){ e.score=null; }); }});
+    var cgObj=park?null:CG_BY_ID(cgId);
+    return {title:park?curPark.name:((cgObj&&cgObj.name)||cgId),rate:{t:tt,v:vv},items:it}; }
+  var row=el.closest('[data-park],[data-pid]'); var pid=row&&(row.dataset.park||row.dataset.pid), p=pid&&PARK_BY_ID[pid];
+  if(p){ var fav=isFav('parks',pid), host=(el.closest('#favsBody')?'view-favs':el.closest('#journalBody')?null:'view-parks');
+    var its=[{label:TL('Open'),icon:'open',run:function(){ if(host) openPark(pid,host); else openParkFromOutside(pid); }},
+      {label:TL(fav?'Remove from favourites':'Add to favourites'),icon:'heart',destructive:fav,run:function(){ toggleFav('parks',pid);
+        var vf=document.getElementById('view-favs'); if(vf&&!vf.hidden) renderFavs(); }}];
+    if(p.url) its.push({label:TL('Official page'),icon:'link',run:function(){ window.open(p.url,'_blank','noopener'); }});
+    return {title:p.name,items:its}; }
+  return null; }
+var _hold={t:0,el:null,x:0,y:0,fired:false};
+function ctxCancelHold(){ clearTimeout(_hold.t); if(_hold.el) _hold.el.classList.remove('ctx-holding'); _hold.el=null; }
+document.addEventListener('pointerdown',function(e){ _hold.fired=false;
+  if(e.button>0||document.querySelector('.ctx-layer')) return;
+  var el=e.target.closest&&e.target.closest(CTX_SEL); if(!el) return;
+  ctxCancelHold(); _hold.el=el; _hold.x=e.clientX; _hold.y=e.clientY; el.classList.add('ctx-holding');
+  _hold.t=setTimeout(function(){ var h=_hold.el; ctxCancelHold(); if(!h) return; _hold.fired=true; openCtx(h); },420); },{passive:true});
+document.addEventListener('pointermove',function(e){ if(_hold.el&&Math.hypot(e.clientX-_hold.x,e.clientY-_hold.y)>9) ctxCancelHold(); },{passive:true});
+['pointerup','pointercancel'].forEach(function(t){ document.addEventListener(t,ctxCancelHold,{passive:true}); });
+window.addEventListener('scroll',ctxCancelHold,{passive:true});
+/* the lift ends a hold, not a tap: the click that follows it does nothing */
+document.addEventListener('click',function(e){ if(_hold.fired){ _hold.fired=false; e.preventDefault(); e.stopPropagation(); } },true);
+document.addEventListener('contextmenu',function(e){ var el=e.target.closest&&e.target.closest(CTX_SEL); if(!el) return;
+  e.preventDefault(); ctxCancelHold(); if(!document.querySelector('.ctx-layer')) openCtx(el); });
+function ctxSvg(n){ return '<svg aria-hidden="true"><use href="assets/icons.svg#'+(CTX_ICON[n]||n)+'"/></svg>'; }
+function openCtx(el){ var spec=ctxSpec(el); if(!spec) return;
+  haptic('medium');
+  var r=el.getBoundingClientRect(), W=innerWidth, H=innerHeight;
+  var layer=document.createElement('div'); layer.className='ctx-layer';
+  var dim=document.createElement('div'); dim.className='ctx-dim'; layer.appendChild(dim);
+  var pv=el.cloneNode(true); pv.removeAttribute('id'); pv.querySelectorAll('[id]').forEach(function(n){ n.removeAttribute('id'); });
+  pv.classList.remove('ctx-holding'); pv.classList.add('ctx-preview'); pv.setAttribute('aria-hidden','true'); pv.tabIndex=-1;
+  var cs=getComputedStyle(el);
+  pv.style.cssText+=';position:fixed;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;border-radius:'+(parseFloat(cs.borderRadius)>0?cs.borderRadius:'16px')+';background:'+(el.style.background||cs.backgroundColor);
+  layer.appendChild(pv);
+  var menu=document.createElement('div'); menu.className='ctx-menu'; menu.setAttribute('role','menu'); menu.setAttribute('aria-label',spec.title);
+  var html='';
+  if(spec.rate){ html+='<div class="ctx-rate" role="group" aria-label="'+esc(TL('Rating'))+'">'+[0,1,2,3,4,5].map(function(n){
+      var on=spec.rate.v===n; return '<button type="button" class="ctx-score'+(on?' on':'')+'" data-score="'+n+'" role="menuitemradio" aria-checked="'+on+'"'+(on?' style="background:'+scoreColor(n)+'"':'')+'>'+n+'</button>'; }).join('')+'</div>'; }
+  html+='<div class="ctx-list">'+spec.items.map(function(it,i){ return '<button type="button" class="ctx-item'+(it.destructive?' destructive':'')+'" role="menuitem" data-i="'+i+'"><span>'+esc(it.label)+'</span>'+ctxSvg(it.icon)+'</button>'; }).join('')+'</div>';
+  menu.innerHTML=html; layer.appendChild(menu); document.body.appendChild(layer);
+  /* the menu sits under the item, or over it when there is no room, never under the tab bar */
+  var mw=Math.min(280,W-32), mh=menu.offsetHeight, top0=60, bottomRoom=H-104;
+  var below=r.bottom+10, above=r.top-10-mh, top=below+mh<=bottomRoom?below:(above>=top0?above:Math.max(top0,bottomRoom-mh));
+  var left=Math.min(Math.max(16,r.left),W-16-mw);
+  menu.style.width=mw+'px'; menu.style.left=left+'px'; menu.style.top=top+'px';
+  menu.style.transformOrigin=((r.left+r.width/2)<W/2?'left ':'right ')+(top>=r.bottom?'top':'bottom');
+  layer.addEventListener('click',function(ev){
+    var sb=ev.target.closest('.ctx-score'); if(sb){ var n=+sb.dataset.score; haptic('select');
+      menu.querySelectorAll('.ctx-score').forEach(function(b){ var on=b===sb&&spec.rate.v!==n; b.classList.toggle('on',on); b.style.background=on?scoreColor(n):''; b.setAttribute('aria-checked',String(on)); });
+      sb.classList.add('pop'); ctxApply(spec.rate.t,function(e){ e.score=(e.score===n?null:n); }); setTimeout(closeCtx,220); return; }
+    var ib=ev.target.closest('.ctx-item'); if(ib){ var it=spec.items[+ib.dataset.i]; haptic('select'); closeCtx(function(){ it.run(); }); return; }
+    if(!ev.target.closest('.ctx-menu')) closeCtx(); });
+  layer.addEventListener('keydown',function(ev){ if(ev.key==='Escape'){ ev.stopPropagation(); closeCtx(); } });
+  _ctxReturn=el; postModalState();
+  requestAnimationFrame(function(){ layer.classList.add('on'); var f=menu.querySelector('button'); if(f) try{ f.focus({preventScroll:true}); }catch(e){} }); }
+var _ctxReturn=null;
+function closeCtx(then){ var layer=document.querySelector('.ctx-layer'); if(!layer){ if(then) then(); return; }
+  layer.classList.remove('on'); layer.classList.add('out');
+  var done=false, fin=function(){ if(done) return; done=true; layer.remove(); postModalState(); if(_ctxReturn&&document.contains(_ctxReturn)) try{ _ctxReturn.focus({preventScroll:true}); }catch(e){} _ctxReturn=null; };
+  setTimeout(fin,reduceMotion()?0:230); if(then) setTimeout(then,reduceMotion()?0:120); }
+
+/* ---- native motion: segmented controls slide, Learn opens smoothly ---- */
+/* a segmented control re-renders on a tap; the selected thumb glides from
+   the old choice to the new one, as UISegmentedControl does */
+document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('.segmented > button'); if(!b||reduceMotion()) return;
+  var seg=b.parentElement, label=seg.getAttribute('aria-label'), old=seg.querySelector('.on,[aria-pressed="true"]'); if(!old||old===b) return;
+  var sr=seg.getBoundingClientRect(), or=old.getBoundingClientRect(), from={x:or.left-sr.left,y:or.top-sr.top,w:or.width,h:or.height};
+  var bg=getComputedStyle(old).backgroundColor, rad=getComputedStyle(old).borderRadius;
+  requestAnimationFrame(function(){ var s2=(label&&document.querySelector('.segmented[aria-label="'+CSS.escape(label)+'"]'))||seg; var on=s2.querySelector('.on,[aria-pressed="true"]'); if(!on) return;
+    var r2=s2.getBoundingClientRect(), nr=on.getBoundingClientRect();
+    var g=document.createElement('span'); g.className='seg-ghost'; g.style.cssText='left:'+from.x+'px;top:'+from.y+'px;width:'+from.w+'px;height:'+from.h+'px;background:'+bg+';border-radius:'+rad;
+    s2.appendChild(g); s2.classList.add('sliding');
+    var a=g.animate([{left:from.x+'px',width:from.w+'px'},{left:(nr.left-r2.left)+'px',width:nr.width+'px'}],{duration:320,easing:'cubic-bezier(.3,1.2,.45,1)',fill:'forwards'});
+    a.onfinish=a.oncancel=function(){ g.remove(); s2.classList.remove('sliding'); }; }); },true);
+/* Learn: a row opens and closes with an eased height, not a jump */
+document.addEventListener('click',function(e){ var sm=e.target.closest&&e.target.closest('details.cell-details > summary'); if(!sm||reduceMotion()) return;
+  var d=sm.parentElement, body=d.querySelector('.cell-detail-body'); if(!body||d.dataset.anim) return;
+  e.preventDefault(); d.dataset.anim='1';
+  if(!d.open){ d.open=true; var h=body.scrollHeight; var a=body.animate([{height:'0px',opacity:0},{height:h+'px',opacity:1}],{duration:300,easing:'cubic-bezier(.3,1,.4,1)'}); a.onfinish=function(){ delete d.dataset.anim; }; }
+  else { var h2=body.scrollHeight; var b2=body.animate([{height:h2+'px',opacity:1},{height:'0px',opacity:0}],{duration:240,easing:'cubic-bezier(.4,0,.6,1)'}); b2.onfinish=function(){ d.open=false; delete d.dataset.anim; }; }
+  haptic('light'); });
 
 /* ---- learn and safety ---- */
 function renderLearn(){
@@ -2155,7 +2279,7 @@ var NATIVE_TABS=!!window.__onNativeTabs;
 function nativeChrome(msg){ if(!window.__onNativeTabs) return;
   try{ window.webkit.messageHandlers.chrome.postMessage(msg); }catch(e){} }
 var _lastModal=null;
-function postModalState(){ var on=!!document.querySelector('.sheet.on, #lightbox.on');
+function postModalState(){ var on=!!document.querySelector('.sheet.on, #lightbox.on, .ctx-layer');
   if(on===_lastModal) return; _lastModal=on; nativeChrome({modal:on}); }
 if(NATIVE_TABS){
   try{ var mo=new MutationObserver(postModalState);
