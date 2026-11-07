@@ -279,7 +279,9 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
                                didReceive message: WKScriptMessage) {
         switch message.name {
         case "haptic":
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            // a style name from the page ("medium" when a press-and-hold
+            // menu opens, "select" for a choice in it); anything else is light
+            Haptics.play(message.body as? String ?? "light")
         case "share":
             if let body = message.body as? [String: Any] { handleShare(body) }
         case "spotlight":
@@ -480,6 +482,21 @@ final class WebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate,
         var top = window?.rootViewController
         while let presented = top?.presentedViewController { top = presented }
         return top
+    }
+}
+
+/// The page's haptics, mapped to the system feedback generators.
+enum Haptics {
+    static func play(_ kind: String) {
+        switch kind.lowercased() {
+        case "medium": UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        case "heavy": UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        case "rigid": UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+        case "soft": UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        case "select": UISelectionFeedbackGenerator().selectionChanged()
+        case "success": UINotificationFeedbackGenerator().notificationOccurred(.success)
+        default: UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
     }
 }
 
