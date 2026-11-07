@@ -2225,3 +2225,19 @@ body > .ios-header, body > .ios-header.scrolled, body > .ios-header.is-scrolled,
   /* the wide layout keeps a plain top bar, without frost */
   body > .ios-header, body > .ios-header.scrolled, body > .ios-header.is-scrolled { background: var(--bg) !important; }
 }
+
+/* The letter names scroll with the list, like the section names in
+   Settings, instead of pinning under the floating top bar (where they
+   left a hard band across the fade). The rail still jumps to each one. */
+:root .az-head {
+  position: static;
+  background: none;
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 600;
+  text-transform: none;
+  color: var(--label-2);
+  padding: 0 var(--row-pad) 10px;
+}
+:root .az-sec { scroll-margin-top: calc(var(--sa-top) + 64px); }
